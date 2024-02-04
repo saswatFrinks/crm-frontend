@@ -1,8 +1,8 @@
-import React from 'react';
 import logo from '@/assets/logo.svg';
 import Input from '@/shared/ui/Input';
 import Label from '@/shared/ui/Label';
 import Button from '@/shared/ui/Button';
+import { Link } from 'react-router-dom';
 
 export default function Login() {
   return (
@@ -30,7 +30,9 @@ export default function Login() {
           Unable to login? Reach out to{' '}
           <span className="font-semibold">Administrator</span>
         </p>
-        <Button color="flat">Sign up</Button>
+        <Link to={'/register'} className="mx-auto block w-full">
+          <Button color="flat">Sign up</Button>
+        </Link>
       </div>
     </div>
   );
