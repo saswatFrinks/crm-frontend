@@ -6,7 +6,7 @@ export default function Input({ ...props }) {
       <input
         type="text"
         id="default-search"
-        className=" focus:outline-f-primary focus:ring-f-primary focus:border-f-primary w-full rounded-md border px-4 py-2.5 outline-1 placeholder:text-gray-400  focus:outline-[2px]"
+        className=" w-full rounded-md border px-4 py-2.5 outline-1 placeholder:text-gray-400 focus:border-f-primary focus:outline-[2px] focus:outline-f-primary  focus:ring-f-primary focus-visible:outline-f-primary"
         placeholder="Placeholder text"
         required=""
         {...props}

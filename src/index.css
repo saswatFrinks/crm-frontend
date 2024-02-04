@@ -20,11 +20,4 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-input:focus-visible {
-  outline: none!important;
-}
 
-
-input:focus {
-  outline-width: 2px;
-}
