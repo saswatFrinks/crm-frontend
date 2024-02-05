@@ -6,6 +6,10 @@ import { Link } from 'react-router-dom';
 import authService from '../auth.service';
 import toast from 'react-hot-toast';
 import { useFormik } from 'formik';
+import storageService from '@/core/storage';
+import { TOKEN } from '@/core/constants';
+import axiosInstance from '@/core/request/aixosinstance';
+import { updateAuthenHeader } from '@/core/request/updateAuth';
 
 export default function Login() {
   const formik = useFormik({
@@ -36,7 +40,11 @@ export default function Login() {
     onSubmit: async (values) => {
       console.log(values);
       try {
-        await authService.login(values);
+        const res = await authService.login(values);
+
+        storageService.set(TOKEN, res.data.data.token);
+        updateAuthenHeader(res.data.data.token);
+
         toast.success('Login successfully!');
       } catch (error) {
         // formik.setFieldError('password', 'Incorrect password');

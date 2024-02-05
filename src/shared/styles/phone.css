@@ -1,0 +1,15 @@
+.PhoneInputInput {
+  @apply absolute left-0 top-0 mb-1 w-full rounded-md border px-4  py-2.5  pl-14 outline-1 placeholder:text-gray-400 focus:border-f-primary focus:outline-[2px] focus:outline-f-primary focus:ring-f-primary focus-visible:outline-f-primary;
+}
+
+.PhoneInput {
+  @apply relative h-[46px];
+}
+
+.PhoneInput.error .PhoneInputInput {
+  @apply border-red-500;
+}
+
+.PhoneInputCountry {
+  @apply absolute left-4 top-1/2 z-10 -translate-y-1/2;
+}
