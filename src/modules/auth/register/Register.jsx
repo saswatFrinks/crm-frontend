@@ -126,7 +126,7 @@ export default function Register() {
                 name="phone"
                 onChange={setPhone}
                 value={phone}
-                errorMessage={!phone ? 'Phone number is required' : null}
+                errorMessage={ formik.dirty && !phone ? 'Phone number is required' : null}
               />
             </div>
 
