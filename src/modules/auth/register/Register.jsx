@@ -10,7 +10,7 @@ export default function Register() {
     <div className="flex h-screen flex-col items-center justify-center">
       <img src={logo} alt="logo" className="mb-8" />
 
-      <div className="flex  flex-col gap-6 rounded-lg border-[1px] border-gray-500  bg-white p-6 shadow dark:border-gray-700 dark:bg-gray-800">
+      <div className="flex  flex-col gap-6 rounded-lg border-[1px] border-gray-500  bg-white p-6 shadow ">
         <h1 className=" text-center text-4xl font-bold">
           Welcome to Frinks AI
         </h1>
