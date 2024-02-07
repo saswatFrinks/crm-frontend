@@ -2,16 +2,16 @@ import logo from '@/assets/logo.svg';
 import Input from '@/shared/ui/Input';
 import Label from '@/shared/ui/Label';
 import Button from '@/shared/ui/Button';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import authService from '../auth.service';
 import toast from 'react-hot-toast';
 import { useFormik } from 'formik';
 import storageService from '@/core/storage';
 import { TOKEN } from '@/core/constants';
-import axiosInstance from '@/core/request/aixosinstance';
 import { updateAuthenHeader } from '@/core/request/updateAuth';
 
 export default function Login() {
+  const navigate = useNavigate();
   const formik = useFormik({
     initialValues: {
       email: '',
@@ -44,7 +44,7 @@ export default function Login() {
 
         storageService.set(TOKEN, res.data.data.token);
         updateAuthenHeader(res.data.data.token);
-
+        navigate('/');
         toast.success('Login successfully!');
       } catch (error) {
         // formik.setFieldError('password', 'Incorrect password');

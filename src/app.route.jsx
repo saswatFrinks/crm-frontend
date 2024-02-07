@@ -1,24 +1,44 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import ErrorBoundary from './shared/ui/ErrorBoundary';
-import { Suspense } from 'react';
-import Register from '@/modules/auth/register/Register';
-import Login from '@/modules/auth/login/Login';
-import { Toaster } from 'react-hot-toast';
+import Analytic from './modules/analytics/Analytic';
+import Login from './modules/auth/login/Login';
+import Register from './modules/auth/register/Register';
+import Home from './modules/home/Home';
+import Lisence from './modules/lisence/Lisence';
+import TeamAndUser from './modules/team-user/TeamAndUser';
+import MainLayout from './shared/layouts/main/main-layout';
 
-export default function AppRoutes() {
-  return (
-    <>
-      <Toaster position="top-center" reverseOrder={false} />
-      <ErrorBoundary>
-        <BrowserRouter>
-          <Suspense fallback={'...Loading'}>
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-            </Routes>
-          </Suspense>
-        </BrowserRouter>
-      </ErrorBoundary>
-    </>
-  );
-}
+import { createBrowserRouter } from 'react-router-dom';
+
+const router = createBrowserRouter([
+  {
+    path: 'login',
+    element: <Login />,
+  },
+  {
+    path: 'register',
+    element: <Register />,
+  },
+  {
+    path: '/',
+    element: <MainLayout />,
+    children: [
+      {
+        path: '',
+        element: <Home />,
+      },
+      {
+        path: 'teams-users',
+        element: <TeamAndUser />,
+      },
+      {
+        path: 'analytics',
+        element: <Analytic />,
+      },
+      {
+        path: 'lisence-payments',
+        element: <Lisence />,
+      },
+    ],
+  },
+]);
+
+export default router;

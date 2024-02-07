@@ -16,7 +16,7 @@ export default function Button({
           flat: 'bg-f-flat text-f-primary',
         },
         size: {
-          xs: 'text-xs py-1',
+          xs: 'text-sm py-2',
           sm: 'text-base py-2.5',
           md: 'text-lg py-3',
           lg: 'text-lg py-4',
