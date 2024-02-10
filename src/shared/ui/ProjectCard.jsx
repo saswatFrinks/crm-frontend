@@ -4,10 +4,9 @@ import { FiFilePlus } from 'react-icons/fi';
 import Button from './Button';
 import { HiDotsVertical } from 'react-icons/hi';
 import { FaRegCopy } from 'react-icons/fa';
-import { FaRegEdit } from 'react-icons/fa';
 import { FaRegTrashCan } from 'react-icons/fa6';
-import useClickOutSide from '../hooks/useClickOutside';
 import { FiEdit2 } from 'react-icons/fi';
+import useClickOutSide from '../hooks/useClickOutside';
 import { useSetRecoilState } from 'recoil';
 import { modalAtom } from '../states/modal.state';
 

@@ -45,8 +45,8 @@ export default function Sidebar() {
               className={({ isActive }) => {
                 const clx = isActive
                   ? 'active bg-f-primary text-white hover:bg-f-primary hover:text-white'
-                  : '';
-                return `${clx} flex items-center gap-2 rounded-md px-2 py-2 duration-100 hover:bg-gray-100 hover:text-black`;
+                  : 'hover:bg-gray-100 ';
+                return `${clx} flex items-center gap-2 rounded-md px-2 py-2 duration-100 hover:text-black`;
               }}
             >
               <t.icon /> <span>{t.title}</span>
