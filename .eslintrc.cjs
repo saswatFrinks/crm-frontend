@@ -17,6 +17,13 @@ module.exports = {
       { allowConstantExport: true },
     ],
     'react/prop-types': ['off'],
-    'no-unused-vars': ['warn']
+    'no-unused-vars': ['warn'],
+    'react-hooks/rules-of-hooks': 'error',
+    'react-hooks/exhaustive-deps': [
+      'warn',
+      {
+        additionalHooks: '(useRecoilCallback|useRecoilTransaction_UNSTABLE)',
+      },
+    ],
   },
-}
+};
