@@ -1,18 +1,40 @@
 import { IoClose } from 'react-icons/io5';
-import Button from './Button';
+import { tv } from 'tailwind-variants';
 
 export default function Drawer(props) {
-  const { isOpen, handleClose, title, handleSubmit, children } = props;
+  const { isOpen, handleClose, title, children, footer = null, size } = props;
+
+  const backdrop = tv({
+    base: 'fixed left-0 top-0 z-40 flex h-full w-full  bg-[#B4B6B8]/50 duration-200',
+    variants: {
+      isOpen: {
+        false: 'hidden opacity-0',
+      },
+    },
+  });
+
+  const container = tv({
+    base: 'fixed top-0 z-50 h-full w-full bg-white duration-200',
+    variants: {
+      isOpen: {
+        true: 'right-0',
+        false: '-right-full',
+      },
+      size: {
+        md: 'max-w-3xl',
+        sm: 'max-w-xl',
+        xs: 'max-w-lg'
+      },
+    },
+    defaultVariants: {
+      size: 'md',
+    },
+  });
 
   return (
     <>
-      <div
-        className={`fixed left-0 top-0 z-40 flex h-full w-full  bg-[#B4B6B8]/50 duration-200 ${isOpen ? '' : 'hidden opacity-0'}`}
-        onClick={handleClose}
-      ></div>
-      <div
-        className={`fixed  top-0 z-50 h-full w-full max-w-3xl bg-white duration-200 ${isOpen ? 'right-0' : '-right-full'}`}
-      >
+      <div className={backdrop({ isOpen })} onClick={handleClose}></div>
+      <div className={container({ isOpen, size })}>
         <div className="flex justify-between border border-b-[1px] px-4 py-2">
           {title}
           <IoClose size={20} className="cursor-pointer" onClick={handleClose} />
@@ -22,14 +44,7 @@ export default function Drawer(props) {
         </div>
 
         <div className=" flex justify-end border-t-[1px] px-4 pt-2">
-          <div className="flex w-1/3 items-end justify-end gap-2">
-            <Button size="xs" color="flat" onClick={handleClose}>
-              Cancel
-            </Button>
-            <Button size="xs" onClick={handleSubmit}>
-              Creat Project
-            </Button>
-          </div>
+          {footer}
         </div>
       </div>
     </>

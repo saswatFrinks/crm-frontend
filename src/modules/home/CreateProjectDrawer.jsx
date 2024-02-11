@@ -9,8 +9,6 @@ import toast from 'react-hot-toast';
 import { useFormik } from 'formik';
 
 const CreateProjectDrawer = React.forwardRef((props, ref) => {
-  const { openDrawer, closeDrawer } = props;
-
   const formik = useFormik({
     initialValues: {
       name: '',

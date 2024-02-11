@@ -1,7 +1,8 @@
 import React from 'react';
-import { useRecoilState } from 'recoil';
+import { useRecoilState, useSetRecoilState } from 'recoil';
 import { modalAtom } from '../states/modal.state';
 import useClickOutSide from '../hooks/useClickOutside';
+import { IoClose } from 'react-icons/io5';
 
 export default function Modal({ children }) {
   const [open, setOpenModal] = useRecoilState(modalAtom);
@@ -13,8 +14,33 @@ export default function Modal({ children }) {
   if (!open) return null;
 
   return (
-    <div className="fixed left-0 top-0 z-50 flex h-full w-full items-center justify-center bg-gray-100/75">
-      <div ref={ref}>{children}</div>
+    <div className="fixed left-0 top-0 z-50 flex h-full w-full items-center justify-center bg-[#E3E5E5]/70">
+      <div ref={ref} className="w-full max-w-lg rounded-md bg-white shadow-lg">
+        {children}
+      </div>
     </div>
   );
+}
+
+export function ModalHeader({ children }) {
+  const setOpenModal = useSetRecoilState(modalAtom);
+
+  return (
+    <div className="flex items-center justify-between border-b-[1px] p-5">
+      <h3 className="font-semibold">{children}</h3>
+      <IoClose
+        size={16}
+        className="cursor-pointer"
+        onClick={() => setOpenModal(false)}
+      />
+    </div>
+  );
+}
+
+export function ModalBody({ children }) {
+  return <div className="p-5">{children}</div>;
+}
+
+export function ModalFooter({ children }) {
+  return <div className="border-t-[1px]  p-5">{children}</div>;
 }

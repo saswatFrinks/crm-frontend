@@ -3,7 +3,7 @@ import Drawer from '@/shared/ui/Drawer';
 import Project from '@/shared/ui/ProjectCard';
 import React from 'react';
 import CreateProjectDrawer from './CreateProjectDrawer';
-import Modal from '@/shared/ui/Modal';
+import Modal, { ModalBody, ModalFooter, ModalHeader } from '@/shared/ui/Modal';
 import { useSetRecoilState } from 'recoil';
 import { modalAtom } from '@/shared/states/modal.state';
 import { IoClose } from 'react-icons/io5';
@@ -27,38 +27,26 @@ export default function Home() {
   return (
     <>
       <Modal>
-        <div className="w-full max-w-lg rounded-md bg-white shadow-lg">
-          <div className="flex items-center justify-between border-b-[1px] p-5">
-            <h3 className="font-semibold">Confirmation Message</h3>
-            <IoClose
-              size={16}
-              className="cursor-pointer"
-              onClick={() => setOpenModal(false)}
-            />
+        <ModalHeader>Confirmation Message</ModalHeader>
+
+        <ModalBody>
+          <p>
+            The project <span className="font-semibold">#Project Name</span> and
+            assosiated date will be permanently deleted, do you want to
+            continue?
+          </p>
+        </ModalBody>
+
+        <ModalFooter>
+          <div className="ml-auto flex w-2/3 items-center gap-4">
+            <Button size="xs" color="flat" onClick={() => setOpenModal(false)}>
+              Cancel
+            </Button>
+            <Button size="xs" s>
+              Delete
+            </Button>
           </div>
-          <div className="p-5">
-            <p>
-              The project <span className="font-semibold">#Project Name</span> and
-              assosiated date will be permanently deleted, do you want to
-              continue?
-            </p>
-          </div>
-          <div className=" border-t-[1px]  p-5">
-            <div className="ml-auto flex w-2/3 items-center gap-4">
-              {' '}
-              <Button
-                size="xs"
-                color="flat"
-                onClick={() => setOpenModal(false)}
-              >
-                Cancel
-              </Button>
-              <Button size="xs" s>
-                Delete
-              </Button>
-            </div>
-          </div>
-        </div>
+        </ModalFooter>
       </Modal>
 
       <Heading>Project</Heading>
@@ -77,9 +65,25 @@ export default function Home() {
         isOpen={open}
         handleClose={closeDrawer}
         title={'Create a new project'}
-        handleSubmit={() => {
-          ref.current?.submitForm();
-        }}
+        footer={
+          <div className="flex w-2/3 items-end justify-end gap-2 ">
+            <Button
+              size="xs"
+              color="flat"
+              fullWidth={false}
+              onClick={closeDrawer}
+            >
+              Cancel
+            </Button>
+            <Button
+              size="xs"
+              fullWidth={false}
+              onClick={ref.current?.submitForm()}
+            >
+              Creat Project
+            </Button>
+          </div>
+        }
       >
         <CreateProjectDrawer ref={ref} closeDrawer={closeDrawer} />
       </Drawer>

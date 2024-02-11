@@ -43,7 +43,7 @@ export default function Button({
   );
 
   return (
-    <button type="button" className={button({ size, color })} {...props}>
+    <button type="button" className={button({ size, color, fullWidth })} {...props}>
       {children}
     </button>
   );

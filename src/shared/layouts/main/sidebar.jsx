@@ -16,7 +16,7 @@ export default function Sidebar() {
     },
     {
       title: 'Teams & Users',
-      to: '/teams-users',
+      to: '/teams-users#plants',
       icon: FiUsers,
     },
     {
