@@ -68,10 +68,10 @@ function Card() {
       </div>
       {open && (
         <>
-          <div className="absolute top-8 right-14 border-y-8 border-l-8 border-r-0 border-solid border-y-transparent border-l-white z-[100]"></div>
+          <div className="absolute top-8 right-12 border-y-8 border-l-8 border-r-0 border-solid border-y-transparent border-l-white z-[100]"></div>
 
           <ul
-            className="absolute right-16 top-6 z-50 w-28 rounded-md bg-white drop-shadow-2xl "
+            className="absolute right-14 top-6 z-50 w-24 rounded-md bg-white drop-shadow-2xl "
             ref={ref}
           >
             <li className="flex cursor-pointer gap-2 p-2 text-xs duration-100 hover:bg-gray-50">
