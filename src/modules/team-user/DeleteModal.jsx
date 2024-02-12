@@ -4,7 +4,7 @@ import { ModalBody, ModalFooter, ModalHeader } from '@/shared/ui/Modal';
 import React from 'react';
 import { useSetRecoilState } from 'recoil';
 
-function DeleteModal() {
+function DeleteModal({ deleteById }) {
   const setOpenModal = useSetRecoilState(modalAtom);
 
   return (
@@ -23,7 +23,13 @@ function DeleteModal() {
           <Button size="xs" color="flat" onClick={() => setOpenModal(false)}>
             Cancel
           </Button>
-          <Button size="xs" s>
+          <Button
+            size="xs"
+            onClick={() => {
+              setOpenModal(false);
+              deleteById()
+            }}
+          >
             Delete
           </Button>
         </div>
