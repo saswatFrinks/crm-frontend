@@ -8,6 +8,7 @@ import FPhoneInput from '@/shared/ui/PhoneInput';
 import authService from '../auth.service';
 import toast from 'react-hot-toast';
 import { useFormik } from 'formik';
+import { formatPhoneNumber } from 'react-phone-number-input';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -61,7 +62,12 @@ export default function Register() {
       if (!phone) return;
       const { rePassword, ...value } = values;
       try {
-        await authService.create({ ...value, phone: phone.slice(1) });
+        let number = formatPhoneNumber(phone).replace(/\s/g, '');
+
+        if (number[0] === '0') {
+          number = number.slice(1);
+        }
+        await authService.create({ ...value, phone: number });
         toast.success('Register successfully!');
         navigate('/login');
       } catch (error) {
@@ -75,7 +81,13 @@ export default function Register() {
     if (formik.dirty && !phone) {
       return 'Phone number is required';
     }
-    if (formik.dirty && phone && phone.length - 1 !== 10) {
+    let number = formatPhoneNumber(phone).replace(/\s/g, '');
+
+    if (number[0] === '0') {
+      number = number.slice(1);
+    }
+
+    if (formik.dirty && phone && number.length !== 10) {
       return 'Contact  number should be 10 digit number';
     }
     return null;
