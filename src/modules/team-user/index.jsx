@@ -1,14 +1,11 @@
 import Heading from '@/shared/layouts/main/heading';
-import { FiUsers } from 'react-icons/fi';
-import { CiUser } from 'react-icons/ci';
-import { PiFactoryLight } from 'react-icons/pi';
 import { NavLink, useLocation } from 'react-router-dom';
-import Plants from './Plants';
-import Users from './Users';
-import Teams from './Teams';
+import Plants from './plant';
+import Users from './user';
+import Teams from './team';
 
 export default function TeamAndUser() {
-  const { pathname, hash } = useLocation();
+  const { hash } = useLocation();
   const menus = [
     {
       title: 'Plants',
@@ -114,7 +111,7 @@ export default function TeamAndUser() {
       <Heading>Team & User</Heading>
 
       <div className="flex h-[calc(100vh-56px)]">
-        <ul className="flex h-full w-56 flex-col gap-2 border-t-[1px] bg-white px-2 py-4 shadow-md">
+        <ul className="flex h-full w-56  flex-col gap-2 border-t-[1px] bg-white px-2 py-8 shadow-md">
           {menus.map((t) => (
             <li key={t.to}>
               <NavLink
@@ -135,7 +132,7 @@ export default function TeamAndUser() {
             </li>
           ))}
         </ul>
-        <div className="flex-1 p-6">{renderTab()}</div>
+        <div className="flex-1 px-10 py-8">{renderTab()}</div>
       </div>
     </>
   );
