@@ -1,8 +1,8 @@
 import React from 'react';
 import { useRecoilState, useSetRecoilState } from 'recoil';
-import { modalAtom } from '../states/modal.state';
 import useClickOutSide from '../hooks/useClickOutside';
 import { IoClose } from 'react-icons/io5';
+import { modalAtom } from '../states/modal.state';
 
 export default function Modal({ children }) {
   const [open, setOpenModal] = useRecoilState(modalAtom);
