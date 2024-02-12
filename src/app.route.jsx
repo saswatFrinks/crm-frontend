@@ -3,7 +3,7 @@ import Login from './modules/auth/login/Login';
 import Register from './modules/auth/register/Register';
 import Home from './modules/home/Home';
 import Lisence from './modules/lisence/Lisence';
-import TeamAndUser from './modules/team-user/TeamAndUser';
+import TeamAndUser from './modules/team-user';
 import MainLayout from './shared/layouts/main/main-layout';
 
 import { createBrowserRouter } from 'react-router-dom';

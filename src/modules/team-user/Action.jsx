@@ -15,7 +15,7 @@ export default function Action(props) {
   useClickOutSide(ref, () => setOpen(false));
 
   const ul = tv({
-    base: 'absolute right-4 w-full top-0 rounded-md bg-white shadow-xl',
+    base: 'absolute right-4 w-full top-0 rounded-md bg-white shadow-xl border',
     variants: {
       hasReset: {
         true: 'w-32',

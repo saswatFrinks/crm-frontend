@@ -1,0 +1,81 @@
+import { modalAtom } from '@/shared/states/modal.state';
+import React from 'react';
+import { useSetRecoilState } from 'recoil';
+import AddTeamModal from './AddTeamModal';
+import DeleteModal from '../DeleteModal';
+import Modal from '@/shared/ui/Modal';
+import Button from '@/shared/ui/Button';
+import { FaPlus } from 'react-icons/fa6';
+import Action from '../Action';
+
+export default function Teams() {
+  const columns = ['Team Name'];
+  const setModalState = useSetRecoilState(modalAtom);
+
+  const [action, setAction] = React.useState('add');
+
+  const renderModalAction = () => {
+    const obj = {
+      add: <AddTeamModal />,
+      delete: <DeleteModal />,
+    };
+
+    return obj[action];
+  };
+
+  const handleOpenModal = (type) => {
+    setAction(type);
+    setModalState(true);
+  };
+
+  return (
+    <>
+      <Modal>{renderModalAction()}</Modal>
+
+      <div>
+        <div className="mb-8 flex items-center justify-between">
+          <h1 className="text-2xl font-semibold">Teams</h1>
+          <Button
+            fullWidth={false}
+            size="xs"
+            onClick={() => handleOpenModal('add')}
+          >
+            <div className="flex items-center gap-2">
+              <FaPlus />
+              Add team
+            </div>
+          </Button>
+        </div>
+
+        <div className="placeholder:*: relative shadow-md sm:rounded-lg">
+          <table className="w-full text-left text-sm text-gray-500 rtl:text-right ">
+            <thead className="bg-white text-sm uppercase text-gray-700 ">
+              <tr>
+                {columns.map((t) => (
+                  <th scope="col" className="px-6 py-3" key={t}>
+                    {t}
+                  </th>
+                ))}
+
+                <th scope="col" className="px-6 py-3"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="border-b odd:bg-white even:bg-[#C6C4FF]/10  ">
+                <th
+                  scope="row"
+                  className="whitespace-nowrap px-6 py-4 font-medium text-gray-900 "
+                >
+                  Apple MacBook Pro 17
+                </th>
+                <td className="px-6 py-4">
+                  <Action handleOpenModal={handleOpenModal} />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </>
+  );
+}

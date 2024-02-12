@@ -1,13 +1,13 @@
 import { modalAtom } from '@/shared/states/modal.state';
 import React from 'react';
 import { useSetRecoilState } from 'recoil';
-import DeleteModal from './DeleteModal';
+import DeleteModal from '../DeleteModal';
 import Modal from '@/shared/ui/Modal';
 import Button from '@/shared/ui/Button';
 import { FaPlus } from 'react-icons/fa6';
-import Action from './Action';
+import Action from '../Action';
 import Drawer from '@/shared/ui/Drawer';
-import CreateUserDrawer from './CreateProjectDrawer';
+import CreateUserDrawer from '../CreateUserDrawer';
 import { IoIosSend } from 'react-icons/io';
 import axiosInstance from '@/core/request/aixosinstance';
 import { getOrganizationId } from '@/util/util';
@@ -62,7 +62,7 @@ export default function User() {
 
       <div>
         <div className="mb-8 flex items-center justify-between">
-          <h1 className="text-xl font-semibold">Users</h1>
+          <h1 className="text-2xl font-semibold">Users</h1>
           <Button fullWidth={false} size="xs" onClick={openDrawer}>
             <div className="flex items-center gap-2">
               <FaPlus />
@@ -73,7 +73,7 @@ export default function User() {
 
         <div className="placeholder:*: relative shadow-md sm:rounded-lg">
           <table className="w-full text-left text-sm text-gray-500 rtl:text-right ">
-            <thead className="bg-white text-xs uppercase text-gray-700 ">
+            <thead className="bg-white text-sm uppercase text-gray-700 ">
               <tr>
                 {columns.map((t) => (
                   <th scope="col" className="px-6 py-3" key={t}>
@@ -88,7 +88,7 @@ export default function User() {
               {users.map((user) => {
                 return (
                   <tr
-                    className="border-b odd:bg-white even:bg-gray-50  "
+                    className="border-b odd:bg-white even:bg-[#C6C4FF]/10  "
                     key={user.id}
                   >
                     <th

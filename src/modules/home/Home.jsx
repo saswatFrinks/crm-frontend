@@ -51,7 +51,7 @@ export default function Home() {
 
       <Heading>Project</Heading>
 
-      <div className="flex  flex-wrap gap-6 p-6">
+      <div className="flex  flex-wrap gap-6 p-10">
         <Project.Create onClick={openDrawer} />
 
         {Array(10)
@@ -66,11 +66,12 @@ export default function Home() {
         handleClose={closeDrawer}
         title={'Create a new project'}
         footer={
-          <div className="flex w-2/3 items-end justify-end gap-2 ">
+          <div className="flex  items-end justify-end gap-4 ">
             <Button
               size="xs"
               color="flat"
               fullWidth={false}
+              className="min-w-[150px]"
               onClick={closeDrawer}
             >
               Cancel
@@ -78,6 +79,7 @@ export default function Home() {
             <Button
               size="xs"
               fullWidth={false}
+              className="min-w-[150px]"
               onClick={ref.current?.submitForm()}
             >
               Creat Project
