@@ -9,6 +9,8 @@ import Action from './Action';
 import Drawer from '@/shared/ui/Drawer';
 import CreateUserDrawer from './CreateProjectDrawer';
 import { IoIosSend } from 'react-icons/io';
+import axiosInstance from '@/core/request/aixosinstance';
+import { getOrganizationId } from '@/util/util';
 
 export default function User() {
   const columns = ['User name', 'Email id', 'Phone Number', 'Plant', 'Team'];
@@ -17,8 +19,22 @@ export default function User() {
   const ref = React.useRef(null);
 
   const [action, setAction] = React.useState('delete');
+  const [users, setUsers] = React.useState([]);
 
   const [open, setOpenDrawer] = React.useState(false);
+  const fetchAllUsers = async () => {
+    const res = await axiosInstance.get('/user/getList', {
+      params: {
+        organizationId: getOrganizationId(),
+      },
+    });
+
+    setUsers(res.data.data);
+  };
+
+  React.useEffect(() => {
+    fetchAllUsers();
+  }, []);
 
   const closeDrawer = () => {
     setOpenDrawer(false);
@@ -69,22 +85,32 @@ export default function User() {
               </tr>
             </thead>
             <tbody>
-              <tr className="border-b odd:bg-white even:bg-gray-50  ">
-                <th
-                  scope="row"
-                  className="whitespace-nowrap px-6 py-4 font-medium text-gray-900 "
-                >
-                  Apple MacBook Pro 17
-                </th>
-                <td className="px-6 py-4">some text</td>
-                <td className="px-6 py-4">some text</td>
-                <td className="px-6 py-4">some text</td>
-                <td className="px-6 py-4">some text</td>
+              {users.map((user) => {
+                return (
+                  <tr
+                    className="border-b odd:bg-white even:bg-gray-50  "
+                    key={user.id}
+                  >
+                    <th
+                      scope="row"
+                      className="whitespace-nowrap px-6 py-4 font-medium text-gray-900 "
+                    >
+                      {user.name}
+                    </th>
+                    <td className="px-6 py-4">{user.email}</td>
+                    <td className="px-6 py-4">{user.phone}</td>
+                    <td className="px-6 py-4">{user.plantName}</td>
+                    <td className="px-6 py-4">{user.teamName}</td>
 
-                <td className="px-6 py-4">
-                  <Action handleOpenModal={handleOpenModal} hasReset={true} />
-                </td>
-              </tr>
+                    <td className="px-6 py-4">
+                      <Action
+                        handleOpenModal={handleOpenModal}
+                        hasReset={true}
+                      />
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -100,7 +126,12 @@ export default function User() {
             <Button size="xs" color="flat" onClick={closeDrawer}>
               Cancel
             </Button>
-            <Button size="xs" onClick={ref.current?.submitForm()}>
+            <Button
+              size="xs"
+              onClick={() => {
+                ref.current?.submitForm();
+              }}
+            >
               <div className="flex items-center justify-center gap-2">
                 <IoIosSend />
                 Send Invite

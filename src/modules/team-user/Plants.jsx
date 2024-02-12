@@ -16,6 +16,7 @@ export default function Plants() {
 
   const [action, setAction] = React.useState('add');
   const [plants, setPlants] = React.useState([]);
+  const [id, setId] = React.useState('')
 
   const fetchAllPlants = async () => {
     const res = await axiosInstance.get('/plant/getList', {
@@ -26,6 +27,18 @@ export default function Plants() {
     setPlants(res.data.data);
   };
 
+  const deletePlant = async () => {
+    if(id) {
+      await axiosInstance.delete('/plant/delete', {
+        params: {
+          plantId: id
+        }
+      })
+      setId('')
+      fetchAllPlants()
+    }
+  }
+
   React.useEffect(() => {
     fetchAllPlants();
   }, []);
@@ -33,7 +46,7 @@ export default function Plants() {
   const renderModalAction = () => {
     const obj = {
       add: <AddPlantModal fetchAllPlants={fetchAllPlants}/>,
-      delete: <DeleteModal />,
+      delete: <DeleteModal deleteById={deletePlant}/>,
     };
 
     return obj[action];
@@ -88,7 +101,7 @@ export default function Plants() {
                     </th>
                     <td className="px-6 py-4">{plant.location}</td>
                     <td className="px-6 py-4">
-                      <Action handleOpenModal={handleOpenModal} />
+                      <Action handleOpenModal={handleOpenModal} id={plant.id} setId={setId} />
                     </td>
                   </tr>
                 );
