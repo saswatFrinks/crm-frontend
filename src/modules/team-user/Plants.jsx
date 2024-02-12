@@ -7,6 +7,7 @@ import { useSetRecoilState } from 'recoil';
 import { modalAtom } from '@/shared/states/modal.state';
 import AddPlantModal from './AddPlantModal';
 import DeleteModal from './DeleteModal';
+import axiosInstance from '@/core/request/aixosinstance';
 
 export default function Plants() {
   const columns = ['Plant Name', 'Location'];

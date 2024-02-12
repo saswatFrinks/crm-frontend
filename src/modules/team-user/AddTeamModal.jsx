@@ -6,8 +6,10 @@ import { ModalBody, ModalFooter, ModalHeader } from '@/shared/ui/Modal';
 import { useFormik } from 'formik';
 import toast from 'react-hot-toast';
 import { useSetRecoilState } from 'recoil';
+import axiosInstance from '@/core/request/aixosinstance';
+import { getOrganizationId } from '@/util/util';
 
-export default function AddTeamModal() {
+export default function AddTeamModal({fetchTeamNames}) {
   const setOpenModal = useSetRecoilState(modalAtom);
 
   const formik = useFormik({
@@ -27,6 +29,11 @@ export default function AddTeamModal() {
     onSubmit: async (values) => {
       try {
         console.log(values);
+        await axiosInstance.post('/team/create', {
+          name: values.name,
+          organizationId: getOrganizationId()
+        })
+        fetchTeamNames()
       } catch (error) {
         toast.error(error.message);
       }
@@ -60,7 +67,10 @@ export default function AddTeamModal() {
           >
             Cancel
           </Button>
-          <Button size="xs" fullWidth={true} onClick={formik.handleSubmit}>
+          <Button size="xs" fullWidth={true} onClick={() => {
+            formik.handleSubmit() 
+            setOpenModal(false)
+          }}>
             Confirm
           </Button>
         </div>
