@@ -5,6 +5,7 @@ export default function Button({
   size = 'sm',
   color = 'primary',
   fullWidth = true,
+  className = '',
   ...props
 }) {
   const button = tv(
@@ -43,7 +44,7 @@ export default function Button({
   );
 
   return (
-    <button type="button" className={button({ size, color, fullWidth })} {...props}>
+    <button type="button" className={`${button({ size, color, fullWidth })} ${className}`} {...props}>
       {children}
     </button>
   );
