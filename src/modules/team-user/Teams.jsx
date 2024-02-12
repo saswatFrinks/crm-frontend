@@ -80,7 +80,7 @@ export default function Teams() {
             <tbody>
               {teamNames.map((teamName, index) => {
                 return (
-                  <tr className="border-b odd:bg-white even:bg-gray-50  " key={index}>
+                  <tr className="border-b odd:bg-white even:bg-gray-50  " key={teamName.id}>
                     <th
                       scope="row"
                       className="whitespace-nowrap px-6 py-4 font-medium text-gray-900 "

@@ -79,14 +79,14 @@ export default function Plants() {
             <tbody>
               {plants.map((plant, index) => {
                 return (
-                  <tr className="border-b odd:bg-white even:bg-gray-50  " key={index}>
+                  <tr className="border-b odd:bg-white even:bg-gray-50  " key={plant.id}>
                     <th
                       scope="row"
                       className="whitespace-nowrap px-6 py-4 font-medium text-gray-900 "
                     >
                       {plant.name}
                     </th>
-                    <td className="px-6 py-4">Silver</td>
+                    <td className="px-6 py-4">{plant.location}</td>
                     <td className="px-6 py-4">
                       <Action handleOpenModal={handleOpenModal} />
                     </td>
