@@ -20,13 +20,13 @@ function Card() {
   useClickOutSide(ref, () => setOpen(false));
 
   return (
-    <div className="group relative basis-80 rounded-md border border-gray-300/90 bg-white p-6 shadow-sm">
+    <div className="group relative basis-80 rounded-md border border-gray-300/90 bg-white px-10 py-8 shadow-sm">
       <div
-        className="absolute right-4 top-4 hidden cursor-pointer group-hover:block"
+        className="absolute right-8 top-8 hidden cursor-pointer group-hover:block"
         onClick={() => setOpen(true)}
       >
         <svg
-          className="h-4 w-4"
+          className="h-5 w-5"
           viewBox="0 0 4 22"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
@@ -67,28 +67,32 @@ function Card() {
         </svg>
       </div>
       {open && (
-        <ul
-          className="bg-whie absolute right-8 top-3 w-28 rounded-md shadow-2xl border"
-          ref={ref}
-        >
-          <li className="flex cursor-pointer gap-2 p-2 text-xs duration-100 hover:bg-gray-50">
-            <FaRegCopy size={16} /> Clone
-          </li>
-          <li className="flex cursor-pointer gap-2 p-2 text-xs duration-100 hover:bg-gray-50">
-            <FiEdit2 size={16} /> Edit
-          </li>
-          <li
-            className="flex cursor-pointer gap-2 p-2 text-xs text-red-500 duration-100 hover:bg-gray-50"
-            onClick={() => setOpenModal(true)}
+        <>
+          <div className="absolute top-8 right-14 border-y-8 border-l-8 border-r-0 border-solid border-y-transparent border-l-white z-[100]"></div>
+
+          <ul
+            className="absolute right-16 top-6 z-50 w-28 rounded-md bg-white drop-shadow-2xl "
+            ref={ref}
           >
-            <FaRegTrashCan size={16} />
-            Delete
-          </li>
-        </ul>
+            <li className="flex cursor-pointer gap-2 p-2 text-xs duration-100 hover:bg-gray-50">
+              <FaRegCopy size={16} /> Clone
+            </li>
+            <li className="flex cursor-pointer gap-2 p-2 text-xs duration-100 hover:bg-gray-50">
+              <FiEdit2 size={16} /> Edit
+            </li>
+            <li
+              className="flex cursor-pointer gap-2 p-2 text-xs text-red-500 duration-100 hover:bg-gray-50"
+              onClick={() => setOpenModal(true)}
+            >
+              <FaRegTrashCan size={16} />
+              Delete
+            </li>
+          </ul>
+        </>
       )}
 
       <div className="mb-6 inline-flex rounded-md bg-[#E7E7FF]/50 p-2">
-        <CiFileOn className="duration-100 h-8 w-8 text-f-primary group-hover:h-6 group-hover:w-6" />
+        <CiFileOn className="h-8 w-8 text-f-primary duration-100 group-hover:h-6 group-hover:w-6" />
       </div>
 
       <h3 className="mb-2 text-lg font-semibold">Project Name</h3>
@@ -111,7 +115,7 @@ function Create(props) {
 
   return (
     <div
-      className="flex basis-80 cursor-pointer items-center justify-center rounded-md border border-f-primary/25 bg-[#E7E7FF]/25 p-6 shadow-sm  duration-100 hover:bg-[#C6C4FF]"
+      className="flex basis-80 cursor-pointer items-center justify-center rounded-md border border-f-primary/25 bg-[#E7E7FF]/25 px-10 py-8 shadow-sm  duration-100 hover:bg-[#C6C4FF]"
       onClick={onClick}
     >
       <p className="flex items-center gap-4 font-semibold text-f-primary">
