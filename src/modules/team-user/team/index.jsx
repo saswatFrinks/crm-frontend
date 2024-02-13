@@ -15,7 +15,20 @@ export default function Teams() {
   const setModalState = useSetRecoilState(modalAtom);
 
   const [action, setAction] = React.useState('add');
+  const [id, setId] = React.useState('')
   const [teamNames, setTeamNames] = React.useState([]);
+
+  const deleteTeam = async () => {
+    if(id) {
+      await axiosInstance.delete('/team/', {
+        params: {
+          teamId: id
+        }
+      })
+      setId('')
+      fetchTeamNames()
+    }
+  }
 
   const fetchTeamNames = async () => {
     const res = await axiosInstance.get('/team/getList', {
@@ -34,7 +47,7 @@ export default function Teams() {
   const renderModalAction = () => {
     const obj = {
       add: <AddTeamModal fetchTeamNames={fetchTeamNames}/>,
-      delete: <DeleteModal />,
+      delete: <DeleteModal deleteById={deleteTeam}/>,
     };
 
     return obj[action];
@@ -88,7 +101,7 @@ export default function Teams() {
                       {teamName.name}
                     </th>
                     <td className="px-6 py-4">
-                      <Action handleOpenModal={handleOpenModal} />
+                      <Action handleOpenModal={handleOpenModal} id={teamName.id} setId={setId}/>
                     </td>
                   </tr>
                 );
