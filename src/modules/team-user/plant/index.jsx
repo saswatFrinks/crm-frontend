@@ -7,16 +7,32 @@ import { useSetRecoilState } from 'recoil';
 import { modalAtom } from '@/shared/states/modal.state';
 import AddPlantModal from './AddPlantModal';
 import DeleteModal from '../DeleteModal';
+import { getOrganizationId } from '@/util/util';
+import axiosInstance from '@/core/request/aixosinstance';
 
 export default function Plants() {
   const columns = ['Plant Name', 'Location'];
   const setModalState = useSetRecoilState(modalAtom);
 
   const [action, setAction] = React.useState('add');
+  const [plants, setPlants] = React.useState([]);
+
+  const fetchAllPlants = async () => {
+    const res = await axiosInstance.get('/plant/getList', {
+      params: {
+        organizationId: getOrganizationId(),
+      },
+    });
+    setPlants(res.data.data);
+  };
+
+  React.useEffect(() => {
+    fetchAllPlants();
+  }, []);
 
   const renderModalAction = () => {
     const obj = {
-      add: <AddPlantModal />,
+      add: <AddPlantModal fetchAllPlants={fetchAllPlants}/>,
       delete: <DeleteModal />,
     };
 
@@ -61,30 +77,22 @@ export default function Plants() {
               </tr>
             </thead>
             <tbody>
-              <tr className="border-b odd:bg-white even:bg-[#C6C4FF]/10">
-                <th
-                  scope="row"
-                  className="whitespace-nowrap px-6 py-4 font-medium text-gray-900 "
-                >
-                  Apple MacBook Pro 17
-                </th>
-                <td className="px-6 py-4">Silver</td>
-                <td className="px-6 py-4">
-                  <Action handleOpenModal={handleOpenModal} />
-                </td>
-              </tr>
-              <tr className="border-b odd:bg-white even:bg-[#C6C4FF]/10 ">
-                <th
-                  scope="row"
-                  className="whitespace-nowrap px-6 py-4 font-medium text-gray-900 "
-                >
-                  Apple MacBook Pro 17
-                </th>
-                <td className="px-6 py-4">Silver</td>
-                <td className="px-6 py-4">
-                  <Action handleOpenModal={handleOpenModal} />
-                </td>
-              </tr>
+              {plants.map((plant) => {
+                return (
+                  <tr className="border-b odd:bg-white even:bg-[#C6C4FF]/10" key={plant.id}>
+                    <th
+                      scope="row"
+                      className="whitespace-nowrap px-6 py-4 font-medium text-gray-900 "
+                    >
+                      {plant.name}
+                    </th>
+                    <td className="px-6 py-4">{plant.location}</td>
+                    <td className="px-6 py-4">
+                      <Action handleOpenModal={handleOpenModal} />
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

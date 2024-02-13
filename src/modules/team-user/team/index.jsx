@@ -7,16 +7,33 @@ import Modal from '@/shared/ui/Modal';
 import Button from '@/shared/ui/Button';
 import { FaPlus } from 'react-icons/fa6';
 import Action from '../Action';
+import axiosInstance from '@/core/request/aixosinstance';
+import { getOrganizationId } from '@/util/util';
 
 export default function Teams() {
   const columns = ['Team Name'];
   const setModalState = useSetRecoilState(modalAtom);
 
   const [action, setAction] = React.useState('add');
+  const [teamNames, setTeamNames] = React.useState([]);
+
+  const fetchTeamNames = async () => {
+    const res = await axiosInstance.get('/team/getList', {
+      params: {
+        organizationId: getOrganizationId(),
+      },
+    });
+
+    setTeamNames(res.data.data);
+  };
+
+  React.useEffect(() => {
+    fetchTeamNames();
+  }, []);
 
   const renderModalAction = () => {
     const obj = {
-      add: <AddTeamModal />,
+      add: <AddTeamModal fetchTeamNames={fetchTeamNames}/>,
       delete: <DeleteModal />,
     };
 
@@ -61,17 +78,21 @@ export default function Teams() {
               </tr>
             </thead>
             <tbody>
-              <tr className="border-b odd:bg-white even:bg-[#C6C4FF]/10  ">
-                <th
-                  scope="row"
-                  className="whitespace-nowrap px-6 py-4 font-medium text-gray-900 "
-                >
-                  Apple MacBook Pro 17
-                </th>
-                <td className="px-6 py-4">
-                  <Action handleOpenModal={handleOpenModal} />
-                </td>
-              </tr>
+              {teamNames.map((teamName) => {
+                return (
+                  <tr className="border-b odd:bg-white even:bg-[#C6C4FF]/10  " key={teamName.id}>
+                    <th
+                      scope="row"
+                      className="whitespace-nowrap px-6 py-4 font-medium text-gray-900 "
+                    >
+                      {teamName.name}
+                    </th>
+                    <td className="px-6 py-4">
+                      <Action handleOpenModal={handleOpenModal} />
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
