@@ -1,14 +1,30 @@
+import axiosInstance from '@/core/request/aixosinstance';
 import Action from '@/modules/team-user/Action';
 import ArrowRight from '@/shared/icons/ArrowRight';
 import Heading from '@/shared/layouts/main/heading';
 import { modalAtom } from '@/shared/states/modal.state';
 import InputFile from '@/shared/ui/InputFile';
 import React from 'react';
+import { useLocation } from 'react-router-dom';
 import { useSetRecoilState } from 'recoil';
 
 export default function Folder() {
   const columns = ['S.No.', 'File Name', 'Date Created'];
   const setModalState = useSetRecoilState(modalAtom);
+  const { pathname } = useLocation();
+
+  async function handleFileUpload(event) {
+    const files = event.target.files;
+    const formData = new FormData();
+    const folderId = pathname.split('/')[10];
+    
+    for (let i = 0; i < files.length; i++) {
+      formData.append('files', files[i]);
+    }
+    formData.append('folderId', '47720812-8e76-4835-b12a-a9f47cbe89e9');
+
+    await axiosInstance.post('/dataset/upload', formData);
+  }
 
   const handleOpenModal = () => {
     setModalState(true);
@@ -58,7 +74,13 @@ export default function Folder() {
               />
             </svg>
             Upload Data
-            <input type="file" hidden id="file" />
+            <input
+              type="file"
+              multiple
+              hidden
+              id="file"
+              onChange={handleFileUpload}
+            />
           </label>
         </div>
 

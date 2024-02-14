@@ -1,3 +1,4 @@
+import axiosInstance from '@/core/request/aixosinstance';
 import { modalAtom } from '@/shared/states/modal.state';
 import Button from '@/shared/ui/Button';
 import Input from '@/shared/ui/Input';
@@ -5,10 +6,20 @@ import Label from '@/shared/ui/Label';
 import { ModalBody, ModalFooter, ModalHeader } from '@/shared/ui/Modal';
 import { useFormik } from 'formik';
 import toast from 'react-hot-toast';
+import { useLocation } from 'react-router-dom';
 import { useSetRecoilState } from 'recoil';
 
 export default function AddVariantModal() {
   const setOpenModal = useSetRecoilState(modalAtom);
+  const { pathname } = useLocation();
+
+  const addVariants = async (values) => {
+    const projectId = pathname.split('/')[2];
+    await axiosInstance.post('/variant/', {
+      projectId: 'f2105acb-a44a-4dff-b51f-3bcd425d59d7',
+      name: values.name,
+    });
+  };
 
   const formik = useFormik({
     initialValues: {
@@ -26,7 +37,8 @@ export default function AddVariantModal() {
     },
     onSubmit: async (values) => {
       try {
-        console.log(values);
+        addVariants(values);
+        setOpenModal(false);
       } catch (error) {
         toast.error(error.message);
       }
