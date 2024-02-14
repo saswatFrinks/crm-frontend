@@ -7,6 +7,7 @@ import Modal, { ModalBody, ModalFooter, ModalHeader } from '@/shared/ui/Modal';
 import { useSetRecoilState } from 'recoil';
 import { modalAtom } from '@/shared/states/modal.state';
 import Button from '@/shared/ui/Button';
+import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader';
 
 export default function Home() {
   const [open, setOpenDrawer] = React.useState(false);
