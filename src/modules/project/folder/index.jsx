@@ -4,7 +4,7 @@ import ArrowRight from '@/shared/icons/ArrowRight';
 import Heading from '@/shared/layouts/main/heading';
 import { modalAtom } from '@/shared/states/modal.state';
 import InputFile from '@/shared/ui/InputFile';
-import React from 'react';
+import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useSetRecoilState } from 'recoil';
 
@@ -12,19 +12,35 @@ export default function Folder() {
   const columns = ['S.No.', 'File Name', 'Date Created'];
   const setModalState = useSetRecoilState(modalAtom);
   const { pathname } = useLocation();
+  const [datasetImages, setDatasetImages] = useState([]);
 
   async function handleFileUpload(event) {
     const files = event.target.files;
     const formData = new FormData();
     const folderId = pathname.split('/')[10];
-    
+
     for (let i = 0; i < files.length; i++) {
       formData.append('files', files[i]);
     }
     formData.append('folderId', '47720812-8e76-4835-b12a-a9f47cbe89e9');
 
     await axiosInstance.post('/dataset/upload', formData);
+    fetchAllImages();
   }
+
+  const fetchAllImages = async () => {
+    const res = await axiosInstance.get('/dataset/allImages', {
+      params: {
+        folderId: '47720812-8e76-4835-b12a-a9f47cbe89e9',
+      },
+    });
+
+    setDatasetImages(res.data.data);
+  };
+
+  React.useEffect(() => {
+    fetchAllImages();
+  }, []);
 
   const handleOpenModal = () => {
     setModalState(true);
@@ -98,33 +114,28 @@ export default function Folder() {
               </tr>
             </thead>
             <tbody>
-              <tr className="border-b odd:bg-white even:bg-[#C6C4FF]/10">
-                <th
-                  scope="row"
-                  className="whitespace-nowrap px-6 py-4 font-medium text-gray-900 "
-                >
-                  Apple MacBook Pro 17
-                </th>
-                <td className="px-6 py-4">Silver</td>
-                <td className="px-6 py-4">Silver</td>
+              {datasetImages.map((datasetImage, index) => {
+                return (
+                  <tr className="border-b odd:bg-white even:bg-[#C6C4FF]/10">
+                    <th
+                      scope="row"
+                      className="whitespace-nowrap px-6 py-4 font-medium text-gray-900 "
+                    >
+                      {index + 1}
+                    </th>
+                    <td className="px-6 py-4">{datasetImage.name}</td>
+                    <td className="px-6 py-4">
+                      {new Date(
+                        Number(datasetImage.createdAt)
+                      ).toLocaleDateString()}
+                    </td>
 
-                <td className="px-6 py-4">
-                  <Action handleOpenModal={handleOpenModal} />
-                </td>
-              </tr>
-              <tr className="border-b odd:bg-white even:bg-[#C6C4FF]/10 ">
-                <th
-                  scope="row"
-                  className="whitespace-nowrap px-6 py-4 font-medium text-gray-900 "
-                >
-                  Apple MacBook Pro 17
-                </th>{' '}
-                <td className="px-6 py-4">Silver</td>
-                <td className="px-6 py-4">Silver</td>
-                <td className="px-6 py-4">
-                  <Action handleOpenModal={handleOpenModal} />
-                </td>
-              </tr>
+                    <td className="px-6 py-4">
+                      <Action handleOpenModal={handleOpenModal} />
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
