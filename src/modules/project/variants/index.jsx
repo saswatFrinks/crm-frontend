@@ -5,9 +5,11 @@ import { modalAtom } from '@/shared/states/modal.state';
 import Modal from '@/shared/ui/Modal';
 import AddVariantModal from './AddVariantModal';
 import ArrowRight from '@/shared/icons/ArrowRight';
+import { Link, useParams } from 'react-router-dom';
 
 export default function Variants() {
   const setModalState = useSetRecoilState(modalAtom);
+  const params = useParams();
 
   return (
     <>
@@ -18,8 +20,13 @@ export default function Variants() {
       <Heading
         subcontent={
           <>
-            <ArrowRight />
-            <span>Project Name</span>
+            <Link
+              to={`/project/${params.projectId}`}
+              className="flex items-center gap-2"
+            >
+              <ArrowRight />
+              <span>Project Name</span>
+            </Link>
           </>
         }
       >

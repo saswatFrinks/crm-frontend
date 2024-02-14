@@ -8,9 +8,13 @@ import Drawer from '@/shared/ui/Drawer';
 import Button from '@/shared/ui/Button';
 import AddCameraConfigurationDrawer from './AddCameraConfigurationDrawer';
 import { useFormik } from 'formik';
+import { Link, useParams } from 'react-router-dom';
 
 export default function CameraConfiguration() {
   const [open, setOpenDrawer] = React.useState(false);
+
+  const params = useParams();
+
   const ref = React.useRef(null);
 
   const closeDrawer = () => {
@@ -26,12 +30,28 @@ export default function CameraConfiguration() {
       <Heading
         subcontent={
           <>
-            <ArrowRight />
-            <span>Project Name</span>
-            <ArrowRight />
-            <span>Variant Name</span>
-            <ArrowRight />
-            <span>Camera Position</span>
+            <Link
+              to={`/project/${params.projectId}`}
+              className="flex items-center gap-2"
+            >
+              <ArrowRight />
+              <span>Project Name</span>
+            </Link>
+            <Link
+              to={`/project/${params.projectId}/variant/${params.variantId}`}
+              className="flex items-center gap-2"
+            >
+              <ArrowRight />
+              <span>Variant Name</span>
+            </Link>
+
+            <Link
+              to={`/project/${params.projectId}/variant/${params.variantId}/camera-position/${params.cameraPositionId}`}
+              className="flex items-center gap-2"
+            >
+              <ArrowRight />
+              <span>Camera Position</span>
+            </Link>
           </>
         }
       >
@@ -78,7 +98,7 @@ export default function CameraConfiguration() {
               size="xs"
               fullWidth={false}
               className="min-w-[150px]"
-              onClick={ref.current?.submitForm()}
+              onClick={() => ref.current?.submitForm()}
             >
               Confirm
             </Button>

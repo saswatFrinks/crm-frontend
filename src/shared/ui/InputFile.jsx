@@ -1,27 +1,37 @@
-export default function InputFile({ value, ...props }) {
+import React from 'react';
+import Upload from '../icons/Upload';
+import X from '../icons/X';
+
+const InputFile = React.forwardRef(({ value, ...props }, ref) => {
+  const [selectedFile, setSelectedFile] = React.useState(null);
+
+  const handleChange = (e) => {
+    console.log(e.target.files[0]);
+    setSelectedFile(e.target.files[0]);
+  };
+
+  React.forwardRef(ref, () => ({
+    selectedFile,
+  }));
+
   return (
     <div className="flex items-center gap-2">
-      <input
-        type="file"
-        className="inline-block text-sm text-slate-500 file:mr-4 file:rounded-full file:border-0 file:bg-violet-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-violet-700
-      hover:file:bg-violet-100"
-        {...props}
-      />
-      <svg
-        width="12"
-        height="12"
-        viewBox="0 0 12 12"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
+      <label
+        htmlFor="file"
+        className="flex cursor-pointer items-center gap-2 rounded-full bg-f-primary px-4 py-1.5 text-white duration-100 hover:bg-f-secondary"
       >
-        <path
-          d="M11 1L1 11M1 1L11 11"
-          stroke="#0E0F0F"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
+        <Upload />
+        Upload
+      </label>
+      {selectedFile && (
+        <>
+          <p>{selectedFile.name}</p>
+          <X onClick={() => setSelectedFile(null)} />
+        </>
+      )}
+      <input type="file" id="file" hidden onChange={handleChange} {...props} />
     </div>
   );
-}
+});
+
+export default InputFile;

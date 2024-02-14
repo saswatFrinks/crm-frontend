@@ -6,10 +6,13 @@ import { useFormik } from 'formik';
 import React from 'react';
 
 const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
+  const inputRef = React.useRef(null);
+
   const formik = useFormik({
     initialValues: {
       name: '',
       file: null,
+      objectives: [],
     },
     validate: (values) => {
       const errors = {};
@@ -23,8 +26,33 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
     },
     onSubmit: async (values) => {
       console.log(values);
+
+      // change to form data
+      const data = new FormData();
+
+      data.append('name', values.name);
+
+      values.objectives.forEach((t) => {
+        data.append('objectives', t);
+      });
+
+      data.append('file', inputRef.current?.selectedFile);
     },
   });
+
+  const handleCheckboxChange = (value) => {
+    if (formik.values.objectives.includes(value)) {
+      formik.setValues({
+        ...formik.values,
+        objectives: formik.values.objectives.filter((item) => item !== value),
+      });
+    } else {
+      formik.setValues({
+        ...formik.values,
+        objectives: [...formik.values.objectives, value],
+      });
+    }
+  };
 
   React.useImperativeHandle(ref, () => ({
     submitForm() {
@@ -33,7 +61,7 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
   }));
 
   return (
-    <div>
+    <div className="flex flex-col gap-4">
       <div>
         <Label>Camera configuration name</Label>
         <Input
@@ -47,12 +75,13 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
         />
       </div>
       <div>
-        <Label>Camera configuration file</Label>
+        <Label htmlFor="file">Camera configuration file</Label>
         <InputFile
-          onChange={formik.handleChange}
-          onBlur={formik.handleBlur}
-          value={formik.values.name}
-          errorMessage={formik.errors.name}
+          ref={inputRef}
+          // onChange={formik.handleChange}
+          // onBlur={formik.handleBlur}
+          // value={formik.values.name}
+          // errorMessage={formik.errors.name}
         />
       </div>
       <div>
@@ -62,9 +91,8 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
             id="assemblyInspection"
             value="assemblyInspection"
             name="objectives"
-            checked={false}
-            // checked={formik.values.objectives.includes('assemblyInspection')}
-            // onChange={() => handleCheckboxChange('assemblyInspection')}
+            checked={formik.values.objectives.includes('assemblyInspection')}
+            onChange={() => handleCheckboxChange('assemblyInspection')}
             htmlFor="assemblyInspection"
           />
           <Label htmlFor="assemblyInspection" main={false}>
@@ -73,29 +101,29 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
         </div>
         <div className="flex gap-2">
           <Checkbox
-            id="assemblyInspection"
-            value="assemblyInspection"
+            id="cosmeticInspection"
+            value="cosmeticInspection"
             name="objectives"
-            checked={false}
-            // checked={formik.values.objectives.includes('assemblyInspection')}
-            // onChange={() => handleCheckboxChange('assemblyInspection')}
-            htmlFor="assemblyInspection"
+            checked={formik.values.objectives.includes('cosmeticInspection')}
+            onChange={() => handleCheckboxChange('cosmeticInspection')}
+            htmlFor="cosmeticInspection"
           />
-          <Label htmlFor="assemblyInspection" main={false}>
+          <Label htmlFor="cosmeticInspection" main={false}>
             Cosmetic Inspection
           </Label>
         </div>
         <div className="flex gap-2">
           <Checkbox
-            id="assemblyInspection"
-            value="assemblyInspection"
+            id="dimensioningInspection"
+            value="dimensioningInspection"
             name="objectives"
-            checked={false}
-            // checked={formik.values.objectives.includes('assemblyInspection')}
-            // onChange={() => handleCheckboxChange('assemblyInspection')}
-            htmlFor="assemblyInspection"
+            checked={formik.values.objectives.includes(
+              'dimensioningInspection'
+            )}
+            onChange={() => handleCheckboxChange('dimensioningInspection')}
+            htmlFor="dimensioningInspection"
           />
-          <Label htmlFor="assemblyInspection" main={false}>
+          <Label htmlFor="dimensioningInspection" main={false}>
             Dimensioning Inspection
           </Label>
         </div>

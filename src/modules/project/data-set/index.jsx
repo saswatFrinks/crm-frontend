@@ -6,9 +6,11 @@ import { useSetRecoilState } from 'recoil';
 import { modalAtom } from '@/shared/states/modal.state';
 import Modal from '@/shared/ui/Modal';
 import AddFolderModal from './AddFolderModal';
+import { Link, useParams } from 'react-router-dom';
 
 export default function DataSet() {
   const setModalState = useSetRecoilState(modalAtom);
+  const params = useParams();
 
   return (
     <>
@@ -19,14 +21,36 @@ export default function DataSet() {
       <Heading
         subcontent={
           <>
-            <ArrowRight />
-            <span>Project Name</span>
-            <ArrowRight />
-            <span>Variant Name</span>
-            <ArrowRight />
-            <span>Camera Position</span>
-            <ArrowRight />
-            <span>Camera Config</span>
+            <Link
+              to={`/project/${params.projectId}`}
+              className="flex items-center gap-2"
+            >
+              <ArrowRight />
+              <span>Project Name</span>
+            </Link>
+            <Link
+              to={`/project/${params.projectId}/variant/${params.variantId}`}
+              className="flex items-center gap-2"
+            >
+              <ArrowRight />
+              <span>Variant Name</span>
+            </Link>
+
+            <Link
+              to={`/project/${params.projectId}/variant/${params.variantId}/camera-position/${params.cameraPositionId}`}
+              className="flex items-center gap-2"
+            >
+              <ArrowRight />
+              <span>Camera Position</span>
+            </Link>
+
+            <Link
+              to={`/project/${params.projectId}/variant/${params.variantId}/camera-position/${params.cameraPositionId}/camera-config/${params.cameraConfigId}`}
+              className="flex items-center gap-2"
+            >
+              <ArrowRight />
+              <span>Camera Config</span>
+            </Link>
           </>
         }
       >
@@ -44,11 +68,7 @@ export default function DataSet() {
           {Array(5)
             .fill(1)
             .map((t, i) => (
-              <Variant.Card
-                key={i}
-                title="Folder Name"
-                to={'folder/123'}
-              />
+              <Variant.Card key={i} title="Folder Name" to={'folder/123'} />
             ))}
         </div>
       </div>

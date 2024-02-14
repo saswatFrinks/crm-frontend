@@ -22,7 +22,7 @@ export const projectRouter = {
       element: <CameraConfiguration />,
     },
     {
-      path: 'project/:projectId/variant/:variantId/camera-position/:cameraPositionId/camera-config/123',
+      path: 'project/:projectId/variant/:variantId/camera-position/:cameraPositionId/camera-config/:cameraConfigId',
       element: <DataSet />,
     },
     {
