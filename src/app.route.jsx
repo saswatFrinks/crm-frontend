@@ -1,12 +1,13 @@
 import Analytic from './modules/analytics/Analytic';
-import Login from './modules/auth/login/Login';
-import Register from './modules/auth/register/Register';
-import Home from './modules/home/Home';
-import Lisence from './modules/lisence/Lisence';
+import Login from './modules/auth/login';
+import Register from './modules/auth/register';
+import Home from './modules/project';
+import Lisence from './modules/lisence';
 import TeamAndUser from './modules/team-user';
-import MainLayout from './shared/layouts/main/main-layout';
+import MainLayout from './shared/layouts/main';
 
 import { createBrowserRouter } from 'react-router-dom';
+import { projectRouter } from './modules/project/project.route';
 
 const router = createBrowserRouter([
   {
@@ -39,6 +40,7 @@ const router = createBrowserRouter([
       },
     ],
   },
+  projectRouter,
 ]);
 
 export default router;

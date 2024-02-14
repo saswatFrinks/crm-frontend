@@ -13,8 +13,8 @@ export default function Button({
       base: 'font-medium bg-blue-500 text-white rounded-full active:opacity-80',
       variants: {
         color: {
-          primary: 'bg-f-primary text-white',
-          secondary: 'bg-purple-500 text-white',
+          primary: 'bg-f-primary text-white hover:bg-f-primary/90',
+          secondary: 'bg-purple-500 text-white hover:bg-purple-500/90',
           flat: 'bg-f-flat text-f-primary',
         },
         size: {

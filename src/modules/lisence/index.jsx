@@ -4,7 +4,7 @@ export default function Lisence() {
   return (
     <>
       <Heading>Lisence</Heading>
-      <div className="p-4">Home</div>
+
     </>
   );
 }

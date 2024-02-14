@@ -1,12 +1,11 @@
 import Heading from '@/shared/layouts/main/heading';
 import Drawer from '@/shared/ui/Drawer';
-import Project from '@/shared/ui/ProjectCard';
+import Project from '@/modules/project/ProjectCard';
 import React from 'react';
 import CreateProjectDrawer from './CreateProjectDrawer';
 import Modal, { ModalBody, ModalFooter, ModalHeader } from '@/shared/ui/Modal';
 import { useSetRecoilState } from 'recoil';
 import { modalAtom } from '@/shared/states/modal.state';
-import { IoClose } from 'react-icons/io5';
 import Button from '@/shared/ui/Button';
 
 export default function Home() {
@@ -51,7 +50,7 @@ export default function Home() {
 
       <Heading>Project</Heading>
 
-      <div className="flex  flex-wrap gap-6 p-10">
+      <div className="flex flex-wrap gap-6 p-10">
         <Project.Create onClick={openDrawer} />
 
         {Array(10)

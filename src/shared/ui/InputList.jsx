@@ -1,5 +1,4 @@
-import React, { useId } from 'react';
-import { CiPlug1 } from 'react-icons/ci';
+import React from 'react';
 import { FaPlus } from 'react-icons/fa6';
 import { IoClose } from 'react-icons/io5';
 import { v4 as uuidv4 } from 'uuid';

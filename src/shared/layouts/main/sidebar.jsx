@@ -1,10 +1,5 @@
-import React from 'react';
 import logo from '@/assets/logo.svg';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { IoGridOutline } from 'react-icons/io5';
-import { FiUsers } from 'react-icons/fi';
-import { FiBarChart2 } from 'react-icons/fi';
-import { TfiMoney } from 'react-icons/tfi';
 import UserDropdown from '@/shared/ui/UserDropdown';
 
 export default function Sidebar() {
@@ -122,9 +117,10 @@ export default function Sidebar() {
       ),
     },
   ];
-  console.log(pathname);
+
+  
   return (
-    <div className="fixed left-0 top-0 flex h-screen  w-64 flex-col items-center  px-2 py-4 shadow-md">
+    <div className="fixed left-0 top-0 flex h-screen w-64 flex-col items-center  px-2 py-4 shadow-md">
       <Link to="/" className="mb-8">
         <img src={logo} alt="frink logo" width={200} />
       </Link>

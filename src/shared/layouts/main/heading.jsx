@@ -1,3 +1,8 @@
-export default function Heading({ children }) {
-  return <div className="bg-white px-10 py-7 shadow-sm font-semibold text-3xl">{children}</div>;
+export default function Heading({ children, subcontent }) {
+  return (
+    <div className="flex items-center bg-white gap-4 px-10 py-7  shadow-sm">
+      <div className="text-3xl font-semibold">{children}</div>
+      <div className="flex items-center gap-4">{subcontent}</div>
+    </div>
+  );
 }
