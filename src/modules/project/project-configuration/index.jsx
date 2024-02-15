@@ -44,11 +44,11 @@ export default function ProjectConfiguration() {
       <div className="p-10">
         <div className="mb-8 flex items-center justify-between">
           <h1 className=" text-2xl font-semibold">Project Configuration</h1>
-          <Button fullWidth={false} size='xs'>
-            <div className="flex items-center gap-2">
+          <Button fullWidth={false} size="xs">
+            <Link className="flex items-center gap-2" to={`assembly`}>
               <Setting />
               Start Configuration
-            </div>
+            </Link>
           </Button>
         </div>
 

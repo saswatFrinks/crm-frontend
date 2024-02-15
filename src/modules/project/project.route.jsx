@@ -1,3 +1,4 @@
+import Assembly from './assembly';
 import CameraConfiguration from './camera-configuration';
 import CameraPosition from './camera-position';
 import DataSet from './data-set';
@@ -33,7 +34,16 @@ export const projectRouter = {
 
     {
       path: 'configuration/:projectId',
-      element: <ProjectConfiguration />,
+      children: [
+        {
+          path: '',
+          element: <ProjectConfiguration />,
+        },
+        {
+          path: 'assembly',
+          element: <Assembly />,
+        },
+      ],
     },
   ],
 };

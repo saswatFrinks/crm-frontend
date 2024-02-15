@@ -16,6 +16,7 @@ export default function Button({
           primary: 'bg-f-primary text-white hover:bg-f-primary/90',
           secondary: 'bg-purple-500 text-white hover:bg-purple-500/90',
           flat: 'bg-f-flat text-f-primary',
+          border: 'bg-transparent border border-f-primary text-f-primary'
         },
         size: {
           xs: 'text-sm py-2',
