@@ -2,12 +2,13 @@ import React from 'react';
 import Upload from '../icons/Upload';
 import X from '../icons/X';
 
-const InputFile = React.forwardRef(({ value, ...props }, ref) => {
+const InputFile = React.forwardRef(({ value, formik = null, ...props }, ref) => {
   const [selectedFile, setSelectedFile] = React.useState(null);
 
   const handleChange = (e) => {
     console.log(e.target.files[0]);
     setSelectedFile(e.target.files[0]);
+    formik?.setFieldValue('file', e.target.files[0])
   };
 
   React.forwardRef(ref, () => ({

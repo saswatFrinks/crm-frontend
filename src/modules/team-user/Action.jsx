@@ -7,7 +7,7 @@ import { FiKey } from 'react-icons/fi';
 import { tv } from 'tailwind-variants';
 
 export default function Action(props) {
-  const { handleOpenModal, hasReset = false, id, setId } = props;
+  const { handleOpenModal, hasReset = false, id, setId, deleteImageById = null } = props;
   const [open, setOpen] = React.useState(false);
 
   const ref = React.useRef(null);
@@ -47,6 +47,10 @@ export default function Action(props) {
             onClick={() => {
               setId(id)
               handleOpenModal('delete');
+
+              if(deleteImageById) {
+                deleteImageById(id)
+              }
             }}
           >
             <FaRegTrashCan /> Delete

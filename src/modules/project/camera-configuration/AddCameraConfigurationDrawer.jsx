@@ -1,12 +1,22 @@
+import axiosInstance from '@/core/request/aixosinstance';
 import Checkbox from '@/shared/ui/Checkbox';
 import Input from '@/shared/ui/Input';
 import InputFile from '@/shared/ui/InputFile';
 import Label from '@/shared/ui/Label';
 import { useFormik } from 'formik';
 import React from 'react';
+import { useLocation } from 'react-router-dom';
+
+const objectivesModulesMapping = {
+  assemblyInspection: "Assembly",
+  cosmeticInspection: "Cosmetic",
+  dimensioningInspection: "Dimensioning"
+}
 
 const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
   const inputRef = React.useRef(null);
+  const {pathname} = useLocation();
+  const {closeDrawer} = props
 
   const formik = useFormik({
     initialValues: {
@@ -25,18 +35,24 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
       return errors;
     },
     onSubmit: async (values) => {
-      console.log(values);
-
       // change to form data
       const data = new FormData();
+      const cameraConfigId = pathname.split("/")[6];
 
       data.append('name', values.name);
+      const modules = []
 
       values.objectives.forEach((t) => {
-        data.append('objectives', t);
+        modules.push(objectivesModulesMapping[t])
       });
 
-      data.append('file', inputRef.current?.selectedFile);
+
+      data.append('file', values.file);
+      data.append('modules', JSON.stringify(modules));
+      data.append('cameraConfigId', 'f2d207ee-053c-40f5-8910-917d48f478c2')
+
+      await axiosInstance.post('/cameraConfig/setup', data)
+      closeDrawer()
     },
   });
 
@@ -78,7 +94,8 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
         <Label htmlFor="file">Camera configuration file</Label>
         <InputFile
           ref={inputRef}
-          // onChange={formik.handleChange}
+          formik={formik}
+          //onChange={(event) => formik.setFieldValue('file', event.target.files)}
           // onBlur={formik.handleBlur}
           // value={formik.values.name}
           // errorMessage={formik.errors.name}
