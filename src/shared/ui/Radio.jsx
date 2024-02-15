@@ -17,7 +17,7 @@ export default function Radio(props) {
     base: 'w-6 h-6 rounded-full flex items-center justify-center cursor-pointer',
     variants: {
       color: {
-        primary: 'text-white',
+        primary: 'text-white bg-white',
         secondary: 'bg-purple-500 text-white',
         flat: 'bg-f-flat ',
       },
@@ -48,14 +48,14 @@ export default function Radio(props) {
     variants: {
       checked: {
         true: '',
-        false: '',
+        false: 'hidden',
       },
     },
   });
 
   return (
     <label className={checkbox({ color, checked })} htmlFor={htmlFor}>
-      <div className={inner()}></div>
+      <div className={inner({ checked })}></div>
       <input
         id={id}
         value={value}
