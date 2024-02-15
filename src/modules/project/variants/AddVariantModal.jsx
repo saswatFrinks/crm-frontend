@@ -50,7 +50,7 @@ export default function AddVariantModal() {
       <ModalHeader>Add a new product variant</ModalHeader>
       <ModalBody>
         <div className="mb-4">
-          <Label>Variant Name</Label>
+          <Label className="mb-2">Variant Name</Label>
           <Input
             placeholder="Enter the variant name"
             type="name"
@@ -66,7 +66,7 @@ export default function AddVariantModal() {
         <div className="ml-auto flex w-3/5 items-center justify-end gap-4">
           <Button
             size="xs"
-            color="flat"
+            variant="flat"
             fullWidth={true}
             onClick={() => setOpenModal(false)}
           >

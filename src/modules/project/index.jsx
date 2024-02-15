@@ -39,7 +39,11 @@ export default function Home() {
 
         <ModalFooter>
           <div className="ml-auto flex w-2/3 items-center gap-4">
-            <Button size="xs" color="flat" onClick={() => setOpenModal(false)}>
+            <Button
+              size="xs"
+              variant="flat"
+              onClick={() => setOpenModal(false)}
+            >
               Cancel
             </Button>
             <Button size="xs" s>
@@ -69,7 +73,7 @@ export default function Home() {
           <div className="flex  items-end justify-end gap-4 ">
             <Button
               size="xs"
-              color="flat"
+              variant="flat"
               fullWidth={false}
               className="min-w-[150px]"
               onClick={closeDrawer}

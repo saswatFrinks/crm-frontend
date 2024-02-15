@@ -11,10 +11,10 @@ import { useSetRecoilState } from 'recoil';
 
 export default function AddFolderModal() {
   const setOpenModal = useSetRecoilState(modalAtom);
-  const {pathname} = useLocation();
+  const { pathname } = useLocation();
 
   const addFolder = async (values) => {
-    const cameraConfigId = pathname.split("/")[8];
+    const cameraConfigId = pathname.split('/')[8];
     await axiosInstance.post('/dataset/create', {
       cameraConfigId: 'f2d207ee-053c-40f5-8910-917d48f478c2',
       folderName: values.name,
@@ -50,7 +50,7 @@ export default function AddFolderModal() {
       <ModalHeader>Create Dataset Folder</ModalHeader>
       <ModalBody>
         <div className="mb-4">
-          <Label>Folder name</Label>
+          <Label className="mb-2">Folder name</Label>
           <Input
             placeholder="Enter folder name"
             type="name"
@@ -66,7 +66,7 @@ export default function AddFolderModal() {
         <div className="ml-auto flex w-3/5 items-center justify-end gap-4">
           <Button
             size="xs"
-            color="flat"
+            variant="flat"
             fullWidth={true}
             onClick={() => setOpenModal(false)}
           >

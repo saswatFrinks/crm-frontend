@@ -63,7 +63,7 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <Label>Camera configuration name</Label>
+        <Label className="mb-2">Camera configuration name</Label>
         <Input
           placeholder="Enter camera configuration name"
           type="name"
@@ -85,7 +85,7 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
         />
       </div>
       <div>
-        <Label>Select Objective</Label>
+        <Label className="mb-2">Select Objective</Label>
         <div className="flex gap-2">
           <Checkbox
             id="assemblyInspection"

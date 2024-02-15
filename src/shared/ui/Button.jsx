@@ -6,6 +6,7 @@ export default function Button({
   color = 'primary',
   fullWidth = true,
   className = '',
+  variant = '',
   ...props
 }) {
   const button = tv(
@@ -14,9 +15,8 @@ export default function Button({
       variants: {
         color: {
           primary: 'bg-f-primary text-white hover:bg-f-primary/90',
-          secondary: 'bg-purple-500 text-white hover:bg-purple-500/90',
-          flat: 'bg-f-flat text-f-primary',
-          border: 'bg-transparent border border-f-primary text-f-primary'
+          secondary: 'bg-f-secondary text-white hover:bg-f-secondary/90',
+          danger: 'bg-red-500 text-white hover:bg-red-400',
         },
         size: {
           xs: 'text-sm py-2',
@@ -27,11 +27,21 @@ export default function Button({
         fullWidth: {
           true: 'w-full',
         },
+        variant: {
+          flat: 'bg-f-flat hover:bg-f-flat/50 text-f-primary',
+          border:
+            'bg-transparent border border-f-primary text-f-primary hover:text-white',
+        },
       },
       compoundVariants: [
         {
           size: ['sm', 'md', 'lg', 'xs'],
           class: 'px-4',
+        },
+        {
+          variant: 'border',
+          color: 'danger',
+          class: 'border-red-500 text-red-500',
         },
       ],
       defaultVariants: {
@@ -45,7 +55,11 @@ export default function Button({
   );
 
   return (
-    <button type="button" className={`${button({ size, color, fullWidth })} ${className}`} {...props}>
+    <button
+      type="button"
+      className={`${button({ size, color, fullWidth, variant })} ${className}`}
+      {...props}
+    >
       {children}
     </button>
   );

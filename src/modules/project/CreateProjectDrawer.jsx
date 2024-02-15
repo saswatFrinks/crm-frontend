@@ -76,7 +76,7 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
   return (
     <form onSubmit={formik.handleSubmit} className="flex flex-col gap-4">
       <div>
-        <Label>Project name</Label>
+        <Label className="mb-2">Project name</Label>
         <Input
           placeholder="Enter project name"
           type="text"
@@ -89,7 +89,7 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
       </div>
 
       <div>
-        <Label>Inspection speed (products/minute)</Label>
+        <Label className="mb-2">Inspection speed (products/minute)</Label>
         <Input
           placeholder="Enter Inspection Speed"
           type="number"
@@ -103,7 +103,7 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
       </div>
 
       <div>
-        <Label>Camera mount</Label>
+        <Label className="mb-2">Camera mount</Label>
         <div className="flex gap-8">
           <div className="flex gap-2">
             <Radio
@@ -133,7 +133,7 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
       </div>
 
       <div>
-        <Label>Product flow</Label>
+        <Label className="mb-2">Product flow</Label>
         <div className="flex gap-8">
           <div className="flex gap-2">
             <Radio
@@ -163,22 +163,22 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
       </div>
 
       <div>
-        <Label>Add variants</Label>
+        <Label className="mb-2">Add variants</Label>
         <InputList placeholder="Enter variants" />
       </div>
 
       <div>
-        <Label>Plant</Label>
+        <Label className="mb-2">Plant</Label>
         <Select />
       </div>
 
       <div>
-        <Label>Team</Label>
+        <Label className="mb-2">Team</Label>
         <Select />
       </div>
 
       <div>
-        <Label>Select Objective</Label>
+        <Label className="mb-2">Select Objective</Label>
         <div className="flex gap-4">
           <div className="flex gap-2">
             <Checkbox
@@ -226,7 +226,9 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
 
       {formik.values.objectives.map((t) => (
         <div key={t}>
-          <Label>Add classes for {getClassNameTitle(t)} </Label>
+          <Label className="mb-2">
+            Add classes for {getClassNameTitle(t)}{' '}
+          </Label>
           <InputList placeholder="Enter class" />
         </div>
       ))}

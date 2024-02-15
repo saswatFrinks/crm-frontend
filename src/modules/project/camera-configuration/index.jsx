@@ -87,7 +87,7 @@ export default function CameraConfiguration() {
           <div className="flex  items-end justify-end gap-4 ">
             <Button
               size="xs"
-              color="flat"
+              variant="flat"
               fullWidth={false}
               className="min-w-[150px]"
               onClick={closeDrawer}
