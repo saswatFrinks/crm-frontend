@@ -10,7 +10,7 @@ import React from 'react';
 import toast from 'react-hot-toast';
 import { useSetRecoilState } from 'recoil';
 
-export default function AddPlantModal({ fetchAllPlants }) {
+export default function AddPlantModal({fetchAllPlants}) {
   const setOpenModal = useSetRecoilState(modalAtom);
 
   const formik = useFormik({
@@ -52,7 +52,7 @@ export default function AddPlantModal({ fetchAllPlants }) {
       <ModalHeader>Add a new plant</ModalHeader>
       <ModalBody>
         <div className="mb-4">
-          <Label className="mb-2">Plant Name</Label>
+          <Label>Plant Name</Label>
           <Input
             placeholder="Enter plant name"
             type="name"
@@ -64,7 +64,7 @@ export default function AddPlantModal({ fetchAllPlants }) {
           />
         </div>
         <div>
-          <Label className="mb-2">Plant Location</Label>
+          <Label>Plant Location</Label>
           <Input
             placeholder="Enter plant location"
             type="location"
@@ -80,20 +80,16 @@ export default function AddPlantModal({ fetchAllPlants }) {
         <div className="ml-auto flex w-3/5 items-center justify-end gap-4">
           <Button
             size="xs"
-            variant="flat"
+            color="flat"
             fullWidth={true}
             onClick={() => setOpenModal(false)}
           >
             Cancel
           </Button>
-          <Button
-            size="xs"
-            fullWidth={true}
-            onClick={() => {
-              formik.handleSubmit();
-              setOpenModal(false);
-            }}
-          >
+          <Button size="xs" fullWidth={true} onClick={() => {
+            formik.handleSubmit()
+            setOpenModal(false)
+          }}>
             Confirm
           </Button>
         </div>

@@ -123,7 +123,7 @@ export default function User() {
         size="xs"
         footer={
           <div className="flex w-2/3 items-end justify-end gap-2 ">
-            <Button size="xs" variant="flat" onClick={closeDrawer}>
+            <Button size="xs" color="flat" onClick={closeDrawer}>
               Cancel
             </Button>
             <Button

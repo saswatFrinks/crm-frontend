@@ -20,14 +20,14 @@ function DeleteModal({ deleteById }) {
 
       <ModalFooter>
         <div className="ml-auto flex w-2/3 items-center gap-4">
-          <Button size="xs" variant="flat" onClick={() => setOpenModal(false)}>
+          <Button size="xs" color="flat" onClick={() => setOpenModal(false)}>
             Cancel
           </Button>
           <Button
             size="xs"
             onClick={() => {
               setOpenModal(false);
-              deleteById();
+              deleteById()
             }}
           >
             Delete

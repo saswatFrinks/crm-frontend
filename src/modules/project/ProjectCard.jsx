@@ -64,7 +64,7 @@ function Card() {
         Project descciption in one line or two
       </p>
       <div className=" hidden h-8 items-center justify-center gap-4 duration-100 group-hover:flex">
-        <Button size="xs" variant="flat">
+        <Button size="xs" color="flat">
           Edit
         </Button>
         <Button size="xs">
