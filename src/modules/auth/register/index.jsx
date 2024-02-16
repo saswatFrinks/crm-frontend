@@ -107,7 +107,7 @@ export default function Register() {
         <form className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="col-span-2 grid grid-cols-1 gap-6 md:grid-cols-2">
             <div className="md:min-w-80">
-              <Label className="mb-2">User Name</Label>
+              <Label>User Name</Label>
               <Input
                 placeholder="Enter your name"
                 type="text"
@@ -120,7 +120,7 @@ export default function Register() {
             </div>
 
             <div className="md:min-w-8">
-              <Label className="mb-2">User Email Id</Label>
+              <Label>User Email Id</Label>
               <Input
                 placeholder="Enter your email"
                 type="email"
@@ -133,7 +133,7 @@ export default function Register() {
             </div>
 
             <div className="md:min-w-8">
-              <Label className="mb-2">Organisation Name</Label>
+              <Label>Organisation Name</Label>
               <Input
                 placeholder="Enter your organisation name"
                 name="organization"
@@ -145,7 +145,7 @@ export default function Register() {
             </div>
 
             <div className="md:min-w-8">
-              <Label className="mb-2">Contact number</Label>
+              <Label>Contact number</Label>
               <FPhoneInput
                 defaultCountry="US"
                 placeholder="Enter your contact number"
@@ -157,7 +157,7 @@ export default function Register() {
             </div>
 
             <div className="md:min-w-8">
-              <Label className="mb-2">Password</Label>
+              <Label>Password</Label>
               <Input
                 placeholder="Enter password"
                 type="password"
@@ -170,7 +170,7 @@ export default function Register() {
             </div>
 
             <div className="md:min-w-8">
-              <Label className="mb-2">Confirm Password</Label>
+              <Label>Confirm Password</Label>
               <Input
                 placeholder="Re-enter password"
                 type="password"
@@ -187,7 +187,7 @@ export default function Register() {
             to={'/login'}
             className=" block min-w-[180px]  place-self-end   "
           >
-            <Button color="variant">Cancel</Button>
+            <Button color="flat">Cancel</Button>
           </Link>
 
           <div className=" min-w-[180px] place-self-start ">

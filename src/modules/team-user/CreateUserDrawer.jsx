@@ -81,7 +81,7 @@ const CreateUserDrawer = React.forwardRef((props, ref) => {
   return (
     <div className="flex flex-col gap-4">
       <div className="">
-        <Label className="mb-2">User Name</Label>
+        <Label>User Name</Label>
         <Input
           placeholder="Enter your name"
           type="text"
@@ -94,7 +94,7 @@ const CreateUserDrawer = React.forwardRef((props, ref) => {
       </div>
 
       <div className="">
-        <Label className="mb-2">User Email Id</Label>
+        <Label>User Email Id</Label>
         <Input
           placeholder="Enter your email"
           type="email"
@@ -107,7 +107,7 @@ const CreateUserDrawer = React.forwardRef((props, ref) => {
       </div>
 
       <div className="">
-        <Label className="mb-2">Phone number</Label>
+        <Label>Phone number</Label>
         <FPhoneInput
           defaultCountry="US"
           placeholder="Enter your contact number"
@@ -119,13 +119,13 @@ const CreateUserDrawer = React.forwardRef((props, ref) => {
       </div>
 
       <div>
-        <Label className="mb-2">Plant</Label>
+        <Label>Plant</Label>
 
         <Select />
       </div>
 
       <div>
-        <Label className="mb-2">Team</Label>
+        <Label>Team</Label>
 
         <Select />
       </div>

@@ -124,7 +124,7 @@ export default function Folder() {
               </tr>
             </thead>
             <tbody>
-              {datasetImages?.map((datasetImage, index) => {
+              {datasetImages.map((datasetImage, index) => {
                 return (
                   <tr
                     key={index}
