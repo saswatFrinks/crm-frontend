@@ -38,7 +38,7 @@ export default function AddCameraPositionModal() {
       <ModalHeader>Add camera position</ModalHeader>
       <ModalBody>
         <div className="mb-4">
-          <Label>Camera position name</Label>
+          <Label className="mb-2">Camera position name</Label>
           <Input
             placeholder="Enter the variant name"
             type="name"
@@ -54,7 +54,7 @@ export default function AddCameraPositionModal() {
         <div className="ml-auto flex w-3/5 items-center justify-end gap-4">
           <Button
             size="xs"
-            color="flat"
+            variant="flat"
             fullWidth={true}
             onClick={() => setOpenModal(false)}
           >

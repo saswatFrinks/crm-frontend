@@ -28,7 +28,8 @@ export default function Sidebar() {
       ),
     },
     {
-      to: '',
+      to: `/configuration/${params.projectId}`,
+      pathname: 'configuration',
       icon: (active) => (
         <svg
           width="24"
@@ -129,8 +130,8 @@ export default function Sidebar() {
       </Link>
 
       <ul className="mt-8 flex w-full flex-col gap-2">
-        {menus.map((t) => (
-          <li key={t.to}>
+        {menus.map((t, i) => (
+          <li key={i}>
             <NavLink
               to={t.to}
               className={({ isActive }) => {

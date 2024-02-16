@@ -12,7 +12,7 @@ import { updateAuthenHeader } from '@/core/request/updateAuth';
 
 export default function Login() {
   const navigate = useNavigate();
-  
+
   const formik = useFormik({
     initialValues: {
       email: '',
@@ -69,7 +69,7 @@ export default function Login() {
           Sign in to your workspace for managing projects
         </p>
         <div>
-          <Label>Email Id</Label>
+          <Label className="mb-2">Email Id</Label>
           <Input
             placeholder="Enter email id"
             type="email"
@@ -82,7 +82,7 @@ export default function Login() {
         </div>
 
         <div>
-          <Label>Password</Label>
+          <Label className="mb-2">Password</Label>
           <Input
             placeholder="Enter password"
             type="password"
@@ -102,7 +102,7 @@ export default function Login() {
         </p>
 
         <Link to={'/register'} className="mx-auto block w-full">
-          <Button color="flat">Sign up</Button>
+          <Button color="variant">Sign up</Button>
         </Link>
       </form>
     </div>
