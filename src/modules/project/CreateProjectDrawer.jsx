@@ -5,10 +5,11 @@ import Radio from '@/shared/ui/Radio';
 import Select from '@/shared/ui/Select';
 import InputList from '@/shared/ui/InputList';
 import Checkbox from '@/shared/ui/Checkbox';
-import toast from 'react-hot-toast';
 import { useFormik } from 'formik';
+import axiosInstance from '@/core/request/aixosinstance';
 
 const CreateProjectDrawer = React.forwardRef((props, ref) => {
+  const {closeDrawer} = props;
   const formik = useFormik({
     initialValues: {
       name: '',
@@ -18,6 +19,10 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
       plantId: '',
       teamId: '',
       objectives: [],
+      variants: [],
+      assemblyInspection: [],
+      dimensioningInspection: [],
+      cosmeticInspection: [],
     },
     validate: (values) => {
       const errors = {};
@@ -35,13 +40,59 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
     },
     onSubmit: async (values) => {
       console.log({ values });
-      try {
-        toast.success('Login successfully!');
-      } catch (error) {
-        toast.error(error.response.data.data.message);
-      }
+
+      values.plantId = 'fb90acb7-3130-4d9a-92ae-1a02a6baf327'
+      values.teamId = 'd7625654-7ab1-48ec-ba91-003b8ad0aed9'
+
+      const projectJson = createProjectJSON(values);
+
+      await axiosInstance.post('/project/create', projectJson)
+      closeDrawer()
     },
   });
+
+  const createProjectJSON = (values) => {
+    const json = {
+      name: values.name,
+      inspectionSpeed: values.inspectionSpeed,
+      isCameraFixed: values.isCameraFixed == 'fixed',
+      isItemFixed: values.isItemFixed == 'stationary',
+      plantId: values.plantId,
+      teamId: values.teamId,
+    };
+
+    json['variants'] = values.variants.slice(1).map((variant) => variant.value);
+
+    const map = new Map();
+
+    addClassesToMap(values.assemblyInspection, map, 0);
+    addClassesToMap(values.dimensioningInspection, map, 1);
+    addClassesToMap(values.cosmeticInspection, map, 2);
+
+    const classes = [];
+
+    for (let [key, value] of map) {
+      classes.push({
+        name: key,
+        objectives: value,
+      });
+    }
+
+    json['classes'] = classes;
+    return json;
+  };
+
+  const addClassesToMap = (classes, map, id) => {
+    for (const classObj of classes) {
+      if (classObj.value) {
+        if (map.has(classObj.value)) {
+          map.get(classObj.value).push(id);
+        } else {
+          map.set(classObj.value, [id]);
+        }
+      }
+    }
+  };
 
   const handleCheckboxChange = (value) => {
     if (formik.values.objectives.includes(value)) {
@@ -164,7 +215,11 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
 
       <div>
         <Label>Add variants</Label>
-        <InputList placeholder="Enter variants" />
+        <InputList
+          placeholder="Enter variants"
+          formik={formik}
+          field="variants"
+        />
       </div>
 
       <div>
@@ -227,7 +282,7 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
       {formik.values.objectives.map((t) => (
         <div key={t}>
           <Label>Add classes for {getClassNameTitle(t)} </Label>
-          <InputList placeholder="Enter class" />
+          <InputList placeholder="Enter class" formik={formik} field={t} />
         </div>
       ))}
     </form>

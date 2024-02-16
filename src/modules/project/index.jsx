@@ -80,7 +80,7 @@ export default function Home() {
               size="xs"
               fullWidth={false}
               className="min-w-[150px]"
-              onClick={ref.current?.submitForm()}
+              onClick={() => ref.current?.submitForm()}
             >
               Creat Project
             </Button>

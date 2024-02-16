@@ -15,11 +15,12 @@ export default function Folder() {
   const params = useParams();
   const { pathname } = useLocation();
   const [datasetImages, setDatasetImages] = useState([]);
+  const [id, setId] = useState('');
+  const folderId = pathname.split('/')[10];
 
   async function handleFileUpload(event) {
     const files = event.target.files;
     const formData = new FormData();
-    const folderId = pathname.split('/')[10];
 
     for (let i = 0; i < files.length; i++) {
       formData.append('files', files[i]);
@@ -47,6 +48,18 @@ export default function Folder() {
   const handleOpenModal = () => {
     setModalState(true);
   };
+
+  const deleteImageById = async (imageId) => {
+    await axiosInstance.delete('/dataset/image', {
+      params: {
+        folderId: "47720812-8e76-4835-b12a-a9f47cbe89e9",
+        imageId
+      }
+    })
+
+    fetchAllImages()
+  }
+
   return (
     <>
       <Heading
@@ -144,7 +157,7 @@ export default function Folder() {
                     </td>
 
                     <td className="px-6 py-4">
-                      <Action handleOpenModal={handleOpenModal} />
+                      <Action handleOpenModal={handleOpenModal} id={datasetImage.id} setId={setId} deleteImageById={deleteImageById}/>
                     </td>
                   </tr>
                 );
