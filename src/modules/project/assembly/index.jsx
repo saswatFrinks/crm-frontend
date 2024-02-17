@@ -6,17 +6,52 @@ import ZoomIn from '@/shared/icons/ZoomIn';
 import ZoomOut from '@/shared/icons/ZoomOut';
 import Button from '@/shared/ui/Button';
 
-import Configuration from './Configuration';
+import Configuration from './components/Configuration';
+import UploadImage from './components/UploadImage';
+import { useSetRecoilState } from 'recoil';
+import { stageAtom } from './states';
 
 export default function Assembly() {
+  const setStage = useSetRecoilState(stageAtom);
+
+  const calcHeight = () => {
+    return (window.innerHeight * 11) / 12 - 84;
+  };
+
+  const handleZoomIn = () => {
+    setStage((prevValue) => {
+      let scale = Math.min(10.0, Math.ceil(prevValue.scale * 1.1 * 10) / 10);
+      if (scale > 10) scale = 10;
+
+      return {
+        ...prevValue,
+        scale,
+      };
+    });
+  };
+
+  const handleZoomOut = () => {
+    setStage((prevValue) => {
+      let scale = Math.max(0.1, Math.floor(prevValue.scale * 0.9 * 10) / 10);
+      if (scale < 1) scale = 1;
+
+      return {
+        ...prevValue,
+        scale,
+      };
+    });
+  };
+
   const actions = [
     {
       title: 'zoom in',
       icon: ZoomIn,
+      action: handleZoomIn,
     },
     {
       title: 'zoom out',
       icon: ZoomOut,
+      action: handleZoomOut,
     },
     {
       title: 'pan',
@@ -27,10 +62,6 @@ export default function Assembly() {
       icon: Box,
     },
   ];
-
-  const calcHeight = () => {
-    return (window.innerHeight * 11) / 12 - 84;
-  };
 
   return (
     <>
@@ -66,18 +97,15 @@ export default function Assembly() {
 
         <div className="col-span-7 grid grid-rows-12">
           <div className="row-span-11 flex flex-col items-center justify-center gap-4 bg-[#EAEDF1]">
-            <BigImage />
-            <label className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-f-primary px-20 py-2 text-white duration-100 hover:bg-f-secondary">
-              <Upload /> Upload master image
-              <input type="file" hidden />
-            </label>
+            <UploadImage />
           </div>
           <div className="flex items-center justify-between border-t-[1px] border-gray-400">
             <ul className="flex items-center gap-6 px-4">
               {actions.map((t) => (
                 <li
                   key={t.title}
-                  className="flex cursor-pointer flex-col items-center p-2"
+                  className="flex cursor-pointer flex-col items-center p-2 select-none"
+                  onClick={t?.action}
                 >
                   <t.icon />
                   {t.title}
