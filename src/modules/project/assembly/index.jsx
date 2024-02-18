@@ -30,7 +30,6 @@ export default function Assembly() {
 
   const [isEditingRect, setEditingRect] = useRecoilState(editingRectAtom);
 
-
   const calcHeight = () => {
     return (window.innerHeight * 11) / 12 - 84;
   };
@@ -76,8 +75,13 @@ export default function Assembly() {
     }));
   };
 
+  const cancel = () => {
+    setEditingRect(false);
+    setIsEditing(false);
+  };
+
   const submmit = () => {
-    setEditingRect(false)
+    setEditingRect(false);
     setIsEditing(false);
     setConfiguration((t) => ({
       ...t,
@@ -170,7 +174,12 @@ export default function Assembly() {
             </ul>
             {isEditing && (
               <div className="flex w-[300px] gap-4 px-4">
-                <Button color="secondary" variant="flat" size="xs">
+                <Button
+                  color="secondary"
+                  variant="flat"
+                  size="xs"
+                  onClick={cancel}
+                >
                   Cancel
                 </Button>
                 <Button size="xs" onClick={submmit}>

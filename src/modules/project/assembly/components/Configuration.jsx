@@ -1,11 +1,10 @@
-import ArrowUp from '@/shared/ui/ArrowUp';
 import Button from '@/shared/ui/Button';
 import Checkbox from '@/shared/ui/Checkbox';
 import Hr from '@/shared/ui/Hr';
 import Input from '@/shared/ui/Input';
 import Label from '@/shared/ui/Label';
 import Modal from '@/shared/ui/Modal';
-import Pen from '@/shared/ui/Pen';
+import Pen from '@/shared/icons/Pen';
 import Radio from '@/shared/ui/Radio';
 import Select from '@/shared/ui/Select';
 
@@ -23,6 +22,7 @@ import {
 } from '@/core/constants';
 import DeleteRoiModal from './DeleteRoiModal';
 import { assemblyAtom, currentRoiIdAtom, editingAtom } from '../states';
+import ArrowUp from '@/shared/icons/ArrowUp';
 
 export default function Configuration(props) {
   // type: moving | stationary {{ASSEMBLY_CONFIG}}
