@@ -1,18 +1,31 @@
-import BigImage from '@/shared/icons/BigImage';
 import Box from '@/shared/icons/Box';
 import Pan from '@/shared/icons/Pan';
-import Upload from '@/shared/icons/Upload';
 import ZoomIn from '@/shared/icons/ZoomIn';
 import ZoomOut from '@/shared/icons/ZoomOut';
 import Button from '@/shared/ui/Button';
 
 import Configuration from './components/Configuration';
 import UploadImage from './components/UploadImage';
-import { useSetRecoilState } from 'recoil';
-import { stageAtom } from './states';
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
+import {
+  assemblyAtom,
+  currentRoiIdAtom,
+  editingAtom,
+  imageStatusAtom,
+  stageAtom,
+} from './states';
+import { IMAGE_STATUS, STATUS } from '@/core/constants';
 
 export default function Assembly() {
   const setStage = useSetRecoilState(stageAtom);
+
+  const [isEditing, setIsEditing] = useRecoilState(editingAtom);
+
+  const [imageStatus, setImageStatus] = useRecoilState(imageStatusAtom);
+
+  const [configuration, setConfiguration] = useRecoilState(assemblyAtom);
+
+  const currentRoiId = useRecoilValue(currentRoiIdAtom);
 
   const calcHeight = () => {
     return (window.innerHeight * 11) / 12 - 84;
@@ -42,24 +55,55 @@ export default function Assembly() {
     });
   };
 
+  const handlePan = () => {
+    setImageStatus((t) => ({
+      ...IMAGE_STATUS,
+      drag: !t.drag,
+    }));
+  };
+
+  const handleDrawBox = () => {
+    setImageStatus((t) => ({
+      ...IMAGE_STATUS,
+      draw: !t.draw,
+    }));
+  };
+
+  const submmit = () => {
+    setIsEditing(false)
+    setConfiguration((t) => ({
+      ...t,
+      rois: t.rois.map((k) => ({
+        ...k,
+        status: k.id == currentRoiId ? STATUS.FINISH : k.status,
+      })),
+    }));
+  };
+
   const actions = [
     {
       title: 'zoom in',
       icon: ZoomIn,
       action: handleZoomIn,
+      active: false,
     },
     {
       title: 'zoom out',
       icon: ZoomOut,
       action: handleZoomOut,
+      active: false,
     },
     {
       title: 'pan',
       icon: Pan,
+      action: handlePan,
+      active: imageStatus.drag,
     },
     {
       title: 'box',
       icon: Box,
+      action: handleDrawBox,
+      active: imageStatus.draw,
     },
   ];
 
@@ -104,20 +148,24 @@ export default function Assembly() {
               {actions.map((t) => (
                 <li
                   key={t.title}
-                  className="flex cursor-pointer flex-col items-center p-2 select-none"
+                  className={`flex cursor-pointer select-none flex-col items-center p-2 ${t.active ? 'text-f-primary' : ''}`}
                   onClick={t?.action}
                 >
-                  <t.icon />
+                  <t.icon active={t.active} />
                   {t.title}
                 </li>
               ))}
             </ul>
-            <div className="flex w-[300px] gap-4 px-4">
-              <Button color="variant" size="xs">
-                Cancel
-              </Button>
-              <Button size="xs">Confirm</Button>
-            </div>
+            {isEditing && (
+              <div className="flex w-[300px] gap-4 px-4">
+                <Button color="secondary" variant="flat" size="xs">
+                  Cancel
+                </Button>
+                <Button size="xs" onClick={submmit}>
+                  Confirm
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>

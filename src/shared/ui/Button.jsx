@@ -10,11 +10,14 @@ export default function Button({
 }) {
   const button = tv(
     {
-      base: 'font-medium bg-blue-500 text-white rounded-full active:opacity-80',
+      base: 'font-medium bg-blue-500 text-white rounded-full active:opacity-80 select-none',
       variants: {
         color: {
           primary: 'bg-f-primary text-white hover:bg-f-primary/90',
-          secondary: 'bg-purple-500 text-white hover:bg-purple-500/90',
+          secondary: 'bg-f-secondary text-white hover:bg-f-secondary/90',
+          danger: 'bg-red-500 text-white hover:bg-red-400',
+          warn: 'bg-yellow-500 text-white hover:bg-yellow-400',
+          success: 'bg-green-500 text-white hover:bg-green-400',
           flat: 'bg-f-flat text-f-primary',
         },
         size: {
@@ -30,8 +33,8 @@ export default function Button({
       },
       compoundVariants: [
         {
-          size: ['sm', 'md', 'lg', 'xs', 'tiny'],
-          class: 'px-4',
+          size: ['sm', 'md', 'lg', 'xs', 'tiny', 'warn', 'succcess'],
+          class: 'px-4 duration-100',
         },
       ],
       defaultVariants: {

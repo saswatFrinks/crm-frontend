@@ -12,26 +12,16 @@ import Select from '@/shared/ui/Select';
 import React from 'react';
 import { ChevronDown, Plus, Trash } from 'react-feather';
 import DeleteObjectModal from './DeleteObjectModal';
-import { useSetRecoilState } from 'recoil';
+import { useRecoilState, useSetRecoilState } from 'recoil';
 import { modalAtom } from '@/shared/states/modal.state';
-import { ASSEMBLY_CONFIG } from '@/core/constants';
+import {
+  ASSEMBLY_CONFIG,
+  DEFAULT_OBJECT,
+  DEFAULT_ROI,
+  STATUS,
+} from '@/core/constants';
 import DeleteRoiModal from './DeleteRoiModal';
-
-const DEFAULT_OBJECT = {
-  id: 1,
-  objectName: '',
-  class: '',
-  operation: '',
-  qty: '',
-  classify: false,
-  checked: false,
-};
-
-const DEFAULT_ROI = {
-  id: 2,
-  checked: false,
-  objects: [DEFAULT_OBJECT],
-};
+import { assemblyAtom, currentRoiIdAtom, editingAtom } from '../states';
 
 export default function Configuration(props) {
   // type: moving | stationary {{ASSEMBLY_CONFIG}}
@@ -40,14 +30,13 @@ export default function Configuration(props) {
 
   const setModalState = useSetRecoilState(modalAtom);
 
+  const [isEditing, setIsEditing] = useRecoilState(editingAtom);
+
   const [deleteModal, setDeleteModal] = React.useState('roi');
 
-  const [configuration, setConfiguration] = React.useState({
-    productFlow: 'up',
-    primaryObject: '',
-    primaryObjectClass: '',
-    rois: [DEFAULT_ROI],
-  });
+  const [configuration, setConfiguration] = useRecoilState(assemblyAtom);
+
+  const setCurrentRoiId = useSetRecoilState(currentRoiIdAtom);
 
   const addRoi = () => {
     setConfiguration((t) => ({
@@ -118,6 +107,50 @@ export default function Configuration(props) {
 
   const genObjId = (id) => {
     return `obj-${id}`;
+  };
+
+  const handleClickLabel = (id) => {
+    setIsEditing(true);
+    setCurrentRoiId(id);
+    setConfiguration((t) => ({
+      ...t,
+      rois: t.rois.map((k) => ({
+        ...k,
+        status: k.id == id ? STATUS.EDITING : k.status,
+      })),
+    }));
+  };
+
+  const genLabelClass = (status) => {
+    const obj = {
+      [STATUS.DEFAULT]: 'primary',
+      [STATUS.EDITING]: 'warn',
+      [STATUS.FINISH]: 'success',
+    };
+    return obj[status];
+  };
+
+  const toggleRoi = (id) => {
+    setConfiguration((t) => ({
+      ...t,
+      rois: t.rois.map((k) => ({
+        ...k,
+        open: k.id == id ? !k.open : k.open,
+      })),
+    }));
+  };
+
+  const toggleObjective = (id) => {
+    setConfiguration((t) => ({
+      ...t,
+      rois: t.rois.map((k) => ({
+        ...k,
+        objects: k.objects.map((h) => ({
+          ...h,
+          open: h.id == id ? !h.open : h.open,
+        })),
+      })),
+    }));
   };
 
   const renderAssemblyHeading = () => {
@@ -277,9 +310,14 @@ export default function Configuration(props) {
               />
               <span>Roi {i + 1}</span>
               <div className="flex-1">
-                <Button size="tiny" fullWidth={false}>
+                <Button
+                  size="tiny"
+                  color={genLabelClass(t.status)}
+                  fullWidth={false}
+                  onClick={() => handleClickLabel(t.id)}
+                >
                   <div className="flex items-center gap-2">
-                    <Pen /> Label ROI
+                    <Pen /> {t.status == STATUS.EDITING ? 'Edit' : 'Label'} ROI
                   </div>
                 </Button>
               </div>
@@ -304,124 +342,138 @@ export default function Configuration(props) {
                   </div>
                 </Button>
               </div>
-              <ChevronDown size={24} className="cursor-pointer" />
+              <ChevronDown
+                size={24}
+                className={`cursor-pointer duration-100 ${t.open ? 'rotate-180' : ''}`}
+                onClick={() => toggleRoi(t.id)}
+              />
             </div>
             {/* object list */}
 
-            {t.objects.map((obj, objIndex) => (
-              <div key={obj.id} className="ml-8 flex flex-col gap-4">
-                <Hr />
-                <div className=" flex items-center justify-between">
-                  <div className="flex gap-4">
-                    <Checkbox
-                      id={genObjId(obj.id)}
-                      value={obj.id}
-                      checked={obj.checked}
-                      onChange={() =>
-                        setConfiguration((configuration) => ({
-                          ...configuration,
-                          rois: configuration.rois.map((k) => ({
-                            ...k,
-                            objects: k.objects.map((h) => ({
-                              ...h,
-                              checked: h.id == obj.id ? !h.checked : h.checked,
+            {t.objects.map((obj, objIndex) =>
+              t.open ? (
+                <div key={obj.id} className="ml-8 flex flex-col gap-4">
+                  <Hr />
+                  <div className=" flex items-center justify-between">
+                    <div className="flex gap-4">
+                      <Checkbox
+                        id={genObjId(obj.id)}
+                        value={obj.id}
+                        checked={obj.checked}
+                        onChange={() =>
+                          setConfiguration((configuration) => ({
+                            ...configuration,
+                            rois: configuration.rois.map((k) => ({
+                              ...k,
+                              objects: k.objects.map((h) => ({
+                                ...h,
+                                checked:
+                                  h.id == obj.id ? !h.checked : h.checked,
+                              })),
                             })),
-                          })),
-                        }))
-                      }
-                      htmlFor={genObjId(obj.id)}
+                          }))
+                        }
+                        htmlFor={genObjId(obj.id)}
+                      />
+                      <span className="select-none">Object {objIndex + 1}</span>
+                    </div>
+                    <ChevronDown
+                      size={24}
+                      className={`cursor-pointer duration-100 ${obj.open ? 'rotate-180' : ''}`}
+                      onClick={() => toggleObjective(obj.id)}
                     />
-                    Object {objIndex + 1}
                   </div>
-                  <ChevronDown size={24} className="cursor-pointer" />
+
+                  {obj.open ? (
+                    <div className="ml-4 flex flex-col gap-4">
+                      <div className="flex items-center gap-2">
+                        <Label main={false}>Object Name:</Label>
+                        <div className="ml-8 w-44">
+                          <Input
+                            placeholder="Enter object name"
+                            size="xs"
+                            onChange={(e) => {
+                              setConfiguration((t) => ({
+                                ...t,
+                                rois: t.rois.map((roi) => ({
+                                  ...roi,
+                                  objects: roi.objects.map((obj) => ({
+                                    ...obj,
+                                    objectName: e.target.value,
+                                  })),
+                                })),
+                              }));
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <Label main={false}>Select Class:</Label>
+                        <div className="ml-10 w-44">
+                          <Select size="xs" placeholder="Select class" />
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <Label main={false}>Select Operation:</Label>
+                        <div className="ml-2 w-44">
+                          <Select size="xs" placeholder="Select operation" />
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <Label main={false}>Object Qty:</Label>
+                        <div className="ml-12 w-44">
+                          <Input
+                            placeholder="Enter object qty"
+                            size="xs"
+                            onChange={(e) => {
+                              setConfiguration((t) => ({
+                                ...t,
+                                rois: t.rois.map((roi) => ({
+                                  ...roi,
+                                  objects: roi.objects.map((obj) => ({
+                                    ...obj,
+                                    qty: e.target.value,
+                                  })),
+                                })),
+                              }));
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <label className="mb-5 inline-flex cursor-pointer items-center">
+                          <input
+                            type="checkbox"
+                            value=""
+                            className="peer sr-only"
+                            onChange={(e) => {
+                              setConfiguration((t) => ({
+                                ...t,
+                                rois: t.rois.map((roi) => ({
+                                  ...roi,
+                                  objects: roi.objects.map((obj) => ({
+                                    ...obj,
+                                    classify: e.target.checked,
+                                  })),
+                                })),
+                              }));
+                            }}
+                          />
+                          <div className="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"></div>
+                          <span className="ms-3 text-sm font-medium text-gray-900 ">
+                            Classify
+                          </span>
+                        </label>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
-                <div className="ml-4 flex flex-col gap-4">
-                  <div className="flex items-center gap-2">
-                    <Label main={false}>Object Name:</Label>
-                    <div className="ml-8 w-44">
-                      <Input
-                        placeholder="Enter object name"
-                        size="xs"
-                        onChange={(e) => {
-                          setConfiguration((t) => ({
-                            ...t,
-                            rois: t.rois.map((roi) => ({
-                              ...roi,
-                              objects: roi.objects.map((obj) => ({
-                                ...obj,
-                                objectName: e.target.value,
-                              })),
-                            })),
-                          }));
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Label main={false}>Select Class:</Label>
-                    <div className="ml-10 w-44">
-                      <Select size="xs" placeholder="Select class" />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Label main={false}>Select Operation:</Label>
-                    <div className="ml-2 w-44">
-                      <Select size="xs" placeholder="Select operation" />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Label main={false}>Object Qty:</Label>
-                    <div className="ml-12 w-44">
-                      <Input
-                        placeholder="Enter object qty"
-                        size="xs"
-                        onChange={(e) => {
-                          setConfiguration((t) => ({
-                            ...t,
-                            rois: t.rois.map((roi) => ({
-                              ...roi,
-                              objects: roi.objects.map((obj) => ({
-                                ...obj,
-                                qty: e.target.value,
-                              })),
-                            })),
-                          }));
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <label className="mb-5 inline-flex cursor-pointer items-center">
-                      <input
-                        type="checkbox"
-                        value=""
-                        className="peer sr-only"
-                        onChange={(e) => {
-                          setConfiguration((t) => ({
-                            ...t,
-                            rois: t.rois.map((roi) => ({
-                              ...roi,
-                              objects: roi.objects.map((obj) => ({
-                                ...obj,
-                                classify: e.target.checked,
-                              })),
-                            })),
-                          }));
-                        }}
-                      />
-                      <div className="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"></div>
-                      <span className="ms-3 text-sm font-medium text-gray-900 ">
-                        Classify
-                      </span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-            ))}
+              ) : null
+            )}
           </div>
         ))}
       </div>
