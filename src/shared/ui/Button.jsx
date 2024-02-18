@@ -18,6 +18,7 @@ export default function Button({
           flat: 'bg-f-flat text-f-primary',
         },
         size: {
+          tiny: 'text-sm py-1',
           xs: 'text-sm py-2',
           sm: 'text-base py-2.5',
           md: 'text-lg py-3',
@@ -29,7 +30,7 @@ export default function Button({
       },
       compoundVariants: [
         {
-          size: ['sm', 'md', 'lg', 'xs'],
+          size: ['sm', 'md', 'lg', 'xs', 'tiny'],
           class: 'px-4',
         },
       ],

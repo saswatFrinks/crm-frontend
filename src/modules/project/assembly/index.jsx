@@ -6,7 +6,7 @@ import ZoomIn from '@/shared/icons/ZoomIn';
 import ZoomOut from '@/shared/icons/ZoomOut';
 import Button from '@/shared/ui/Button';
 
-import Moving from './Moving';
+import Configuration from './Configuration';
 
 export default function Assembly() {
   const actions = [
@@ -47,7 +47,7 @@ export default function Assembly() {
                 height: calcHeight(),
               }}
             >
-              <Moving />
+              <Configuration />
             </div>
           </div>
 
