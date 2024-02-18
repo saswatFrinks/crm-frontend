@@ -33,7 +33,7 @@ export const actionStatusAtom = atom({
 });
 
 export const editingAtom = atom({
-  key: 'actionStatusAtom',
+  key: 'editingAtom',
   default: false,
 });
 
@@ -50,4 +50,25 @@ export const assemblyAtom = atom({
 export const currentRoiIdAtom = atom({
   key: 'currentRoiId',
   default: null,
+});
+
+export const currentRectangleIdAtom = atom({
+  key: 'currentRectangleIdAtom',
+  default: null,
+});
+
+export const mousePositionAtom = atom({
+  key: 'mousePositionAtom',
+  default: POSITION,
+});
+
+export const rectanglesAtom = atom({
+  key: 'rectanglesAtom',
+  default: [],
+  dangerouslyAllowMutability: true,
+});
+
+export const editingRectAtom = atom({
+  key: 'editingRectAtom',
+  default: false,
 });

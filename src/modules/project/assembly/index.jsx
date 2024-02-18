@@ -11,6 +11,7 @@ import {
   assemblyAtom,
   currentRoiIdAtom,
   editingAtom,
+  editingRectAtom,
   imageStatusAtom,
   stageAtom,
 } from './states';
@@ -26,6 +27,9 @@ export default function Assembly() {
   const [configuration, setConfiguration] = useRecoilState(assemblyAtom);
 
   const currentRoiId = useRecoilValue(currentRoiIdAtom);
+
+  const [isEditingRect, setEditingRect] = useRecoilState(editingRectAtom);
+
 
   const calcHeight = () => {
     return (window.innerHeight * 11) / 12 - 84;
@@ -63,14 +67,18 @@ export default function Assembly() {
   };
 
   const handleDrawBox = () => {
+    if (!isEditing) return;
+
     setImageStatus((t) => ({
       ...IMAGE_STATUS,
       draw: !t.draw,
+      drawing: !t.drawing,
     }));
   };
 
   const submmit = () => {
-    setIsEditing(false)
+    setEditingRect(false)
+    setIsEditing(false);
     setConfiguration((t) => ({
       ...t,
       rois: t.rois.map((k) => ({
@@ -86,24 +94,28 @@ export default function Assembly() {
       icon: ZoomIn,
       action: handleZoomIn,
       active: false,
+      canAction: true,
     },
     {
       title: 'zoom out',
       icon: ZoomOut,
       action: handleZoomOut,
       active: false,
+      canAction: true,
     },
     {
       title: 'pan',
       icon: Pan,
       action: handlePan,
       active: imageStatus.drag,
+      canAction: true,
     },
     {
       title: 'box',
       icon: Box,
       action: handleDrawBox,
       active: imageStatus.draw,
+      canAction: isEditing,
     },
   ];
 
@@ -148,7 +160,7 @@ export default function Assembly() {
               {actions.map((t) => (
                 <li
                   key={t.title}
-                  className={`flex cursor-pointer select-none flex-col items-center p-2 ${t.active ? 'text-f-primary' : ''}`}
+                  className={`flex cursor-pointer select-none flex-col items-center p-2 ${t.active ? 'text-f-primary' : ''} ${t.canAction ? '' : 'cursor-not-allowed opacity-30'}`}
                   onClick={t?.action}
                 >
                   <t.icon active={t.active} />

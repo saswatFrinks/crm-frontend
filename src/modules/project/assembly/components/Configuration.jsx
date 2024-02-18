@@ -18,6 +18,7 @@ import {
   ASSEMBLY_CONFIG,
   DEFAULT_OBJECT,
   DEFAULT_ROI,
+  OPERATIONS,
   STATUS,
 } from '@/core/constants';
 import DeleteRoiModal from './DeleteRoiModal';
@@ -418,7 +419,7 @@ export default function Configuration(props) {
                       <div className="flex items-center gap-2">
                         <Label main={false}>Select Operation:</Label>
                         <div className="ml-2 w-44">
-                          <Select size="xs" placeholder="Select operation" />
+                          <Select size="xs" placeholder="Select operation" options={OPERATIONS} />
                         </div>
                       </div>
 

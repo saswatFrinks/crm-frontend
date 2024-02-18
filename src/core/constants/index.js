@@ -20,6 +20,7 @@ export const SCALE_RANGE = {
 
 export const IMAGE_STATUS = {
   draw: false,
+  drawing: false,
   dragging: false,
   drag: false,
 };
@@ -45,7 +46,7 @@ export const DEFAULT_OBJECT = {
   qty: '',
   classify: false,
   checked: false,
-  open: true
+  open: true,
 };
 
 export const DEFAULT_ROI = {
@@ -54,4 +55,15 @@ export const DEFAULT_ROI = {
   status: STATUS.DEFAULT,
   open: true,
   objects: [DEFAULT_OBJECT],
+};
+
+export const OPERATIONS = ['<', '>', '='];
+
+export const BASE_RECT = {
+  id: null,
+  roiId: null,
+  width: 0,
+  height: 0,
+  // type: RECT,
+  strokeWidth: 0.5,
 };
