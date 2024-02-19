@@ -1,25 +1,40 @@
-import React from 'react';
+import { tv } from 'tailwind-variants';
 
-export default function Select(props) {
+export default function Select({ size, placeholder, props }) {
   const { options = [], formik, field, errorMessage } = props;
+
+  const select = tv({
+    base: 'block w-full  border text-gray-300 border-gray-300 bg-white  text-sm text-gray-900 focus:border-f-primary focus:ring-f-primary focus-visible:border-f-primary focus-visible:outline-f-primary',
+    variants: {
+      size: {
+        xs: 'p-1.5 rounded-md',
+        sm: 'p-2.5 rounded-lg',
+      },
+    },
+    defaultVariants: {
+      size: 'sm',
+    },
+  });
   return (
     <>
-    <select
-      onChange={(e) => {
-        formik.setFieldValue(field, e.target.value)
-      }}
-      className="block w-full rounded-lg border border-gray-300 bg-white p-2.5 text-sm text-gray-900 focus:border-f-primary focus:ring-f-primary focus-visible:border-f-primary focus-visible:outline-f-primary"
-    >
-      {options.map((t) => (
-        <option key={t.id} value={t.id}>
-          {t.name}
+      <select
+        className={select({ size })}
+        onChange={(e) => {
+          formik.setFieldValue(field, e.target.value);
+        }}
+      >
+        <option value="" disabled selected hidden>
+          {placeholder}
         </option>
-      ))}
-      
-    </select>
-    {errorMessage ? (
-      <p className="text-xs text-red-500">{errorMessage}</p>
-    ) : null}
+        {options.map((t) => (
+          <option key={t.id} value={t.id}>
+            {t.name}
+          </option>
+        ))}
+      </select>
+      {errorMessage ? (
+        <p className="text-xs text-red-500">{errorMessage}</p>
+      ) : null}
     </>
   );
 }

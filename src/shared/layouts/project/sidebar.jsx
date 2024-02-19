@@ -28,7 +28,8 @@ export default function Sidebar() {
       ),
     },
     {
-      to: '',
+      to: `/configuration/${params.projectId}`,
+      pathname: 'configuration',
       icon: (active) => (
         <svg
           width="24"

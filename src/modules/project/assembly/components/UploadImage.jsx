@@ -1,0 +1,223 @@
+import { useContainerSize } from '@/shared/hooks/useContainerSize';
+import { useMouseWheel } from '@/modules/project/assembly/hooks/useMouseWheel';
+import BigImage from '@/shared/icons/BigImage';
+import Upload from '@/shared/icons/Upload';
+import React from 'react';
+import { Stage, Layer, Image, Text, Line as LineShape } from 'react-konva';
+import useImage from 'use-image';
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
+import {
+  currentRectangleIdAtom,
+  dragAtom,
+  editingAtom,
+  editingRectAtom,
+  imageStatusAtom,
+  mousePositionAtom,
+  rectanglesAtom,
+  stageAtom,
+} from '../states';
+import Crosshair from './Crosshair';
+import useDrawRectangle from '../hooks/useDrawRectangle';
+import Rectangle from './Rectangle';
+
+export default function UploadImage() {
+  const [file, setFile] = React.useState(null);
+
+  const { wheel } = useMouseWheel({});
+
+  const drawRectHook = useDrawRectangle();
+
+  const stage = useRecoilValue(stageAtom);
+
+  const setStage = useSetRecoilState(stageAtom);
+
+  const [imageStatus, setImageStatus] = useRecoilState(imageStatusAtom);
+
+  const [dragPosition, setDragPosition] = useRecoilState(dragAtom);
+
+  const [mousePosition, setMouseposition] = useRecoilState(mousePositionAtom);
+
+  const [selectedRectId, setSelectedRectId] = useRecoilState(
+    currentRectangleIdAtom
+  );
+
+  const [rectangles, setRectangles] = useRecoilState(rectanglesAtom);
+
+  const [isEditing, setIsEditing] = useRecoilState(editingAtom);
+
+  const [isEditingRect, setEditingRect] = useRecoilState(editingRectAtom);
+
+  const containerRef = React.useRef(null);
+
+  const [image] = useImage(file);
+
+  const { size, scaleFactor } = useContainerSize({
+    containerRef,
+    image,
+  });
+
+  const handleChangeFile = (e) => {
+    const file = e.target.files[0];
+
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    setFile(url);
+  };
+
+  const handleMouseUp = (e) => {
+    console.log('up');
+
+    setSelectedRectId(null);
+
+    setEditingRect(false);
+
+    setImageStatus((t) => ({
+      ...t,
+      dragging: false,
+      drawing: false,
+      draw: false,
+    }));
+  };
+
+  const handleMouseDown = (e) => {
+    console.log('down');
+
+    if (!imageStatus.dragging && imageStatus.drag) {
+      setImageStatus((t) => ({ ...t, dragging: true }));
+      setDragPosition({ x: e.evt.clientX, y: e.evt.clientY });
+    }
+
+    drawRectHook.create(e);
+  };
+
+  const handleMouseMove = (e) => {
+    if (imageStatus.dragging && imageStatus.drag) {
+      const dx = e.evt.clientX - dragPosition.x;
+      const dy = e.evt.clientY - dragPosition.y;
+
+      setStage((stage) => ({ ...stage, x: stage.x + dx, y: stage.y + dy }));
+      setDragPosition({ x: e.evt.clientX, y: e.evt.clientY });
+    }
+
+    drawRectHook.draw(e);
+  };
+
+  const handleClickRectangle = (e, id) => {
+    console.log(e.target, id);
+    if (id == e.target.attrs.id) {
+      setEditingRect(true);
+      setSelectedRectId(id);
+    }
+    // if (labelType === e.target.attrs.type) {
+    //   setIsEditRect(true);
+    //   setSelectRectangleId(id);
+    //   setHoveredId(id);
+    // }
+  };
+
+  const handleMouseLeave = () => {};
+
+  if (!file) {
+    return (
+      <>
+        <BigImage />
+        <label className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-f-primary px-20 py-2 text-white duration-100 hover:bg-f-secondary">
+          <Upload /> Upload master image
+          <input type="file" hidden onChange={handleChangeFile} />
+        </label>
+      </>
+    );
+  } else {
+    return (
+      <div
+        className="flex h-full w-full flex-col"
+        ref={containerRef}
+        style={{
+          width: ((window.innerWidth - 16 * 4) * 7) / 12,
+          // height: (window.innerHeight * 11) / 12,
+        }}
+      >
+        <div
+          className={`grow-[1] overflow-auto ${imageStatus.dragging ? 'cursor-crosshair' : ''}`}
+        >
+          <Stage
+            width={size.width}
+            height={size.height}
+            x={stage.x}
+            y={stage.y}
+            onWheel={wheel}
+            scaleX={stage.scale}
+            scaleY={stage.scale}
+            onMouseDown={handleMouseDown}
+            onMouseUp={handleMouseUp}
+            onMouseMove={handleMouseMove}
+            //   onTouchStart={handleTouchStart}
+            //   onTouchMove={handleTouchMove}
+            //   onTouchEnd={handleTouchEnd}
+            //   onTouchCancel={handleTouchEnd}
+            //   ref={stageRef}
+          >
+            <Layer>
+              {image && (
+                <Image
+                  image={image}
+                  // ref={imageRef}
+                  width={image.width * scaleFactor}
+                  height={image.height * scaleFactor}
+                />
+              )}
+              {rectangles.map((rect, index) => (
+                <Rectangle
+                  key={rect.id}
+                  shapeProps={rect}
+                  isSelected={
+                    rect?.id === selectedRectId && isEditingRect && isEditing
+                  }
+                  fill={
+                    // (hoveredId === rect.id && !isEditRect) ||
+                    selectedRectId === rect.id && isEditingRect && isEditing
+                      ? `${rect.fill}4D`
+                      : `transparent`
+                  }
+                  onChange={(newAttrs) => {
+                    const rects = rectangles.slice();
+                    rects[index] = newAttrs;
+                    setRectangles(rects);
+                  }}
+                  onMouseLeave={handleMouseLeave}
+                  strokeWidth={stage.scale > 3 ? 0.25 : rect.strokeWidth}
+                  selectedReactangleId={selectedRectId}
+                  onClick={(e) => handleClickRectangle(e, rect.id)}
+                />
+              ))}
+
+              {rectangles.map((rect, i) => {
+                return (
+                  <Text
+                    key={`text-${rect.id}`}
+                    x={rect.x}
+                    y={(rect.y ?? 0) - (rect.width <= 40 ? 6 : 8)}
+                    text={`ROI ${i + 1}`}
+                    fill={rect.fill}
+                    fontSize={rect.width <= 40 ? 4 : 8}
+                    align="left"
+                    width={rect.width < 40 ? 100 : rect.width}
+                  />
+                );
+              })}
+
+              {imageStatus.drawing && (
+                <Crosshair
+                  x={mousePosition.x}
+                  y={mousePosition.y}
+                  width={image.width * scaleFactor}
+                  height={image.height * scaleFactor}
+                />
+              )}
+            </Layer>
+          </Stage>
+        </div>
+      </div>
+    );
+  }
+}
