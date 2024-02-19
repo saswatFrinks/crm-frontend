@@ -1,9 +1,25 @@
-import React from 'react';
+import { tv } from 'tailwind-variants';
 
-export default function Select(props) {
+export default function Select({ size, placeholder, ...props }) {
   const { options = [] } = props;
+
+  const select = tv({
+    base: 'block w-full  border text-gray-300 border-gray-300 bg-white  text-sm text-gray-900 focus:border-f-primary focus:ring-f-primary focus-visible:border-f-primary focus-visible:outline-f-primary',
+    variants: {
+      size: {
+        xs: 'p-1.5 rounded-md',
+        sm: 'p-2.5 rounded-lg',
+      },
+    },
+    defaultVariants: {
+      size: 'sm',
+    },
+  });
   return (
-    <select className="block w-full rounded-lg border border-gray-300 bg-white p-2.5 text-sm text-gray-900 focus:border-f-primary focus:ring-f-primary focus-visible:border-f-primary focus-visible:outline-f-primary">
+    <select className={select({ size })}>
+      <option value="" disabled selected hidden>
+        {placeholder}
+      </option>
       {options.map((t) => (
         <option key={t} value={t}>
           {t}

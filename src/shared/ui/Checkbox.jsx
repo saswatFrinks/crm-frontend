@@ -1,4 +1,3 @@
-import React from 'react';
 import { tv } from 'tailwind-variants';
 import { FaCheck } from 'react-icons/fa';
 
@@ -18,7 +17,7 @@ export default function Checkbox(props) {
   return (
     <label className={checkbox({ checked })} htmlFor={htmlFor}>
       {checked ? <FaCheck className="text-white" size={12} /> : null}
-      <input type="checkbox" hidden {...rest} checked></input>
+      <input type="checkbox" hidden {...rest} checked={checked}></input>
     </label>
   );
 }
