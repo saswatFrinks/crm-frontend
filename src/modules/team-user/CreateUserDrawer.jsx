@@ -5,17 +5,46 @@ import Select from '@/shared/ui/Select';
 import { useFormik } from 'formik';
 import React from 'react';
 import toast from 'react-hot-toast';
+import { formatPhoneNumber } from 'react-phone-number-input';
+import axiosInstance from '@/core/request/aixosinstance';
+import { getOrganizationId } from '@/util/util';
 
 const CreateUserDrawer = React.forwardRef((props, ref) => {
+  const { closeDrawer, fetchAllUsers } = props;
   const [phone, setPhone] = React.useState(undefined);
+  const [plants, setPlants] = React.useState([]);
+  const [teams, setTeams] = React.useState([]);
+
+  const fetchAllPlants = async () => {
+    const res = await axiosInstance.get('/plant/getList', {
+      params: {
+        organizationId: getOrganizationId(),
+      },
+    });
+    setPlants(res.data.data);
+  };
+
+  const fetchAllTeams = async () => {
+    const res = await axiosInstance.get('/team/getList', {
+      params: {
+        organizationId: getOrganizationId(),
+      },
+    });
+
+    setTeams(res.data.data);
+  };
+
+  React.useEffect(() => {
+    fetchAllPlants();
+    fetchAllTeams();
+  }, []);
 
   const formik = useFormik({
     initialValues: {
       name: '',
       email: '',
-      password: '',
-      organization: '',
-      rePassword: '',
+      plantId: '',
+      teamId: '',
     },
     validate: (values) => {
       const errors = {};
@@ -26,12 +55,6 @@ const CreateUserDrawer = React.forwardRef((props, ref) => {
         errors.name = 'Enter name without numeric or special characters.';
       }
 
-      if (!values.password) {
-        errors.password = 'Password is required';
-      } else if (values.password.length < 6) {
-        errors.password = 'Password must be at least 6 characters';
-      }
-
       if (!values.email) {
         errors.email = 'Email is required';
       } else if (
@@ -40,21 +63,15 @@ const CreateUserDrawer = React.forwardRef((props, ref) => {
         errors.email = 'Enter a valid email id';
       }
 
-      if (!values.rePassword) {
-        errors.rePassword = 'Enter your password again';
-      } else if (values.password !== values.rePassword) {
-        errors.rePassword = 'Your password not match';
-      }
-
-      if (!values.organization) {
-        errors.organization = 'Organization is required';
-      }
-
       return errors;
     },
     onSubmit: async (values) => {
       try {
-        console.log(values);
+        const userJson = createUserJson(values);
+        await axiosInstance.post('/user/create', userJson);
+
+        closeDrawer();
+        fetchAllUsers();
       } catch (error) {
         console.log(error);
         toast.error(error.response.data.data.details);
@@ -62,11 +79,43 @@ const CreateUserDrawer = React.forwardRef((props, ref) => {
     },
   });
 
+  const createUserJson = (values) => {
+    let number = formatPhoneNumber(phone).replace(/\s/g, '');
+
+    if (number[0] === '0') {
+      number = number.slice(1);
+    }
+
+    const user = {
+      name: values.name,
+      email: values.email,
+      phone: number,
+      organizationId: getOrganizationId()
+    };
+
+    if(values.plantId) {
+      user['plantId'] = values.plantId;
+    }
+
+    if(values.teamId) {
+      user['teamId'] = values.teamId;
+    }
+
+    return user;
+  };
+
   const getPhoneErrorMessage = () => {
     if (formik.dirty && !phone) {
       return 'Phone number is required';
     }
-    if (formik.dirty && phone && phone.length - 1 !== 10) {
+
+    let number = formatPhoneNumber(phone).replace(/\s/g, '');
+
+    if (number[0] === '0') {
+      number = number.slice(1);
+    }
+
+    if (formik.dirty && phone && number.length !== 10) {
       return 'Contact  number should be 10 digit number';
     }
     return null;
@@ -121,13 +170,21 @@ const CreateUserDrawer = React.forwardRef((props, ref) => {
       <div>
         <Label>Plant</Label>
 
-        <Select />
+        <Select
+          options={[{ id: '', name: 'Select' }, ...plants]}
+          field="plantId"
+          formik={formik}
+        />
       </div>
 
       <div>
         <Label>Team</Label>
 
-        <Select />
+        <Select
+          options={[{ id: '', name: 'Select' }, ...teams]}
+          field="teamId"
+          formik={formik}
+        />
       </div>
     </div>
   );

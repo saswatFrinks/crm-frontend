@@ -9,6 +9,7 @@ import { useFormik } from 'formik';
 import storageService from '@/core/storage';
 import { TOKEN } from '@/core/constants';
 import { updateAuthenHeader } from '@/core/request/updateAuth';
+import axiosInstance from '@/core/request/aixosinstance';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -42,7 +43,8 @@ export default function Login() {
       console.log(values);
       try {
         const res = await authService.login(values);
-
+        const user =  await getUserByEmail(values.email)
+        storageService.set('user', user)
         storageService.set(TOKEN, res.data.data.token);
         updateAuthenHeader(res.data.data.token);
         navigate('/');
@@ -54,6 +56,35 @@ export default function Login() {
       }
     },
   });
+
+  const getUserByEmail = async (email) => {
+    const res = await axiosInstance.get('/user/getUser', {
+      params: {
+        email
+      }
+    })
+
+    let plantName = null;
+    let teamName = null;
+
+    if(res.data.data.plantId) {
+      plantName = (await axiosInstance.get('/plant/getName', {
+        params: {
+          plantId: res.data.data.plantId
+        }
+      })).data.data.name
+    }
+
+    if(res.data.data.teamId) {
+      teamName = (await axiosInstance.get('/team/getName', {
+        params: {
+          teamId: res.data.data.teamId
+        }
+      })).data.data.name
+    }
+
+    return {...res.data.data, plantName, teamName};
+  }
 
   return (
     <div className="flex h-screen flex-col items-center justify-center">

@@ -8,9 +8,52 @@ import { useSetRecoilState } from 'recoil';
 import { modalAtom } from '@/shared/states/modal.state';
 import Button from '@/shared/ui/Button';
 import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader';
+import axiosInstance from '@/core/request/aixosinstance';
+import { getOrganizationId } from '@/util/util';
+import storageService from '@/core/storage';
 
 export default function Home() {
   const [open, setOpenDrawer] = React.useState(false);
+  const [showLoader, setShowLoader] = React.useState(false);
+  const [projects, setProjects] = React.useState([]);
+  const [projectForDelete, setProjectForDelete] = React.useState(null);
+
+  const fetchAllProjects = async () => {
+    const paramObj = {};
+    const user = JSON.parse(storageService.get('user'));
+
+    if (user.plantId) {
+      paramObj['plantId'] = user.plantId;
+    } else if (user.teamId) {
+      paramObj['teamId'] = user.teamId;
+    } else {
+      paramObj['organizationId'] = getOrganizationId();
+    }
+
+    const res = await axiosInstance.get('/project/fetch', {
+      params: paramObj,
+    });
+
+    setProjects(res.data.data);
+  };
+
+  const deleteProject = async () => {
+    if (projectForDelete) {
+      await axiosInstance.delete('/project', {
+        params: {
+          projectId: projectForDelete.id,
+        },
+      });
+
+      setProjectForDelete(null);
+      fetchAllProjects();
+      setOpenModal(false);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchAllProjects();
+  }, []);
 
   const setOpenModal = useSetRecoilState(modalAtom);
 
@@ -31,7 +74,7 @@ export default function Home() {
 
         <ModalBody>
           <p>
-            The project <span className="font-semibold">#Project Name</span> and
+            The project <span className="font-semibold">{projectForDelete?.name}</span> and
             assosiated date will be permanently deleted, do you want to
             continue?
           </p>
@@ -42,7 +85,12 @@ export default function Home() {
             <Button size="xs" color="flat" onClick={() => setOpenModal(false)}>
               Cancel
             </Button>
-            <Button size="xs" s>
+            <Button
+              size="xs"
+              onClick={() => {
+                deleteProject();
+              }}
+            >
               Delete
             </Button>
           </div>
@@ -53,12 +101,13 @@ export default function Home() {
 
       <div className="flex flex-wrap gap-6 p-10">
         <Project.Create onClick={openDrawer} />
-
-        {Array(10)
-          .fill(1)
-          .map((t, i) => (
-            <Project.Card key={i} />
-          ))}
+        {projects.map((project) => (
+          <Project.Card
+            key={project.id}
+            project={project}
+            setProjectForDelete={setProjectForDelete}
+          />
+        ))}
       </div>
 
       <Drawer
@@ -87,7 +136,13 @@ export default function Home() {
           </div>
         }
       >
-        <CreateProjectDrawer ref={ref} closeDrawer={closeDrawer} />
+        <CreateProjectDrawer
+          ref={ref}
+          closeDrawer={closeDrawer}
+          setShowLoader={setShowLoader}
+          fetchAllProjects={fetchAllProjects}
+        />
+        {showLoader && <ProjectCreateLoader />}
       </Drawer>
     </>
   );

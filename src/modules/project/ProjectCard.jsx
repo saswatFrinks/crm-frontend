@@ -11,7 +11,7 @@ import { Link } from 'react-router-dom';
 import PlusFile from '../../shared/icons/PlusFile';
 import ThreeDots from '../../shared/icons/File';
 
-function Card() {
+function Card({project, setProjectForDelete}) {
   const setOpenModal = useSetRecoilState(modalAtom);
 
   const [open, setOpen] = React.useState(false);
@@ -45,7 +45,11 @@ function Card() {
             </li>
             <li
               className="flex cursor-pointer gap-2 p-2 text-xs text-red-500 duration-100 hover:bg-gray-50"
-              onClick={() => setOpenModal(true)}
+              onClick={() => {
+                setProjectForDelete(project)
+                setOpenModal(true)
+                setOpen(false)
+              }}
             >
               <FaRegTrashCan size={16} />
               Delete
@@ -58,7 +62,7 @@ function Card() {
         <CiFileOn className="h-8 w-8 text-f-primary duration-100 group-hover:h-6 group-hover:w-6" />
       </div>
 
-      <h3 className="mb-2 text-lg font-semibold">Project Name</h3>
+      <h3 className="mb-2 text-lg font-semibold">{project.name}</h3>
 
       <p className="line-clamp-2 min-h-8 text-[#464A4D] duration-100 group-hover:hidden">
         Project descciption in one line or two

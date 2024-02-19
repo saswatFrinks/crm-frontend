@@ -7,7 +7,13 @@ import { FiKey } from 'react-icons/fi';
 import { tv } from 'tailwind-variants';
 
 export default function Action(props) {
-  const { handleOpenModal, hasReset = false, id, setId, deleteImageById = null } = props;
+  const {
+    handleOpenModal,
+    hasReset = false,
+    id,
+    setId,
+    deleteImageById = null,
+  } = props;
   const [open, setOpen] = React.useState(false);
 
   const ref = React.useRef(null);
@@ -45,12 +51,14 @@ export default function Action(props) {
           <li
             className="flex cursor-pointer items-center gap-2 p-2 text-xs text-red-500 hover:bg-gray-100"
             onClick={() => {
-              setId(id)
+              setId(id);
               handleOpenModal('delete');
 
-              if(deleteImageById) {
-                deleteImageById(id)
+              if (deleteImageById) {
+                deleteImageById(id);
               }
+
+              //console.log('clicked');
             }}
           >
             <FaRegTrashCan /> Delete

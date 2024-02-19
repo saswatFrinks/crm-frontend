@@ -7,17 +7,64 @@ import InputList from '@/shared/ui/InputList';
 import Checkbox from '@/shared/ui/Checkbox';
 import { useFormik } from 'formik';
 import axiosInstance from '@/core/request/aixosinstance';
+import { getOrganizationId } from '@/util/util';
+import storageService from '@/core/storage';
 
 const CreateProjectDrawer = React.forwardRef((props, ref) => {
-  const {closeDrawer} = props;
+  const { closeDrawer, setShowLoader, fetchAllProjects } = props;
+  const [plants, setPlants] = React.useState([]);
+  const [teams, setTeams] = React.useState([]);
+  const user = JSON.parse(storageService.get('user'));
+
+  const fetchAllPlants = async () => {
+    const res = await axiosInstance.get('/plant/getList', {
+      params: {
+        organizationId: getOrganizationId(),
+      },
+    });
+
+    setPlants(res.data.data);
+  };
+
+  const fetchAllTeams = async () => {
+    const res = await axiosInstance.get('/team/getList', {
+      params: {
+        organizationId: getOrganizationId(),
+      },
+    });
+
+    setTeams(res.data.data);
+  };
+
+  React.useEffect(() => {
+    fetchAllPlants();
+    fetchAllTeams();
+  }, []);
+
+  const getPlantDropDown = () => {
+    if (user.plantId) {
+      return [{ id: user.plantId, name: user.plantName }];
+    } else {
+      return [{ id: '', name: 'Select' }, ...plants];
+    }
+  };
+
+  const getTeamDropDown = () => {
+    if (user.teamId) {
+      return [{ id: user.teamId, name: user.teamName }];
+    } else {
+      return [{ id: '', name: 'Select' }, ...teams];
+    }
+  };
+
   const formik = useFormik({
     initialValues: {
       name: '',
       inspectionSpeed: 10,
       isCameraFixed: false,
       isItemFixed: false,
-      plantId: '',
-      teamId: '',
+      plantId: user.plantId,
+      teamId: user.teamId,
       objectives: [],
       variants: [],
       assemblyInspection: [],
@@ -26,28 +73,79 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
     },
     validate: (values) => {
       const errors = {};
-
-      // Add your custom validation logic here
       if (!values.name) {
         errors.name = 'Project name is required';
+        return errors;
       }
 
       if (values.inspectionSpeed <= 0) {
         errors.inspectionSpeed = 'Inspection speed must be greater than 0';
+        return errors;
+      }
+
+      if (!values.isCameraFixed) {
+        errors.camera = 'Camera mount is mandatory';
+        return errors;
+      }
+
+      if (!values.isItemFixed) {
+        errors.item = 'Product flow is mandatory';
+        return errors;
+      }
+
+      if (values.variants.length <= 1) {
+        errors.variants = 'One variant is required';
+        return errors;
+      }
+
+      if (!values.plantId) {
+        errors.plantId = 'Plant name is required';
+        return errors;
+      }
+
+      if (!values.teamId) {
+        errors.teamId = 'Team name is required';
+        return errors;
+      }
+
+      if (values.objectives.length === 0) {
+        errors.objectives = 'Minimum one objective mandatory';
+        return errors;
+      }
+
+      if (
+        values.objectives.includes('assemblyInspection') &&
+        values.assemblyInspection.length <= 1
+      ) {
+        errors.assemblyInspection = 'Minimum one class is mandatory';
+        return errors;
+      }
+
+      if (
+        values.objectives.includes('dimensioningInspection') &&
+        values.dimensioningInspection.length <= 1
+      ) {
+        errors.dimensioningInspection = 'Minimum one class is mandatory';
+        return errors;
+      }
+
+      if (
+        values.objectives.includes('cosmeticInspection') &&
+        values.cosmeticInspection.length <= 1
+      ) {
+        errors.cosmeticInspection = 'Minimum one class is mandatory';
+        return errors;
       }
 
       return errors;
     },
     onSubmit: async (values) => {
-      console.log({ values });
-
-      values.plantId = 'fb90acb7-3130-4d9a-92ae-1a02a6baf327'
-      values.teamId = 'd7625654-7ab1-48ec-ba91-003b8ad0aed9'
-
+      setShowLoader(true);
       const projectJson = createProjectJSON(values);
-
-      await axiosInstance.post('/project/create', projectJson)
-      closeDrawer()
+      await axiosInstance.post('/project/create', projectJson);
+      setShowLoader(false);
+      closeDrawer();
+      fetchAllProjects();
     },
   });
 
@@ -61,7 +159,9 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
       teamId: values.teamId,
     };
 
-    json['variants'] = values.variants.slice(1).map((variant) => variant.value);
+    json['variants'] = values.variants
+      .filter((variant) => variant.value.length > 0)
+      .map((variant) => variant.value);
 
     const map = new Map();
 
@@ -181,6 +281,9 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
             </Label>
           </div>
         </div>
+        {formik.errors.camera ? (
+          <p className="text-xs text-red-500">{formik.errors.camera}</p>
+        ) : null}
       </div>
 
       <div>
@@ -211,6 +314,9 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
             </Label>
           </div>
         </div>
+        {formik.errors.item ? (
+          <p className="text-xs text-red-500">{formik.errors.item}</p>
+        ) : null}
       </div>
 
       <div>
@@ -220,16 +326,29 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
           formik={formik}
           field="variants"
         />
+        {formik.errors.variants ? (
+          <p className="text-xs text-red-500">{formik.errors.variants}</p>
+        ) : null}
       </div>
 
       <div>
         <Label>Plant</Label>
-        <Select />
+        <Select
+          options={getPlantDropDown()}
+          formik={formik}
+          field="plantId"
+          errorMessage={formik.errors.plantId}
+        />
       </div>
 
       <div>
         <Label>Team</Label>
-        <Select />
+        <Select
+          options={getTeamDropDown()}
+          formik={formik}
+          field="teamId"
+          errorMessage={formik.errors.teamId}
+        />
       </div>
 
       <div>
@@ -277,12 +396,18 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
             </Label>
           </div>
         </div>
+        {formik.errors.objectives ? (
+          <p className="text-xs text-red-500">{formik.errors.objectives}</p>
+        ) : null}
       </div>
 
       {formik.values.objectives.map((t) => (
         <div key={t}>
           <Label>Add classes for {getClassNameTitle(t)} </Label>
           <InputList placeholder="Enter class" formik={formik} field={t} />
+          {formik.errors[t] ? (
+            <p className="text-xs text-red-500">{formik.errors[t]}</p>
+          ) : null}
         </div>
       ))}
     </form>
