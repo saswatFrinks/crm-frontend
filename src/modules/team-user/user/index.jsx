@@ -20,6 +20,7 @@ export default function User() {
 
   const [action, setAction] = React.useState('delete');
   const [users, setUsers] = React.useState([]);
+  const [id, setId] = React.useState('')
 
   const [open, setOpenDrawer] = React.useState(false);
   const fetchAllUsers = async () => {
@@ -36,6 +37,18 @@ export default function User() {
     fetchAllUsers();
   }, []);
 
+  const deleteById = async () => {
+    if(id) {
+      await axiosInstance.delete('/user', {
+        params: {
+          userId: id
+        }
+      })
+      setId('')
+      fetchAllUsers()
+    }
+  }
+
   const closeDrawer = () => {
     setOpenDrawer(false);
   };
@@ -46,7 +59,7 @@ export default function User() {
 
   const renderModalAction = () => {
     const obj = {
-      delete: <DeleteModal />,
+      delete: <DeleteModal deleteById={deleteById}/>,
     };
 
     return obj[action];
@@ -106,6 +119,9 @@ export default function User() {
                       <Action
                         handleOpenModal={handleOpenModal}
                         hasReset={true}
+                        id={user.id}
+                        setId={setId}
+                        delete={deleteById}
                       />
                     </td>
                   </tr>
@@ -119,7 +135,7 @@ export default function User() {
       <Drawer
         isOpen={open}
         handleClose={closeDrawer}
-        title={'Create a new project'}
+        title={'Create a new user'}
         size="xs"
         footer={
           <div className="flex w-2/3 items-end justify-end gap-2 ">
@@ -140,7 +156,7 @@ export default function User() {
           </div>
         }
       >
-        <CreateUserDrawer ref={ref} />
+        <CreateUserDrawer ref={ref} closeDrawer={closeDrawer} fetchAllUsers={fetchAllUsers}/>
       </Drawer>
     </>
   );
