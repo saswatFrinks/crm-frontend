@@ -132,6 +132,7 @@ export default function TeamAndUser() {
             </li>
           ))}
         </ul>
+
         <div className="flex-1 px-10 py-8">{renderTab()}</div>
       </div>
     </>

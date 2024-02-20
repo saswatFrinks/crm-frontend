@@ -1,3 +1,4 @@
+import AiTraining from './ai-training';
 import Assembly from './assembly';
 import CameraConfiguration from './camera-configuration';
 import CameraPosition from './camera-position';
@@ -43,6 +44,10 @@ export const projectRouter = {
           element: <Assembly />,
         },
       ],
+    },
+    {
+      path: 'ai-training/:projectId',
+      element: <AiTraining />,
     },
   ],
 };

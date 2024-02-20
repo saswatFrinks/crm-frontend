@@ -1,7 +1,12 @@
 import React from 'react';
 import { tv } from 'tailwind-variants';
 
-export default function Label({ main = true, children, ...props }) {
+export default function Label({
+  main = true,
+  children,
+  required = false,
+  ...props
+}) {
   const label = tv({
     base: 'mb-2 inline-block text-black select-none cursor-pointer',
     variants: {
@@ -12,7 +17,7 @@ export default function Label({ main = true, children, ...props }) {
   });
   return (
     <label className={label({ main })} {...props}>
-      {children}
+      {children} <span className="text-red-500">{required ? '*' : null}</span>
     </label>
   );
 }

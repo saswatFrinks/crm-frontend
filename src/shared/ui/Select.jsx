@@ -1,6 +1,6 @@
 import { tv } from 'tailwind-variants';
 
-export default function Select({ size, placeholder, props }) {
+export default function Select({ size, placeholder, ...props }) {
   const { options = [], formik, field, errorMessage } = props;
 
   const select = tv({
