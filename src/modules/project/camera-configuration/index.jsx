@@ -7,13 +7,28 @@ import React from 'react';
 import Drawer from '@/shared/ui/Drawer';
 import Button from '@/shared/ui/Button';
 import AddCameraConfigurationDrawer from './AddCameraConfigurationDrawer';
-import { useFormik } from 'formik';
 import { Link, useParams } from 'react-router-dom';
+import axiosInstance from '@/core/request/aixosinstance';
 
 export default function CameraConfiguration() {
   const [open, setOpenDrawer] = React.useState(false);
-
   const params = useParams();
+  const [cameraConfigs, setCameraConfigs] = React.useState([]);
+
+  const fetchAllCameraConfigs = async () => {
+    const res = await axiosInstance.get('/cameraConfig/fetch', {
+      params: {
+        capturePositionId: params.cameraPositionId,
+      },
+    });
+
+    console.log(res.data.data);
+    setCameraConfigs(res.data.data);
+  };
+
+  React.useEffect(() => {
+    fetchAllCameraConfigs();
+  }, []);
 
   const ref = React.useRef(null);
 
@@ -66,15 +81,15 @@ export default function CameraConfiguration() {
             title="Add Camera Configuration"
           />
 
-          {Array(5)
-            .fill(1)
-            .map((t, i) => (
+          {cameraConfigs.map((cameraConfig) => {
+            return (
               <Variant.Card
-                key={i}
-                title="Camera Config"
-                to={'camera-config/123'}
+                key={cameraConfig.id}
+                title={cameraConfig.name}
+                to={`camera-config/${cameraConfig.id}`}
               />
-            ))}
+            );
+          })}
         </div>
       </div>
 
@@ -105,7 +120,7 @@ export default function CameraConfiguration() {
           </div>
         }
       >
-        <AddCameraConfigurationDrawer ref={ref} closeDrawer={closeDrawer} />
+        <AddCameraConfigurationDrawer ref={ref} closeDrawer={closeDrawer} fetchAllCameraConfigs={fetchAllCameraConfigs}/>
       </Drawer>
     </>
   );

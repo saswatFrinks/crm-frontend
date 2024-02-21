@@ -1,3 +1,4 @@
+import axiosInstance from '@/core/request/aixosinstance';
 import { modalAtom } from '@/shared/states/modal.state';
 import Button from '@/shared/ui/Button';
 import Input from '@/shared/ui/Input';
@@ -5,10 +6,21 @@ import Label from '@/shared/ui/Label';
 import { ModalBody, ModalFooter, ModalHeader } from '@/shared/ui/Modal';
 import { useFormik } from 'formik';
 import toast from 'react-hot-toast';
+import { useParams } from 'react-router-dom';
 import { useSetRecoilState } from 'recoil';
 
-export default function AddCameraPositionModal() {
+export default function AddCameraPositionModal({fetchAllCameraPosition}) {
   const setOpenModal = useSetRecoilState(modalAtom);
+  const params = useParams();
+
+  const addCapturePostion = async (values) => {
+    await axiosInstance.post('/capturePosition/create', {
+      name: values.name,
+      variantId: params.variantId,
+    });
+
+    fetchAllCameraPosition();
+  };
 
   const formik = useFormik({
     initialValues: {
@@ -26,7 +38,7 @@ export default function AddCameraPositionModal() {
     },
     onSubmit: async (values) => {
       try {
-        console.log(values);
+        addCapturePostion(values);
       } catch (error) {
         toast.error(error.message);
       }
@@ -60,7 +72,14 @@ export default function AddCameraPositionModal() {
           >
             Cancel
           </Button>
-          <Button size="xs" fullWidth={true} onClick={formik.handleSubmit}>
+          <Button
+            size="xs"
+            fullWidth={true}
+            onClick={() => {
+              formik.handleSubmit();
+              setOpenModal(false);
+            }}
+          >
             Confirm
           </Button>
         </div>

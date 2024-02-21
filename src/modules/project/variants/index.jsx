@@ -6,15 +6,31 @@ import Modal from '@/shared/ui/Modal';
 import AddVariantModal from './AddVariantModal';
 import ArrowRight from '@/shared/icons/ArrowRight';
 import { Link, useParams } from 'react-router-dom';
+import axiosInstance from '@/core/request/aixosinstance';
+import React from 'react';
 
 export default function Variants() {
   const setModalState = useSetRecoilState(modalAtom);
   const params = useParams();
+  const [variants, setVariants] = React.useState([]);
 
+  const fetchAllVariants = async () => {
+    const res = await axiosInstance.get('/variant/fetch', {
+      params: {
+        projectId: params.projectId,
+      },
+    });
+
+    setVariants(res.data.data);
+  };
+
+  React.useEffect(() => {
+    fetchAllVariants();
+  }, []);
   return (
     <>
       <Modal>
-        <AddVariantModal />
+        <AddVariantModal fetchAllVariants={fetchAllVariants}/>
       </Modal>
 
       <Heading
@@ -37,12 +53,13 @@ export default function Variants() {
         <h1 className="text-2xl font-semibold">Variants</h1>
         <div className="mt-10 flex flex-wrap gap-6">
           <Variant.Create onClick={() => setModalState(true)} />
-
-          {Array(10)
-            .fill(1)
-            .map((t, i) => (
-              <Variant.Card key={i} to={'variant/123'} />
-            ))}
+          {variants.map((variant, i) => (
+            <Variant.Card
+              key={variant.id}
+              to={`variant/${variant.id}`}
+              title={variant.name}
+            />
+          ))}
         </div>
       </div>
     </>

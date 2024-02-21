@@ -1,6 +1,6 @@
 import { tv } from 'tailwind-variants';
 
-export default function Select({ size, placeholder, props }) {
+export default function Select({ size, placeholder, ...props }) {
   const { options = [], formik, field, errorMessage } = props;
 
   const select = tv({
@@ -23,9 +23,9 @@ export default function Select({ size, placeholder, props }) {
           formik.setFieldValue(field, e.target.value);
         }}
       >
-        <option value="" disabled selected hidden>
+        {/* <option value="" disabled selected hidden>
           {placeholder}
-        </option>
+        </option> */}
         {options.map((t) => (
           <option key={t.id} value={t.id}>
             {t.name}

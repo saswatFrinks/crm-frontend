@@ -1,9 +1,11 @@
 import { Link, NavLink, useLocation, useParams } from 'react-router-dom';
 import logo from '@/assets/logo_min.svg';
+import storageService from '@/core/storage';
 
 export default function Sidebar() {
   const { pathname } = useLocation();
   const params = useParams();
+  const {name} = JSON.parse(storageService.get('user'));
 
   const menus = [
     {
@@ -171,7 +173,7 @@ export default function Sidebar() {
         </Link>
 
         <div className="flex h-10 w-10 items-center justify-center rounded-md bg-[#E3E5E5] font-semibold">
-          A
+          {name[0].toUpperCase()}
         </div>
       </div>
     </div>

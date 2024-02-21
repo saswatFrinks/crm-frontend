@@ -6,19 +6,20 @@ import Label from '@/shared/ui/Label';
 import { ModalBody, ModalFooter, ModalHeader } from '@/shared/ui/Modal';
 import { useFormik } from 'formik';
 import toast from 'react-hot-toast';
-import { useLocation } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useSetRecoilState } from 'recoil';
 
-export default function AddFolderModal() {
+export default function AddFolderModal({fetchAllFolders}) {
   const setOpenModal = useSetRecoilState(modalAtom);
-  const {pathname} = useLocation();
+  const params = useParams();
 
   const addFolder = async (values) => {
-    const cameraConfigId = pathname.split("/")[8];
     await axiosInstance.post('/dataset/create', {
-      cameraConfigId: 'f2d207ee-053c-40f5-8910-917d48f478c2',
+      cameraConfigId: params.cameraConfigId,
       folderName: values.name,
     });
+
+    fetchAllFolders();
   };
 
   const formik = useFormik({

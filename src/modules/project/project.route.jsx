@@ -28,7 +28,7 @@ export const projectRouter = {
       element: <DataSet />,
     },
     {
-      path: 'project/:projectId/variant/:variantId/camera-position/:cameraPositionId/camera-config/123/folder/123',
+      path: 'project/:projectId/variant/:variantId/camera-position/:cameraPositionId/camera-config/:cameraConfigId/folder/:folderId',
       element: <Folder />,
     },
     {
