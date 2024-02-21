@@ -4,9 +4,26 @@ import Drawer from '@/shared/ui/Drawer';
 import React from 'react';
 import { FaPlus } from 'react-icons/fa';
 import BuildNTrainDrawer from './BuildNTrainDrawer';
+import { useRecoilState } from 'recoil';
+import { stepAtom } from './state';
 
 export default function Assembly() {
   const [open, setOpenDrawer] = React.useState(false);
+  const [step, setStep] = useRecoilState(stepAtom);
+
+  const handleNext = () => {
+    setStep((t) => {
+      if (t == 5) return t;
+      return t + 1;
+    });
+  };
+
+  const handleBack = () => {
+    setStep((t) => {
+      if (t == 1) return t;
+      return t - 1;
+    });
+  };
 
   const columns = [
     'Model Name',
@@ -90,14 +107,34 @@ export default function Assembly() {
         footer={
           <div className="grid w-full grid-cols-12">
             <div className="col-span-8 col-start-5 flex items-center justify-between gap-4">
-              <Button
-                size="xs"
-                fullWidth={false}
-                className="min-w-[150px]"
-                //   onClick={() => ref.current?.submitForm()}
-              >
-                Next
-              </Button>
+              <div className="flex items-center gap-2">
+                {step > 1 && (
+                  <Button
+                    size="xs"
+                    fullWidth={false}
+                    variant="flat"
+                    className="min-w-[150px]"
+                    onClick={handleBack}
+                  >
+                    Back
+                  </Button>
+                )}
+
+                {step < 5 ? (
+                  <Button
+                    size="xs"
+                    fullWidth={false}
+                    className="min-w-[150px]"
+                    onClick={handleNext}
+                  >
+                    Next
+                  </Button>
+                ) : (
+                  <Button size="xs" fullWidth={false} className="min-w-[150px]">
+                    Start Training
+                  </Button>
+                )}
+              </div>
 
               <Button
                 size="xs"

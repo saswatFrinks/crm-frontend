@@ -2,37 +2,46 @@ import Input from '@/shared/ui/Input';
 import Label from '@/shared/ui/Label';
 import TextArea from '@/shared/ui/TextArea';
 import React from 'react';
+import { useRecoilState } from 'recoil';
+import { stepAtom } from './state';
+import BasicInformation from './BasicInformation';
+import Configuration from './Configuration';
+import DataSet from './DataSet';
+import ModelConfiguration from './ModelConfiguration';
+import Finish from './Finish';
+import TimeLine from './TimeLine';
 
 export default function BuildNTrainDrawer() {
+  const [step, setStep] = useRecoilState(stepAtom);
+
+  const stepObj = {
+    1: <BasicInformation />,
+    2: <Configuration />,
+    3: <DataSet />,
+    4: <ModelConfiguration />,
+    5: <Finish />,
+  };
+
+  const handleNext = () => {
+    setStep((t) => {
+      if (t == 5) return t;
+      return t + 1;
+    });
+  };
+
+  const handleBack = () => {
+    setStep((t) => {
+      if (t == 1) return t;
+      return t - 1;
+    });
+  };
+
   return (
     <div className="grid h-full grid-cols-12 gap-4">
-      <div className="col-span-4 border-r-[1px] border-gray-300 p-6"></div>
-      <div className="col-span-8 p-6">
-        {' '}
-        <h3 className="mb-8 text-2xl font-semibold">Basic Information</h3>
-        <p className="mb-8">
-          Provide the basic information for the AI model you wish to build and
-          train for this project. These AI models will run on the instance to
-          inspect the product as per the configurations created under the
-          configurations page. You can train multiple AI models for this project
-          depending upon complexity.
-        </p>
-        <p className="mb-8">
-          Reach out to Frinks AI technical support team to assist you in this
-          process if required.
-        </p>
-        <form className="flex flex-col gap-4">
-          <div>
-            <Label required={true}>Model Name</Label>
-            <Input placeholder="Enter model name" />
-          </div>
-
-          <div>
-            <Label required={true}>Model Description</Label>
-            <TextArea placeholder="Enter model description" />
-          </div>
-        </form>
+      <div className="col-span-4 border-r-[1px] border-gray-300 p-6">
+        <TimeLine />
       </div>
+      <div className="col-span-8 p-6">{stepObj[step]}</div>
     </div>
   );
 }

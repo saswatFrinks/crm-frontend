@@ -2,7 +2,7 @@ import { tv } from 'tailwind-variants';
 
 export default function Chip({ color }) {
   const chip = tv({
-    base: 'inline-flex px-2 py-1 rounded-xl text-black',
+    base: 'inline-flex px-2 text-sm py-0.5  rounded-xl text-black',
     variants: {
       color: {
         'color-1': 'bg-[#9BDCFD]',
