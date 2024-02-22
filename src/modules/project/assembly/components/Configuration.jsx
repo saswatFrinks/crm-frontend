@@ -419,7 +419,11 @@ export default function Configuration(props) {
                       <div className="flex items-center gap-2">
                         <Label main={false}>Select Operation:</Label>
                         <div className="ml-2 w-44">
-                          <Select size="xs" placeholder="Select operation" options={OPERATIONS} />
+                          <Select
+                            size="xs"
+                            placeholder="Select operation"
+                            options={OPERATIONS}
+                          />
                         </div>
                       </div>
 

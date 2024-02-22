@@ -21,9 +21,13 @@ export default function Drawer(props) {
         false: '-right-full',
       },
       size: {
+        '7xl': 'max-w-7xl',
+        '6xl': 'max-w-6xl',
+        xl: 'max-w-5xl',
+        lg: 'max-w-4xl',
         md: 'max-w-3xl',
         sm: 'max-w-xl',
-        xs: 'max-w-lg'
+        xs: 'max-w-lg',
       },
     },
     defaultVariants: {
@@ -35,7 +39,7 @@ export default function Drawer(props) {
     <>
       <div className={backdrop({ isOpen })} onClick={handleClose}></div>
       <div className={container({ isOpen, size })}>
-        <div className="flex justify-between border border-b-[1px] px-4 py-2">
+        <div className="flex justify-between border border-b-[1px] px-4 py-2 font-semibold">
           {title}
           <IoClose size={20} className="cursor-pointer" onClick={handleClose} />
         </div>
