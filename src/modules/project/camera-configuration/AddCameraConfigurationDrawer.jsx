@@ -5,7 +5,7 @@ import InputFile from '@/shared/ui/InputFile';
 import Label from '@/shared/ui/Label';
 import { useFormik } from 'formik';
 import React from 'react';
-import { useLocation } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 const objectivesModulesMapping = {
   assemblyInspection: "Assembly",
@@ -15,8 +15,8 @@ const objectivesModulesMapping = {
 
 const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
   const inputRef = React.useRef(null);
-  const {pathname} = useLocation();
-  const {closeDrawer} = props
+  const params = useParams();
+  const {closeDrawer, fetchAllCameraConfigs} = props
 
   const formik = useFormik({
     initialValues: {
@@ -37,7 +37,6 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
     onSubmit: async (values) => {
       // change to form data
       const data = new FormData();
-      const cameraConfigId = pathname.split("/")[6];
 
       data.append('name', values.name);
       const modules = []
@@ -49,9 +48,10 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
 
       data.append('file', values.file);
       data.append('modules', JSON.stringify(modules));
-      data.append('cameraConfigId', 'f2d207ee-053c-40f5-8910-917d48f478c2')
+      data.append('capturePositionId', params.cameraPositionId)
 
       await axiosInstance.post('/cameraConfig/setup', data)
+      fetchAllCameraConfigs()
       closeDrawer()
     },
   });

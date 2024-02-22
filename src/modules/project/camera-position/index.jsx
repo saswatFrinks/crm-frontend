@@ -6,15 +6,31 @@ import { useSetRecoilState } from 'recoil';
 import Variant from '../variants/Variant';
 import AddCameraPositionModal from './AddCameraPositionModal';
 import { Link, useParams } from 'react-router-dom';
+import axiosInstance from '@/core/request/aixosinstance';
+import React from 'react';
 
 export default function CameraPosition() {
   const setModalState = useSetRecoilState(modalAtom);
   const params = useParams();
+  const [cameraPositions, setCameraPositions] = React.useState([]);
+
+  const fetchAllCameraPosition = async () => {
+    const res = await axiosInstance.get('/capturePosition/fetch', {
+      params: {
+        variantId: params.variantId,
+      },
+    });
+    setCameraPositions(res.data.data);
+  };
+
+  React.useEffect(() => {
+    fetchAllCameraPosition();
+  }, []);
 
   return (
     <>
       <Modal>
-        <AddCameraPositionModal />
+        <AddCameraPositionModal fetchAllCameraPosition={fetchAllCameraPosition}/>
       </Modal>
 
       <Heading
@@ -48,15 +64,15 @@ export default function CameraPosition() {
             title="Add Camera Position"
           />
 
-          {Array(5)
-            .fill(1)
-            .map((t, i) => (
+          {cameraPositions.map((cameraPosition) => {
+            return (
               <Variant.Card
-                key={i}
-                title="Camera Position"
-                to={'camera-position/123'}
+                key={cameraPosition.id}
+                title={cameraPosition.name}
+                to={`camera-position/${cameraPosition.id}`}
               />
-            ))}
+            );
+          })}
         </div>
       </div>
     </>

@@ -13,10 +13,8 @@ export default function Folder() {
   const columns = ['S.No.', 'File Name', 'Date Created'];
   const setModalState = useSetRecoilState(modalAtom);
   const params = useParams();
-  const { pathname } = useLocation();
   const [datasetImages, setDatasetImages] = useState([]);
   const [id, setId] = useState('');
-  const folderId = pathname.split('/')[10];
 
   async function handleFileUpload(event) {
     const files = event.target.files;
@@ -25,7 +23,7 @@ export default function Folder() {
     for (let i = 0; i < files.length; i++) {
       formData.append('files', files[i]);
     }
-    formData.append('folderId', '47720812-8e76-4835-b12a-a9f47cbe89e9');
+    formData.append('folderId', params.folderId);
 
     await axiosInstance.post('/dataset/upload', formData);
     fetchAllImages();
@@ -34,7 +32,7 @@ export default function Folder() {
   const fetchAllImages = async () => {
     const res = await axiosInstance.get('/dataset/allImages', {
       params: {
-        folderId: '47720812-8e76-4835-b12a-a9f47cbe89e9',
+        folderId: params.folderId,
       },
     });
 
@@ -52,7 +50,7 @@ export default function Folder() {
   const deleteImageById = async (imageId) => {
     await axiosInstance.delete('/dataset/image', {
       params: {
-        folderId: "47720812-8e76-4835-b12a-a9f47cbe89e9",
+        folderId: params.folderId,
         imageId
       }
     })

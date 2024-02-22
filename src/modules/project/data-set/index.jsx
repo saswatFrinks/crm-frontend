@@ -7,15 +7,31 @@ import { modalAtom } from '@/shared/states/modal.state';
 import Modal from '@/shared/ui/Modal';
 import AddFolderModal from './AddFolderModal';
 import { Link, useParams } from 'react-router-dom';
+import axiosInstance from '@/core/request/aixosinstance';
 
 export default function DataSet() {
   const setModalState = useSetRecoilState(modalAtom);
   const params = useParams();
+  const [folders, setFolders] = React.useState([]);
+
+  const fetchAllFolders = async () => {
+    const res = await axiosInstance.get('/dataset/folders', {
+      params: {
+        cameraConfigId: params.cameraConfigId
+      }
+    })
+
+    setFolders(res.data.data)
+  }
+
+  React.useEffect(() => {
+    fetchAllFolders();
+  }, [])
 
   return (
     <>
       <Modal>
-        <AddFolderModal />
+        <AddFolderModal fetchAllFolders={fetchAllFolders}/>
       </Modal>
 
       <Heading
@@ -65,11 +81,11 @@ export default function DataSet() {
             title="Create Folder"
           />
 
-          {Array(5)
-            .fill(1)
-            .map((t, i) => (
-              <Variant.Card key={i} title="Folder Name" to={'folder/123'} />
-            ))}
+            {folders.map((folder) => {
+              return (
+                <Variant.Card key={folder.id} title={folder.name} to={`folder/${folder.id}`} />
+              )
+            })}
         </div>
       </div>
     </>

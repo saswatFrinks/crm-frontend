@@ -6,19 +6,19 @@ import Label from '@/shared/ui/Label';
 import { ModalBody, ModalFooter, ModalHeader } from '@/shared/ui/Modal';
 import { useFormik } from 'formik';
 import toast from 'react-hot-toast';
-import { useLocation } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useSetRecoilState } from 'recoil';
 
-export default function AddVariantModal() {
+export default function AddVariantModal({ fetchAllVariants }) {
   const setOpenModal = useSetRecoilState(modalAtom);
-  const { pathname } = useLocation();
+  const params = useParams();
 
   const addVariants = async (values) => {
-    const projectId = pathname.split('/')[2];
     await axiosInstance.post('/variant/', {
-      projectId: 'f2105acb-a44a-4dff-b51f-3bcd425d59d7',
+      projectId: params.projectId,
       name: values.name,
     });
+    fetchAllVariants();
   };
 
   const formik = useFormik({

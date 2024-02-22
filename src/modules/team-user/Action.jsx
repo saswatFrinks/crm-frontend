@@ -58,7 +58,7 @@ export default function Action(props) {
                 deleteImageById(id);
               }
 
-              //console.log('clicked');
+              setOpen(false);
             }}
           >
             <FaRegTrashCan /> Delete
