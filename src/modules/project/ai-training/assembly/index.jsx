@@ -84,7 +84,7 @@ export default function AIAssembly() {
                       scope="row"
                       className="whitespace-nowrap px-6 py-4 font-medium text-gray-900 hover:underline "
                     >
-                      <Link to={`${123}`}>Model 1234</Link>
+                      <Link to={`${123}#result`}>Model 1234</Link>
                     </th>
                     <td className="px-6 py-4">-</td>
                     <td className="px-6 py-4">-</td>
