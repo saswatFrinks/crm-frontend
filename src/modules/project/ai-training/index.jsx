@@ -1,20 +1,23 @@
 import ArrowRight from '@/shared/icons/ArrowRight';
 import Heading from '@/shared/layouts/main/heading';
-import React from 'react';
-import { Link, NavLink, useLocation, useParams } from 'react-router-dom';
-import Assembly from './assembly';
-import Dimensioning from './dimensioning';
-import Cosmetic from './cosmetic';
 
-export default function AiTraining() {
+import {
+  Link,
+  NavLink,
+  Outlet,
+  useLocation,
+  useParams,
+} from 'react-router-dom';
+
+export default function AiTrainingLayout() {
   const params = useParams();
 
-  const { hash } = useLocation();
+  const location = useLocation();
 
   const menus = [
     {
       title: 'Assembly',
-      to: '#assembly',
+      to: 'assembly',
       icon: (active) => (
         <svg
           width="24"
@@ -48,7 +51,7 @@ export default function AiTraining() {
     },
     {
       title: 'Dimensioning',
-      to: '#dimensioning',
+      to: 'dimensioning',
       icon: (active) => (
         <svg
           width="24"
@@ -67,7 +70,7 @@ export default function AiTraining() {
     },
     {
       title: 'Cosmetic',
-      to: '#cosmetic',
+      to: 'cosmetic',
       icon: (active) => (
         <svg
           width="22"
@@ -87,19 +90,8 @@ export default function AiTraining() {
     },
   ];
 
-  const renderTab = () => {
-    const components = {
-      '#assembly': <Assembly />,
-      '#dimensioning': <Dimensioning />,
-      '#cosmetic': <Cosmetic />,
-    };
-
-    return components[hash] ?? null;
-  };
-
   return (
     <>
-      {' '}
       <Heading
         subcontent={
           <>
@@ -122,15 +114,14 @@ export default function AiTraining() {
               <NavLink
                 to={t.to}
                 className={({ isActive }) => {
-                  const clx =
-                    t.to == hash
-                      ? 'active bg-f-primary text-white hover:bg-f-primary hover:text-white'
-                      : 'hover:bg-gray-100';
+                  const clx = location.pathname.includes(t.to)
+                    ? 'active bg-f-primary text-white hover:bg-f-primary hover:text-white'
+                    : 'hover:bg-gray-100';
                   return `${clx} flex items-center gap-4 rounded-md px-2 py-2 duration-100 hover:text-black`;
                 }}
               >
                 <div className="flex w-6 items-center justify-center">
-                  {t.icon(hash == t.to)}
+                  {t.icon(location.pathname.includes(t.to))}
                 </div>
                 <span>{t.title}</span>
               </NavLink>
@@ -138,7 +129,9 @@ export default function AiTraining() {
           ))}
         </ul>
 
-        <div className="flex-1 px-10 py-8">{renderTab()}</div>
+        <div className="flex-1 overflow-y-auto px-10 py-8">
+          <Outlet />
+        </div>
       </div>
     </>
   );

@@ -138,7 +138,7 @@ export default function UploadImage() {
         }}
       >
         <div
-          className={`grow-[1] overflow-auto ${imageStatus.dragging ? 'cursor-crosshair' : ''}`}
+          className={`grow overflow-auto ${imageStatus.dragging ? 'cursor-crosshair' : ''}`}
         >
           <Stage
             width={size.width}

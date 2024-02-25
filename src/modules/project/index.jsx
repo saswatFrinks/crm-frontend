@@ -74,7 +74,8 @@ export default function Home() {
 
         <ModalBody>
           <p>
-            The project <span className="font-semibold">{projectForDelete?.name}</span> and
+            The project{' '}
+            <span className="font-semibold">{projectForDelete?.name}</span> and
             assosiated date will be permanently deleted, do you want to
             continue?
           </p>

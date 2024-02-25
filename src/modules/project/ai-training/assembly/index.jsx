@@ -6,8 +6,9 @@ import { FaPlus } from 'react-icons/fa';
 import BuildNTrainDrawer from './BuildNTrainDrawer';
 import { useRecoilState } from 'recoil';
 import { stepAtom } from './state';
+import { Link } from 'react-router-dom';
 
-export default function Assembly() {
+export default function AIAssembly() {
   const [open, setOpenDrawer] = React.useState(false);
   const [step, setStep] = useRecoilState(stepAtom);
 
@@ -81,9 +82,9 @@ export default function Assembly() {
                   >
                     <th
                       scope="row"
-                      className="whitespace-nowrap px-6 py-4 font-medium text-gray-900 "
+                      className="whitespace-nowrap px-6 py-4 font-medium text-gray-900 hover:underline "
                     >
-                      -
+                      <Link to={`${123}`}>Model 1234</Link>
                     </th>
                     <td className="px-6 py-4">-</td>
                     <td className="px-6 py-4">-</td>
