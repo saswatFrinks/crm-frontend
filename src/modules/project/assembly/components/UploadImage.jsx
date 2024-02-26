@@ -15,10 +15,13 @@ import {
   mousePositionAtom,
   rectanglesAtom,
   stageAtom,
-} from '../states';
+  stepAtom,
+  uploadedFileListAtom,
+} from '../state';
 import Crosshair from './Crosshair';
 import useDrawRectangle from '../hooks/useDrawRectangle';
 import Rectangle from './Rectangle';
+import { v4 as uuidv4 } from 'uuid';
 
 export default function UploadImage() {
   const [file, setFile] = React.useState(null);
@@ -47,6 +50,10 @@ export default function UploadImage() {
 
   const [isEditingRect, setEditingRect] = useRecoilState(editingRectAtom);
 
+  const step = useRecoilValue(stepAtom);
+
+  const setUploadedFileList = useSetRecoilState(uploadedFileListAtom);
+
   const containerRef = React.useRef(null);
 
   const [image] = useImage(file);
@@ -57,11 +64,21 @@ export default function UploadImage() {
   });
 
   const handleChangeFile = (e) => {
-    const file = e.target.files[0];
+    if (step == 0) {
+      const files = Array.from(e.target.files).map((t) => ({
+        id: uuidv4(),
+        fileName: t.name,
+        url: URL.createObjectURL(t),
+      }));
 
-    if (!file) return;
-    const url = URL.createObjectURL(file);
-    setFile(url);
+      setUploadedFileList(files);
+    } else {
+      const file = e.target.files[0];
+
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+      setFile(url);
+    }
   };
 
   const handleMouseUp = (e) => {
@@ -117,13 +134,18 @@ export default function UploadImage() {
 
   const handleMouseLeave = () => {};
 
-  if (!file) {
+  if (step == 0 || (!file && step !== 0)) {
     return (
       <>
         <BigImage />
         <label className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-f-primary px-20 py-2 text-white duration-100 hover:bg-f-secondary">
           <Upload /> Upload master image
-          <input type="file" hidden onChange={handleChangeFile} />
+          <input
+            type="file"
+            hidden
+            onChange={handleChangeFile}
+            multiple={step == 0}
+          />
         </label>
       </>
     );

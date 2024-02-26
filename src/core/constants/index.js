@@ -57,7 +57,20 @@ export const DEFAULT_ROI = {
   objects: [DEFAULT_OBJECT],
 };
 
-export const OPERATIONS = ['<', '>', '='];
+export const OPERATIONS = [
+  {
+    id: '<',
+    name: '<',
+  },
+  {
+    id: '>',
+    name: '>',
+  },
+  {
+    id: '=',
+    name: '=',
+  },
+];
 
 export const BASE_RECT = {
   id: null,
@@ -67,3 +80,10 @@ export const BASE_RECT = {
   // type: RECT,
   strokeWidth: 0.5,
 };
+
+export const ASSEMBLY_STEPS = [
+  'Upload Images',
+  'Inspection Parameters',
+  'Label Images',
+  'Pre-training analysis',
+];

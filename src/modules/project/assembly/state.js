@@ -72,3 +72,13 @@ export const editingRectAtom = atom({
   key: 'editingRectAtom',
   default: false,
 });
+
+export const stepAtom = atom({
+  key: 'stepAtom',
+  default: 0
+})
+
+export const uploadedFileListAtom = atom({
+  key: 'uploadedFileListAtom',
+  default: []
+})

@@ -1,8 +1,8 @@
 import Heading from '@/shared/layouts/main/heading';
 import Drawer from '@/shared/ui/Drawer';
-import Project from '@/modules/project/ProjectCard';
+import Project from '@/modules/project/components/ProjectCard';
 import React from 'react';
-import CreateProjectDrawer from './CreateProjectDrawer';
+import CreateProjectDrawer from './components/CreateProjectDrawer';
 import Modal, { ModalBody, ModalFooter, ModalHeader } from '@/shared/ui/Modal';
 import { useSetRecoilState } from 'recoil';
 import { modalAtom } from '@/shared/states/modal.state';
