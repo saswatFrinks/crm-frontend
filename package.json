@@ -12,10 +12,13 @@
   "dependencies": {
     "autoprefixer": "^10.4.17",
     "axios": "^1.6.7",
+    "chart.js": "^4.4.1",
     "formik": "^2.4.5",
     "konva": "^9.3.3",
     "postcss": "^8.4.33",
     "react": "^18.2.0",
+    "react-chartjs-2": "^5.2.0",
+    "react-device-detect": "^2.2.3",
     "react-dom": "^18.2.0",
     "react-feather": "^2.0.10",
     "react-hot-toast": "^2.4.1",
