@@ -82,3 +82,8 @@ export const uploadedFileListAtom = atom({
   key: 'uploadedFileListAtom',
   default: []
 })
+
+export const selectedFileAtom = atom({
+  key: 'selectedFileAtom',
+  default: null
+})

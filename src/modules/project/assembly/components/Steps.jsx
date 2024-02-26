@@ -20,7 +20,7 @@ export default function Steps() {
       {ASSEMBLY_STEPS.map((t, i) => (
         <li key={t} className="relative z-20 flex flex-col items-center gap-2">
           <div
-            className={`  absolute top-1 z-10 h-2 w-1/2 ${i == 0 ? 'left-0' : ''} ${i == ASSEMBLY_STEPS.length - 1 ? 'right-0' : ''}`}
+            className={`absolute top-1 z-10 h-2 w-1/2 bg-white ${i == 0 ? 'left-0' : ''} ${i == ASSEMBLY_STEPS.length - 1 ? 'right-0' : ''}`}
           />
           <div className={`bg-white] z-50 px-4`}>
             <div

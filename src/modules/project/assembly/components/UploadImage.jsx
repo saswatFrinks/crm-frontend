@@ -14,6 +14,7 @@ import {
   imageStatusAtom,
   mousePositionAtom,
   rectanglesAtom,
+  selectedFileAtom,
   stageAtom,
   stepAtom,
   uploadedFileListAtom,
@@ -52,7 +53,9 @@ export default function UploadImage() {
 
   const step = useRecoilValue(stepAtom);
 
-  const setUploadedFileList = useSetRecoilState(uploadedFileListAtom);
+  const [images, setUploadedFileList] = useRecoilState(uploadedFileListAtom);
+
+  const selectedFile = useRecoilValue(selectedFileAtom);
 
   const containerRef = React.useRef(null);
 
@@ -69,15 +72,10 @@ export default function UploadImage() {
         id: uuidv4(),
         fileName: t.name,
         url: URL.createObjectURL(t),
+        checked: false,
       }));
 
       setUploadedFileList(files);
-    } else {
-      const file = e.target.files[0];
-
-      if (!file) return;
-      const url = URL.createObjectURL(file);
-      setFile(url);
     }
   };
 
@@ -134,31 +132,31 @@ export default function UploadImage() {
 
   const handleMouseLeave = () => {};
 
-  if (step == 0 || (!file && step !== 0)) {
-    return (
-      <>
-        <BigImage />
-        <label className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-f-primary px-20 py-2 text-white duration-100 hover:bg-f-secondary">
-          <Upload /> Upload master image
-          <input
-            type="file"
-            hidden
-            onChange={handleChangeFile}
-            multiple={step == 0}
-          />
-        </label>
-      </>
-    );
-  } else {
-    return (
-      <div
-        className="flex h-full w-full flex-col"
-        ref={containerRef}
-        style={{
-          width: ((window.innerWidth - 16 * 4) * 7) / 12,
-          // height: (window.innerHeight * 11) / 12,
-        }}
-      >
+  React.useEffect(() => {
+    if (selectedFile?.url) {
+      setFile(selectedFile?.url);
+    }
+  }, [selectedFile?.id, selectedFile]);
+
+  return (
+    <div
+      className="flex h-full w-full flex-col items-center justify-center gap-4"
+      ref={containerRef}
+      style={{
+        width: ((window.innerWidth - 16 * 4) * 7) / 12,
+      }}
+    >
+      {step == 0 ? (
+        <>
+          <BigImage />
+          <label className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-f-primary px-20 py-2 text-white duration-100 hover:bg-f-secondary">
+            <Upload /> Upload master image
+            <input type="file" hidden onChange={handleChangeFile} multiple />
+          </label>
+        </>
+      ) : null}
+
+      {file && step == 1 && image?.width && !isNaN(scaleFactor) ? (
         <div
           className={`grow overflow-auto ${imageStatus.dragging ? 'cursor-crosshair' : ''}`}
         >
@@ -180,14 +178,13 @@ export default function UploadImage() {
             //   ref={stageRef}
           >
             <Layer>
-              {image && (
-                <Image
-                  image={image}
-                  // ref={imageRef}
-                  width={image.width * scaleFactor}
-                  height={image.height * scaleFactor}
-                />
-              )}
+              <Image
+                image={image}
+                // ref={imageRef}
+                width={image.width * scaleFactor}
+                height={image.height * scaleFactor}
+              />
+
               {rectangles.map((rect, index) => (
                 <Rectangle
                   key={rect.id}
@@ -239,7 +236,7 @@ export default function UploadImage() {
             </Layer>
           </Stage>
         </div>
-      </div>
-    );
-  }
+      ) : null}
+    </div>
+  );
 }

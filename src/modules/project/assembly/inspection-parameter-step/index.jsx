@@ -295,7 +295,7 @@ export default function InspectionParameterStep(props) {
       <div className="mt-2 flex flex-col gap-4">
         {/* roi list */}
         {configuration.rois.map((t, i) => (
-          <div key={t}>
+          <div key={i}>
             <div className="mb-4 flex items-center gap-4">
               <Checkbox
                 id={t.id}

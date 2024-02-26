@@ -8,26 +8,30 @@ import { useEffect, useState } from 'react';
  */
 
 export const useContainerSize = ({ containerRef, isOpen, image }) => {
+  // console.log('333', image);
   const [size, setSize] = useState({ width: 0, height: 0 });
 
-  const [img, setImg] = useState(null);
+  const [img, setImg] = useState(image);
 
-  let scaleFactor = null;
+  const [scaleFactor, setScaleFactor] = useState(1);
 
   const checkSize = () => {
+    console.log('chekc size', containerRef.current?.offsetWidth);
     setSize({
       width: containerRef.current?.offsetWidth,
       height: containerRef.current?.offsetHeight,
     });
   };
 
-  if (img) {
-    scaleFactor = Math.min(size.width / img.width, size.height / img.height);
-  }
-
   useEffect(() => {
-    setImg(image);
-  }, [image]);
+    if (image?.width && image?.height) {
+      console.log('123123123123123', image.width, size);
+      setImg(image);
+      setScaleFactor(
+        Math.min(size.width / image.width, size.height / image.height)
+      );
+    }
+  }, [image, size]);
 
   useEffect(() => {
     checkSize();
@@ -40,6 +44,8 @@ export const useContainerSize = ({ containerRef, isOpen, image }) => {
 
     return () => window.removeEventListener('resize', checkSize);
   }, []);
+
+  // console.log(scaleFactor, img?.width, img?.height);
 
   return { size, scaleFactor };
 };
