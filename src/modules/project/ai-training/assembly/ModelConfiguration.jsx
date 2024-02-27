@@ -1,9 +1,28 @@
 import Checkbox from '@/shared/ui/Checkbox';
 import Label from '@/shared/ui/Label';
 import Radio from '@/shared/ui/Radio';
-import React from 'react';
+import React, { useState } from 'react';
+import { useRecoilState } from 'recoil';
+import { augmentationsAtom, modelSizeAtom } from './state';
+
+const defaultModel = {
+  small: false,
+  medium: false,
+  large: false,
+};
 
 export default function ModelConfiguration() {
+  const [augmentations, setAugmentations] = useRecoilState(augmentationsAtom);
+  const [modelSize, setModelSize] = useRecoilState(modelSizeAtom);
+
+  const handleModelChange = (key) => {
+    setModelSize({ ...defaultModel, [key]: true });
+  };
+
+  const handleAugmentationsChange = (key) => {
+    setAugmentations({ ...augmentations, [key]: !augmentations[key] });
+  };
+
   return (
     <div className="flex flex-col gap-8">
       <h3 className=" text-2xl font-semibold">Model Configuration</h3>
@@ -20,8 +39,8 @@ export default function ModelConfiguration() {
             value="small"
             name="small"
             id="small"
-            // checked={formik.values.isItemFixed == 'stationary'}
-            // onChange={formik.handleChange}
+            checked={modelSize['small']}
+            onClick={() => handleModelChange('small')}
           />
           <Label htmlFor="small" main={false}>
             Small
@@ -33,8 +52,8 @@ export default function ModelConfiguration() {
             value="medium"
             name="medium"
             id="medium"
-            // checked={formik.values.isItemFixed == 'stationary'}
-            // onChange={formik.handleChange}
+            checked={modelSize['medium']}
+            onClick={() => handleModelChange('medium')}
           />
           <Label htmlFor="medium" main={false}>
             Medium <span className=" text-blue-400">*Recommended</span>
@@ -46,8 +65,8 @@ export default function ModelConfiguration() {
             value="large"
             name="large"
             id="large"
-            // checked={formik.values.isItemFixed == 'stationary'}
-            // onChange={formik.handleChange}
+            checked={modelSize['large']}
+            onClick={() => handleModelChange('large')}
           />
           <Label htmlFor="large" main={false}>
             Large
@@ -63,7 +82,8 @@ export default function ModelConfiguration() {
             value="horizontalFlip"
             name="horizontalFlip"
             htmlFor="horizontalFlip"
-            checked={false}
+            checked={augmentations['horizontal']}
+            onClick={() => handleAugmentationsChange('horizontal')}
           />
           <Label htmlFor="horizontalFlip" main={false}>
             Horizontal Flip
@@ -76,7 +96,8 @@ export default function ModelConfiguration() {
             value="verticalFlip"
             name="verticalFlip"
             htmlFor="verticalFlip"
-            checked={false}
+            checked={augmentations['vertical']}
+            onClick={() => handleAugmentationsChange('vertical')}
           />
           <Label htmlFor="verticalFlip" main={false}>
             Vertical Flip
@@ -89,7 +110,8 @@ export default function ModelConfiguration() {
             value="rotations"
             name="rotations"
             htmlFor="rotations"
-            checked={false}
+            checked={augmentations['rotation']}
+            onClick={() => handleAugmentationsChange('rotation')}
           />
           <Label htmlFor="rotations" main={false}>
             Rotations
@@ -102,7 +124,8 @@ export default function ModelConfiguration() {
             value="noise"
             name="noise"
             htmlFor="noise"
-            checked={false}
+            checked={augmentations['noise']}
+            onClick={() => handleAugmentationsChange('noise')}
           />
           <Label htmlFor="noise" main={false}>
             Noise

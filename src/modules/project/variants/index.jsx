@@ -5,7 +5,7 @@ import { modalAtom } from '@/shared/states/modal.state';
 import Modal from '@/shared/ui/Modal';
 import AddVariantModal from './AddVariantModal';
 import ArrowRight from '@/shared/icons/ArrowRight';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import axiosInstance from '@/core/request/aixosinstance';
 import React from 'react';
 
@@ -13,6 +13,7 @@ export default function Variants() {
   const setModalState = useSetRecoilState(modalAtom);
   const params = useParams();
   const [variants, setVariants] = React.useState([]);
+  const location = useLocation();
 
   const fetchAllVariants = async () => {
     const res = await axiosInstance.get('/variant/fetch', {
@@ -39,9 +40,10 @@ export default function Variants() {
             <Link
               to={`/project/${params.projectId}`}
               className="flex items-center gap-2"
+              state={location.state}
             >
               <ArrowRight />
-              <span>Project Name</span>
+              <span>{location.state.projectName}</span>
             </Link>
           </>
         }
@@ -58,6 +60,7 @@ export default function Variants() {
               key={variant.id}
               to={`variant/${variant.id}`}
               title={variant.name}
+              state={{...location.state, variantName: variant.name}}
             />
           ))}
         </div>

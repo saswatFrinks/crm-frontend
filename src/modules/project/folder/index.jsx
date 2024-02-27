@@ -4,7 +4,6 @@ import ArrowRight from '@/shared/icons/ArrowRight';
 import Upload from '@/shared/icons/Upload';
 import Heading from '@/shared/layouts/main/heading';
 import { modalAtom } from '@/shared/states/modal.state';
-import InputFile from '@/shared/ui/InputFile';
 import React, { useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { useSetRecoilState } from 'recoil';
@@ -15,6 +14,7 @@ export default function Folder() {
   const params = useParams();
   const [datasetImages, setDatasetImages] = useState([]);
   const [id, setId] = useState('');
+  const location = useLocation();
 
   async function handleFileUpload(event) {
     const files = event.target.files;
@@ -51,12 +51,17 @@ export default function Folder() {
     await axiosInstance.delete('/dataset/image', {
       params: {
         folderId: params.folderId,
-        imageId
-      }
-    })
+        imageId,
+      },
+    });
 
-    fetchAllImages()
-  }
+    fetchAllImages();
+  };
+
+  const getImageUrl = (imageId) => {
+    const baseUrl = import.meta.env.VITE_BASE_API_URL;
+    return `${baseUrl}/dataset/image?imageId=${imageId}`;
+  };
 
   return (
     <>
@@ -66,35 +71,39 @@ export default function Folder() {
             <Link
               to={`/project/${params.projectId}`}
               className="flex items-center gap-2"
+              state={location.state}
             >
               <ArrowRight />
-              <span>Project Name</span>
+              <span>{location.state.projectName}</span>
             </Link>
             <Link
               to={`/project/${params.projectId}/variant/${params.variantId}`}
               className="flex items-center gap-2"
+              state={location.state}
             >
               <ArrowRight />
-              <span>Variant Name</span>
+              <span>{location.state.variantName}</span>
             </Link>
 
             <Link
               to={`/project/${params.projectId}/variant/${params.variantId}/camera-position/${params.cameraPositionId}`}
               className="flex items-center gap-2"
+              state={location.state}
             >
               <ArrowRight />
-              <span>Camera Position</span>
+              <span>{location.state.cameraPositionName}</span>
             </Link>
 
             <Link
               to={`/project/${params.projectId}/variant/${params.variantId}/camera-position/${params.cameraPositionId}/camera-config/${params.cameraConfigId}`}
               className="flex items-center gap-2"
+              state={location.state}
             >
               <ArrowRight />
-              <span>Camera Config</span>
+              <span>{location.state.cameraConfigName}</span>
             </Link>
             <ArrowRight />
-            <span>Folder Name</span>
+            <span>{location.state.foldername}</span>
           </>
         }
       >
@@ -147,15 +156,24 @@ export default function Folder() {
                     >
                       {index + 1}
                     </th>
-                    <td className="px-6 py-4">{datasetImage.name}</td>
+                    <td className="px-6 py-4">
+                      <a href={getImageUrl(datasetImage.id)} target="_blank">
+                        {datasetImage.name}
+                      </a>
+                    </td>
                     <td className="px-6 py-4">
                       {new Date(
                         Number(datasetImage.createdAt)
-                      ).toLocaleDateString()}
+                      ).toLocaleString()}
                     </td>
 
                     <td className="px-6 py-4">
-                      <Action handleOpenModal={handleOpenModal} id={datasetImage.id} setId={setId} deleteImageById={deleteImageById}/>
+                      <Action
+                        handleOpenModal={handleOpenModal}
+                        id={datasetImage.id}
+                        setId={setId}
+                        deleteImageById={deleteImageById}
+                      />
                     </td>
                   </tr>
                 );

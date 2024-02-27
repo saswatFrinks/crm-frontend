@@ -5,7 +5,7 @@ import Modal from '@/shared/ui/Modal';
 import { useSetRecoilState } from 'recoil';
 import Variant from '../variants/Variant';
 import AddCameraPositionModal from './AddCameraPositionModal';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import axiosInstance from '@/core/request/aixosinstance';
 import React from 'react';
 
@@ -13,6 +13,7 @@ export default function CameraPosition() {
   const setModalState = useSetRecoilState(modalAtom);
   const params = useParams();
   const [cameraPositions, setCameraPositions] = React.useState([]);
+  const location = useLocation();
 
   const fetchAllCameraPosition = async () => {
     const res = await axiosInstance.get('/capturePosition/fetch', {
@@ -39,16 +40,18 @@ export default function CameraPosition() {
             <Link
               to={`/project/${params.projectId}`}
               className="flex items-center gap-2"
+              state={location.state}
             >
               <ArrowRight />
-              <span>Project Name</span>
+              <span>{location.state.projectName}</span>
             </Link>
             <Link
               to={`/project/${params.projectId}/variant/${params.variantId}`}
               className="flex items-center gap-2"
+              state={location.state}
             >
               <ArrowRight />
-              <span>Variant Name</span>
+              <span>{location.state.variantName}</span>
             </Link>
           </>
         }
@@ -70,6 +73,7 @@ export default function CameraPosition() {
                 key={cameraPosition.id}
                 title={cameraPosition.name}
                 to={`camera-position/${cameraPosition.id}`}
+                state={{...location.state, cameraPositionName: cameraPosition.name}}
               />
             );
           })}

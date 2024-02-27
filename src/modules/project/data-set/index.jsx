@@ -6,32 +6,33 @@ import { useSetRecoilState } from 'recoil';
 import { modalAtom } from '@/shared/states/modal.state';
 import Modal from '@/shared/ui/Modal';
 import AddFolderModal from './AddFolderModal';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import axiosInstance from '@/core/request/aixosinstance';
 
 export default function DataSet() {
   const setModalState = useSetRecoilState(modalAtom);
   const params = useParams();
   const [folders, setFolders] = React.useState([]);
+  const location = useLocation();
 
   const fetchAllFolders = async () => {
     const res = await axiosInstance.get('/dataset/folders', {
       params: {
-        cameraConfigId: params.cameraConfigId
-      }
-    })
+        cameraConfigId: params.cameraConfigId,
+      },
+    });
 
-    setFolders(res.data.data)
-  }
+    setFolders(res.data.data);
+  };
 
   React.useEffect(() => {
     fetchAllFolders();
-  }, [])
+  }, []);
 
   return (
     <>
       <Modal>
-        <AddFolderModal fetchAllFolders={fetchAllFolders}/>
+        <AddFolderModal fetchAllFolders={fetchAllFolders} />
       </Modal>
 
       <Heading
@@ -40,32 +41,36 @@ export default function DataSet() {
             <Link
               to={`/project/${params.projectId}`}
               className="flex items-center gap-2"
+              state={location.state}
             >
               <ArrowRight />
-              <span>Project Name</span>
+              <span>{location.state.projectName}</span>
             </Link>
             <Link
               to={`/project/${params.projectId}/variant/${params.variantId}`}
               className="flex items-center gap-2"
+              state={location.state}
             >
               <ArrowRight />
-              <span>Variant Name</span>
+              <span>{location.state.variantName}</span>
             </Link>
 
             <Link
               to={`/project/${params.projectId}/variant/${params.variantId}/camera-position/${params.cameraPositionId}`}
               className="flex items-center gap-2"
+              state={location.state}
             >
               <ArrowRight />
-              <span>Camera Position</span>
+              <span>{location.state.cameraPositionName}</span>
             </Link>
 
             <Link
               to={`/project/${params.projectId}/variant/${params.variantId}/camera-position/${params.cameraPositionId}/camera-config/${params.cameraConfigId}`}
               className="flex items-center gap-2"
+              state={location.state}
             >
               <ArrowRight />
-              <span>Camera Config</span>
+              <span>{location.state.cameraConfigName}</span>
             </Link>
           </>
         }
@@ -81,11 +86,16 @@ export default function DataSet() {
             title="Create Folder"
           />
 
-            {folders.map((folder) => {
-              return (
-                <Variant.Card key={folder.id} title={folder.name} to={`folder/${folder.id}`} />
-              )
-            })}
+          {folders.map((folder) => {
+            return (
+              <Variant.Card
+                key={folder.id}
+                title={folder.name}
+                to={`folder/${folder.id}`}
+                state={{...location.state, folderName: folder.name}}
+              />
+            );
+          })}
         </div>
       </div>
     </>

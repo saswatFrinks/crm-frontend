@@ -11,7 +11,7 @@ import { Link } from 'react-router-dom';
 import PlusFile from '../../shared/icons/PlusFile';
 import ThreeDots from '../../shared/icons/File';
 
-function Card({project, setProjectForDelete}) {
+function Card({ project, setProjectForDelete }) {
   const setOpenModal = useSetRecoilState(modalAtom);
 
   const [open, setOpen] = React.useState(false);
@@ -46,9 +46,9 @@ function Card({project, setProjectForDelete}) {
             <li
               className="flex cursor-pointer gap-2 p-2 text-xs text-red-500 duration-100 hover:bg-gray-50"
               onClick={() => {
-                setProjectForDelete(project)
-                setOpenModal(true)
-                setOpen(false)
+                setProjectForDelete(project);
+                setOpenModal(true);
+                setOpen(false);
               }}
             >
               <FaRegTrashCan size={16} />
@@ -72,7 +72,11 @@ function Card({project, setProjectForDelete}) {
           Edit
         </Button>
         <Button size="xs">
-          <Link to={`/project/${project.id}`} className="block h-full w-full">
+          <Link
+            to={`/project/${project.id}`}
+            className="block h-full w-full"
+            state={{ projectName: project.name }}
+          >
             Build
           </Link>
         </Button>

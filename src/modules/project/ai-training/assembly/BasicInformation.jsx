@@ -1,8 +1,12 @@
 import Input from '@/shared/ui/Input';
 import Label from '@/shared/ui/Label';
 import TextArea from '@/shared/ui/TextArea';
+import { useRecoilState } from 'recoil';
+import { modelInfoAtom } from './state';
 
 export default function BasicInformation() {
+  const [modelInfo, setModelInfo] = useRecoilState(modelInfoAtom);
+
   return (
     <>
       <h3 className="mb-8 text-2xl font-semibold">Basic Information</h3>
@@ -20,12 +24,23 @@ export default function BasicInformation() {
       <form className="flex flex-col gap-4">
         <div>
           <Label required={true}>Model Name</Label>
-          <Input placeholder="Enter model name" />
+          <Input
+            placeholder="Enter model name"
+            onChange={(e) =>
+              setModelInfo({ ...modelInfo, modelName: e.target.value })
+            }
+          />
         </div>
 
         <div>
           <Label required={true}>Model Description</Label>
-          <TextArea placeholder="Enter model description" rows={6} />
+          <TextArea
+            placeholder="Enter model description"
+            rows={6}
+            onChange={(e) =>
+              setModelInfo({ ...modelInfo, modelDescription: e.target.value })
+            }
+          />
         </div>
       </form>
     </>
