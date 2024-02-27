@@ -1,0 +1,51 @@
+name: PR workflow
+
+on:
+  pull_request:
+    types: [review_requested]
+  branches: [main]
+
+jobs:
+  build_and_upload:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Install dependencies
+        run: yarn add
+      - name: Build
+        run: yarn build
+      - name: Copy build
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOYMENT_HOST }}
+          username: ${{ secrets.DEPLOYMENT_USERNAME }}
+          key: ${{ secrets.DEPLOYMENT_PRIVATE_KEY }}
+          source: 'dist'
+          target: Frinks/vip/
+      - name: Copy package json
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOYMENT_HOST }}
+          username: ${{ secrets.DEPLOYMENT_USERNAME }}
+          key: ${{ secrets.DEPLOYMENT_PRIVATE_KEY }}
+          source: 'package.json'
+          target: Frinks/assembly-online/
+      - name: Install dependencies
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOYMENT_HOST }}
+          username: ${{ secrets.DEPLOYMENT_USERNAME }}
+          key: ${{ secrets.DEPLOYMENT_PRIVATE_KEY }}
+          script: |
+            cd Frinks/vip
+            yarn
+      - name: Restart process
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOYMENT_HOST }}
+          username: ${{ secrets.DEPLOYMENT_USERNAME }}
+          key: ${{ secrets.DEPLOYMENT_PRIVATE_KEY }}
+          script: pm2 restart 1
