@@ -16,7 +16,6 @@ export const useContainerSize = ({ containerRef, isOpen, image }) => {
   const [scaleFactor, setScaleFactor] = useState(1);
 
   const checkSize = () => {
-    console.log('chekc size', containerRef.current?.offsetWidth);
     setSize({
       width: containerRef.current?.offsetWidth,
       height: containerRef.current?.offsetHeight,
@@ -25,7 +24,6 @@ export const useContainerSize = ({ containerRef, isOpen, image }) => {
 
   useEffect(() => {
     if (image?.width && image?.height) {
-      console.log('123123123123123', image.width, size);
       setImg(image);
       setScaleFactor(
         Math.min(size.width / image.width, size.height / image.height)

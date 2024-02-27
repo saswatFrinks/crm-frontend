@@ -5,7 +5,7 @@ import {
   POSITION,
   STATUS,
 } from '@/core/constants';
-import { atom } from 'recoil';
+import { atom, selectorFamily } from 'recoil';
 
 export const stageAtom = atom({
   key: 'stageAtom',
@@ -86,4 +86,12 @@ export const uploadedFileListAtom = atom({
 export const selectedFileAtom = atom({
   key: 'selectedFileAtom',
   default: null
+})
+
+export const selectedRoiSelector = selectorFamily({
+  key: 'selectedRoiSelector',
+  get: (imageId) => ({get}) => {
+    console.log(get(rectanglesAtom))
+    return get(rectanglesAtom).filter(k => k.imageId == imageId)
+  }
 })
