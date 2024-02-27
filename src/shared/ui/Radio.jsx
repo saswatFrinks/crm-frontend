@@ -4,7 +4,8 @@ import { tv } from 'tailwind-variants';
 export default function Radio(props) {
   const {
     value,
-    onChange,
+    onClick = null,
+    onChange = null,
     name,
     checked = false,
     color = 'primary',
@@ -59,6 +60,7 @@ export default function Radio(props) {
       <input
         id={id}
         value={value}
+        onClick={onClick}
         onChange={onChange}
         name={name}
         type="radio"

@@ -3,10 +3,11 @@ import PlusFile from '@/shared/icons/PlusFile';
 import { CiFileOn } from 'react-icons/ci';
 import { Link } from 'react-router-dom';
 
-function Card({ title = 'Variant name', to }) {
+function Card({ title = 'Variant name', to, state }) {
   return (
     <Link
       to={to}
+      state={state}
       className=" flex basis-80 items-center justify-between rounded-md border border-gray-300/90 bg-white px-10 py-4 shadow-sm"
     >
       <div className="inline-flex rounded-md bg-[#E7E7FF]/50 p-2">

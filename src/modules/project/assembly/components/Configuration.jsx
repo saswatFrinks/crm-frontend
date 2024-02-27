@@ -27,7 +27,7 @@ import ArrowUp from '@/shared/icons/ArrowUp';
 export default function Configuration(props) {
   // type: moving | stationary {{ASSEMBLY_CONFIG}}
 
-  const { type = ASSEMBLY_CONFIG.STATIONARY } = props;
+  const { type = ASSEMBLY_CONFIG.MOVING } = props;
 
   const setModalState = useSetRecoilState(modalAtom);
 

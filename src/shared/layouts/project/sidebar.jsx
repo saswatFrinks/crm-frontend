@@ -11,6 +11,7 @@ export default function Sidebar() {
     {
       to: `/project/${params.projectId}`,
       pathname: 'project',
+      state: {projectName: "kkkk" },
       icon: (active) => (
         <svg
           width="20"
@@ -138,6 +139,7 @@ export default function Sidebar() {
           <li key={i}>
             <NavLink
               to={t.to}
+              state={t.state}
               className={({ isActive }) => {
                 const clx = isActive
                   ? 'active bg-f-primary text-white hover:bg-f-primary hover:text-white'

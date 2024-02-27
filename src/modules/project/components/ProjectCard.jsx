@@ -72,7 +72,11 @@ function Card({ project, setProjectForDelete }) {
           Edit
         </Button>
         <Button size="xs">
-          <Link to={`/project/${project.id}`} className="block h-full w-full">
+          <Link
+            to={`/project/${project.id}`}
+            className="block h-full w-full"
+            state={{ projectName: project.name }}
+          >
             Build
           </Link>
         </Button>

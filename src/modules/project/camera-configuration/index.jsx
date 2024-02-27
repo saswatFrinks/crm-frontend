@@ -7,13 +7,14 @@ import React from 'react';
 import Drawer from '@/shared/ui/Drawer';
 import Button from '@/shared/ui/Button';
 import AddCameraConfigurationDrawer from './AddCameraConfigurationDrawer';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import axiosInstance from '@/core/request/aixosinstance';
 
 export default function CameraConfiguration() {
   const [open, setOpenDrawer] = React.useState(false);
   const params = useParams();
   const [cameraConfigs, setCameraConfigs] = React.useState([]);
+  const location = useLocation();
 
   const fetchAllCameraConfigs = async () => {
     const res = await axiosInstance.get('/cameraConfig/fetch', {
@@ -21,8 +22,6 @@ export default function CameraConfiguration() {
         capturePositionId: params.cameraPositionId,
       },
     });
-
-    console.log(res.data.data);
     setCameraConfigs(res.data.data);
   };
 
@@ -48,24 +47,27 @@ export default function CameraConfiguration() {
             <Link
               to={`/project/${params.projectId}`}
               className="flex items-center gap-2"
+              state={location.state}
             >
               <ArrowRight />
-              <span>Project Name</span>
+              <span>{location.state.projectName}</span>
             </Link>
             <Link
               to={`/project/${params.projectId}/variant/${params.variantId}`}
               className="flex items-center gap-2"
+              state={location.state}
             >
               <ArrowRight />
-              <span>Variant Name</span>
+              <span>{location.state.variantName}</span>
             </Link>
 
             <Link
               to={`/project/${params.projectId}/variant/${params.variantId}/camera-position/${params.cameraPositionId}`}
               className="flex items-center gap-2"
+              state={location.state}
             >
               <ArrowRight />
-              <span>Camera Position</span>
+              <span>{location.state.cameraPositionName}</span>
             </Link>
           </>
         }
@@ -87,6 +89,7 @@ export default function CameraConfiguration() {
                 key={cameraConfig.id}
                 title={cameraConfig.name}
                 to={`camera-config/${cameraConfig.id}`}
+                state={{...location.state, cameraConfigName: cameraConfig.name}}
               />
             );
           })}

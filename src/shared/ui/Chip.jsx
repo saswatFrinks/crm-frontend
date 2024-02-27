@@ -1,6 +1,6 @@
 import { tv } from 'tailwind-variants';
 
-export default function Chip({ color }) {
+export default function Chip({ color, children }) {
   const chip = tv({
     base: 'inline-flex px-2 text-sm py-0.5  rounded-xl text-black',
     variants: {
@@ -24,5 +24,5 @@ export default function Chip({ color }) {
       color: 'color-1',
     },
   });
-  return <div className={chip({ color })}>Chip</div>;
+  return <div className={chip({ color })}>{children}</div>;
 }

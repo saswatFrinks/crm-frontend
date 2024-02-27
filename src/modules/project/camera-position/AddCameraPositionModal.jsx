@@ -14,7 +14,7 @@ export default function AddCameraPositionModal({fetchAllCameraPosition}) {
   const params = useParams();
 
   const addCapturePostion = async (values) => {
-    await axiosInstance.post('/capturePosition/create', {
+    await axiosInstance.post('/capturePosition', {
       name: values.name,
       variantId: params.variantId,
     });
