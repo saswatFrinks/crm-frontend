@@ -13,7 +13,7 @@ jobs:
         with:
           node-version: 18
       - name: Install dependencies
-        run: yarn add
+        run: yarn
       - name: Build
         run: yarn build
       - name: Copy build
