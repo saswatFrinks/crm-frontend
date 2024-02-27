@@ -2,16 +2,18 @@ import logo from '@/assets/logo.svg';
 import Input from '@/shared/ui/Input';
 import Label from '@/shared/ui/Label';
 import Button from '@/shared/ui/Button';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import authService from '../auth.service';
 import toast from 'react-hot-toast';
 import { useFormik } from 'formik';
 import storageService from '@/core/storage';
 import { TOKEN } from '@/core/constants';
-import axiosInstance from '@/core/request/aixosinstance';
 import { updateAuthenHeader } from '@/core/request/updateAuth';
+import axiosInstance from '@/core/request/aixosinstance';
 
 export default function Login() {
+  const navigate = useNavigate();
+  
   const formik = useFormik({
     initialValues: {
       email: '',
@@ -41,10 +43,11 @@ export default function Login() {
       console.log(values);
       try {
         const res = await authService.login(values);
-
+        const user =  await getUserByEmail(values.email)
+        storageService.set('user', user)
         storageService.set(TOKEN, res.data.data.token);
         updateAuthenHeader(res.data.data.token);
-
+        navigate('/');
         toast.success('Login successfully!');
       } catch (error) {
         // formik.setFieldError('password', 'Incorrect password');
@@ -53,6 +56,35 @@ export default function Login() {
       }
     },
   });
+
+  const getUserByEmail = async (email) => {
+    const res = await axiosInstance.get('/user/getUser', {
+      params: {
+        email
+      }
+    })
+
+    let plantName = null;
+    let teamName = null;
+
+    if(res.data.data.plantId) {
+      plantName = (await axiosInstance.get('/plant/getName', {
+        params: {
+          plantId: res.data.data.plantId
+        }
+      })).data.data.name
+    }
+
+    if(res.data.data.teamId) {
+      teamName = (await axiosInstance.get('/team/getName', {
+        params: {
+          teamId: res.data.data.teamId
+        }
+      })).data.data.name
+    }
+
+    return {...res.data.data, plantName, teamName};
+  }
 
   return (
     <div className="flex h-screen flex-col items-center justify-center">

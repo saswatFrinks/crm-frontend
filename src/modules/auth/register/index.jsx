@@ -8,6 +8,7 @@ import FPhoneInput from '@/shared/ui/PhoneInput';
 import authService from '../auth.service';
 import toast from 'react-hot-toast';
 import { useFormik } from 'formik';
+import { formatPhoneNumber } from 'react-phone-number-input';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -27,10 +28,14 @@ export default function Register() {
 
       if (!values.name) {
         errors.name = 'Name is required';
+      } else if (!/^[a-zA-Z\s]*$/.test(values.name)) {
+        errors.name = 'Enter name without numeric or special characters.';
       }
 
       if (!values.password) {
         errors.password = 'Password is required';
+      } else if (values.password.length < 6) {
+        errors.password = 'Password must be at least 6 characters';
       }
 
       if (!values.email) {
@@ -57,7 +62,12 @@ export default function Register() {
       if (!phone) return;
       const { rePassword, ...value } = values;
       try {
-        await authService.create({ ...value, phone: phone.slice(1) });
+        let number = formatPhoneNumber(phone).replace(/\s/g, '');
+
+        if (number[0] === '0') {
+          number = number.slice(1);
+        }
+        await authService.create({ ...value, phone: number });
         toast.success('Register successfully!');
         navigate('/login');
       } catch (error) {
@@ -66,6 +76,22 @@ export default function Register() {
       }
     },
   });
+
+  const getPhoneErrorMessage = () => {
+    if (formik.dirty && !phone) {
+      return 'Phone number is required';
+    }
+    let number = formatPhoneNumber(phone).replace(/\s/g, '');
+
+    if (number[0] === '0') {
+      number = number.slice(1);
+    }
+
+    if (formik.dirty && phone && number.length !== 10) {
+      return 'Contact  number should be 10 digit number';
+    }
+    return null;
+  };
 
   return (
     <div className="flex h-screen flex-col items-center justify-center">
@@ -122,11 +148,11 @@ export default function Register() {
               <Label>Contact number</Label>
               <FPhoneInput
                 defaultCountry="US"
-                placeholder="Enter yout contact number"
+                placeholder="Enter your contact number"
                 name="phone"
                 onChange={setPhone}
                 value={phone}
-                errorMessage={ formik.dirty && !phone ? 'Phone number is required' : null}
+                errorMessage={getPhoneErrorMessage()}
               />
             </div>
 
