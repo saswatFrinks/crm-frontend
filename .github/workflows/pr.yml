@@ -3,7 +3,6 @@ name: PR workflow
 on:
   pull_request:
     types: [review_requested]
-  branches: [main]
 
 jobs:
   build_and_upload:
