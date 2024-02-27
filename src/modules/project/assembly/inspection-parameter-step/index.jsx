@@ -10,7 +10,7 @@ import Select from '@/shared/ui/Select';
 
 import React from 'react';
 import { ChevronDown, Plus, Trash } from 'react-feather';
-import DeleteObjectModal from '../inspection-parameter-step/DeleteObjectModal';
+
 import { useRecoilState, useSetRecoilState } from 'recoil';
 import { modalAtom } from '@/shared/states/modal.state';
 import {
@@ -20,14 +20,16 @@ import {
   OPERATIONS,
   STATUS,
 } from '@/core/constants';
-import DeleteRoiModal from '../inspection-parameter-step/DeleteRoiModal';
+
 import { assemblyAtom, currentRoiIdAtom, editingAtom } from '../state';
 import ArrowUp from '@/shared/icons/ArrowUp';
+import DeleteObjectModal from './DeleteObjectModal';
+import DeleteRoiModal from './DeleteRoiModal';
 
-export default function Configuration(props) {
+export default function InspectionParameterStep(props) {
   // type: moving | stationary {{ASSEMBLY_CONFIG}}
 
-  const { type = ASSEMBLY_CONFIG.MOVING } = props;
+  const { type = ASSEMBLY_CONFIG.STATIONARY } = props;
 
   const setModalState = useSetRecoilState(modalAtom);
 
@@ -293,7 +295,7 @@ export default function Configuration(props) {
       <div className="mt-2 flex flex-col gap-4">
         {/* roi list */}
         {configuration.rois.map((t, i) => (
-          <div key={t}>
+          <div key={i}>
             <div className="mb-4 flex items-center gap-4">
               <Checkbox
                 id={t.id}

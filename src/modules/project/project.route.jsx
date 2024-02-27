@@ -1,4 +1,8 @@
-import AiTraining from './ai-training';
+import AiTrainingLayout from './ai-training';
+import AIAssembly from './ai-training/assembly';
+import AIDetail from './ai-training/assembly/ai-detail';
+import Cosmetic from './ai-training/cosmetic';
+import Dimensioning from './ai-training/dimensioning';
 import Assembly from './assembly';
 import CameraConfiguration from './camera-configuration';
 import CameraPosition from './camera-position';
@@ -47,7 +51,30 @@ export const projectRouter = {
     },
     {
       path: 'ai-training/:projectId',
-      element: <AiTraining />,
+      element: <AiTrainingLayout />,
+      children: [
+        {
+          path: 'assembly',
+          children: [
+            {
+              path: '',
+              element: <AIAssembly />,
+            },
+            {
+              path: ':modelId',
+              element: <AIDetail />,
+            },
+          ],
+        },
+        {
+          path: 'dimensioning',
+          element: <Dimensioning />,
+        },
+        {
+          path: 'cosmetic',
+          element: <Cosmetic />,
+        },
+      ],
     },
   ],
 };

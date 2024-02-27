@@ -5,7 +5,7 @@ import storageService from '@/core/storage';
 export default function Sidebar() {
   const { pathname } = useLocation();
   const params = useParams();
-  const {name} = JSON.parse(storageService.get('user'));
+  // const {name} = JSON.parse(storageService.get('user'));
 
   const menus = [
     {
@@ -154,7 +154,7 @@ export default function Sidebar() {
           </li>
         ))}
       </ul>
-      <div className="flex grow-[1] flex-col justify-end gap-2">
+      <div className="flex grow flex-col justify-end gap-2">
         <Link
           to=""
           className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-md bg-gray-100/75"
@@ -177,7 +177,8 @@ export default function Sidebar() {
         </Link>
 
         <div className="flex h-10 w-10 items-center justify-center rounded-md bg-[#E3E5E5] font-semibold">
-          {name[0].toUpperCase()}
+          {/* {name[0].toUpperCase()} */}
+          {/* TODO: temp */}
         </div>
       </div>
     </div>

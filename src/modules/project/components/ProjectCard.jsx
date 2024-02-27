@@ -1,15 +1,15 @@
 import React from 'react';
 import { CiFileOn } from 'react-icons/ci';
-import Button from '../../shared/ui/Button';
+import Button from '../../../shared/ui/Button';
 import { FaRegCopy } from 'react-icons/fa';
 import { FaRegTrashCan } from 'react-icons/fa6';
 import { FiEdit2 } from 'react-icons/fi';
-import useClickOutSide from '../../shared/hooks/useClickOutside';
+import useClickOutSide from '../../../shared/hooks/useClickOutside';
 import { useSetRecoilState } from 'recoil';
-import { modalAtom } from '../../shared/states/modal.state';
+import { modalAtom } from '../../../shared/states/modal.state';
 import { Link } from 'react-router-dom';
-import PlusFile from '../../shared/icons/PlusFile';
-import ThreeDots from '../../shared/icons/File';
+import PlusFile from '../../../shared/icons/PlusFile';
+import ThreeDots from '../../../shared/icons/File';
 
 function Card({ project, setProjectForDelete }) {
   const setOpenModal = useSetRecoilState(modalAtom);

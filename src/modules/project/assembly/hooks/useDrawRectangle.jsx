@@ -1,5 +1,4 @@
-import React from 'react';
-import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
+import { useRecoilState, useRecoilValue } from 'recoil';
 import {
   currentRectangleIdAtom,
   currentRoiIdAtom,
@@ -7,7 +6,7 @@ import {
   imageStatusAtom,
   mousePositionAtom,
   rectanglesAtom,
-} from '../states';
+} from '../state';
 import { getRandomHexColor } from '@/util/util';
 import { BASE_RECT } from '@/core/constants';
 

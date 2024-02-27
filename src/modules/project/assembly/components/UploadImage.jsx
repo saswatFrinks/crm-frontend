@@ -14,11 +14,15 @@ import {
   imageStatusAtom,
   mousePositionAtom,
   rectanglesAtom,
+  selectedFileAtom,
   stageAtom,
-} from '../states';
+  stepAtom,
+  uploadedFileListAtom,
+} from '../state';
 import Crosshair from './Crosshair';
 import useDrawRectangle from '../hooks/useDrawRectangle';
 import Rectangle from './Rectangle';
+import { v4 as uuidv4 } from 'uuid';
 
 export default function UploadImage() {
   const [file, setFile] = React.useState(null);
@@ -47,6 +51,12 @@ export default function UploadImage() {
 
   const [isEditingRect, setEditingRect] = useRecoilState(editingRectAtom);
 
+  const step = useRecoilValue(stepAtom);
+
+  const [images, setUploadedFileList] = useRecoilState(uploadedFileListAtom);
+
+  const selectedFile = useRecoilValue(selectedFileAtom);
+
   const containerRef = React.useRef(null);
 
   const [image] = useImage(file);
@@ -57,11 +67,16 @@ export default function UploadImage() {
   });
 
   const handleChangeFile = (e) => {
-    const file = e.target.files[0];
+    if (step == 0) {
+      const files = Array.from(e.target.files).map((t) => ({
+        id: uuidv4(),
+        fileName: t.name,
+        url: URL.createObjectURL(t),
+        checked: false,
+      }));
 
-    if (!file) return;
-    const url = URL.createObjectURL(file);
-    setFile(url);
+      setUploadedFileList(files);
+    }
   };
 
   const handleMouseUp = (e) => {
@@ -117,28 +132,33 @@ export default function UploadImage() {
 
   const handleMouseLeave = () => {};
 
-  if (!file) {
-    return (
-      <>
-        <BigImage />
-        <label className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-f-primary px-20 py-2 text-white duration-100 hover:bg-f-secondary">
-          <Upload /> Upload master image
-          <input type="file" hidden onChange={handleChangeFile} />
-        </label>
-      </>
-    );
-  } else {
-    return (
-      <div
-        className="flex h-full w-full flex-col"
-        ref={containerRef}
-        style={{
-          width: ((window.innerWidth - 16 * 4) * 7) / 12,
-          // height: (window.innerHeight * 11) / 12,
-        }}
-      >
+  React.useEffect(() => {
+    if (selectedFile?.url) {
+      setFile(selectedFile?.url);
+    }
+  }, [selectedFile?.id, selectedFile]);
+
+  return (
+    <div
+      className="flex h-full w-full flex-col items-center justify-center gap-4"
+      ref={containerRef}
+      style={{
+        width: ((window.innerWidth - 16 * 4) * 7) / 12,
+      }}
+    >
+      {step == 0 ? (
+        <>
+          <BigImage />
+          <label className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-f-primary px-20 py-2 text-white duration-100 hover:bg-f-secondary">
+            <Upload /> Upload master image
+            <input type="file" hidden onChange={handleChangeFile} multiple />
+          </label>
+        </>
+      ) : null}
+
+      {file && step == 1 && image?.width && !isNaN(scaleFactor) ? (
         <div
-          className={`grow-[1] overflow-auto ${imageStatus.dragging ? 'cursor-crosshair' : ''}`}
+          className={`grow overflow-auto ${imageStatus.dragging ? 'cursor-crosshair' : ''}`}
         >
           <Stage
             width={size.width}
@@ -158,14 +178,13 @@ export default function UploadImage() {
             //   ref={stageRef}
           >
             <Layer>
-              {image && (
-                <Image
-                  image={image}
-                  // ref={imageRef}
-                  width={image.width * scaleFactor}
-                  height={image.height * scaleFactor}
-                />
-              )}
+              <Image
+                image={image}
+                // ref={imageRef}
+                width={image.width * scaleFactor}
+                height={image.height * scaleFactor}
+              />
+
               {rectangles.map((rect, index) => (
                 <Rectangle
                   key={rect.id}
@@ -217,7 +236,7 @@ export default function UploadImage() {
             </Layer>
           </Stage>
         </div>
-      </div>
-    );
-  }
+      ) : null}
+    </div>
+  );
 }
