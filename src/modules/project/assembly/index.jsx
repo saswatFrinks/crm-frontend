@@ -13,6 +13,8 @@ import {
   editingAtom,
   editingRectAtom,
   imageStatusAtom,
+  selectedFileAtom,
+  selectedRoiSelector,
   stageAtom,
   stepAtom,
 } from './state';
@@ -22,6 +24,8 @@ import UploadImageStep from './upload-image-step';
 import InspectionParameterStep from './inspection-parameter-step';
 import LabelImage from './label-image-step';
 import PreTrainingStep from './pre-training-step';
+import ImageList from './label-image-step/ImageList';
+import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader';
 
 export default function Assembly() {
   const setStage = useSetRecoilState(stageAtom);
@@ -224,6 +228,9 @@ export default function Assembly() {
           </div>
         </div>
       </div>
+      {false && (
+        <ProjectCreateLoader title="Please wait while we analyse the project..." />
+      )}
     </>
   );
 }

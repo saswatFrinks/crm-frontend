@@ -23,7 +23,8 @@ export default function useDrawRectangle() {
 
   const isEditing = useRecoilValue(editingRectAtom);
 
-  const create = (e, createOne = true) => {
+  const create = (e, createOne = true, imageId) => {
+    console.log(imageId);
     if (imageStatus.drawing && !selectedRectId) {
       const stage = e.target.getStage();
 
@@ -49,6 +50,7 @@ export default function useDrawRectangle() {
           y: stage.getRelativePointerPosition().y,
           fill: color,
           stroke: color,
+          imageId,
         });
 
         return [...rects];
@@ -56,7 +58,7 @@ export default function useDrawRectangle() {
     }
   };
 
-  const draw = (e) => {
+  const draw = (e, imageId) => {
     if (imageStatus.drawing) {
       const stage = e.target.getStage();
 

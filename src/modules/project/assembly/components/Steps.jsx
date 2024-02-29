@@ -28,7 +28,7 @@ export default function Steps() {
             />
           </div>
 
-          <span>{t}</span>
+          <span className={`${step == i ? 'font-semibold' : ''}`}>{t}</span>
         </li>
       ))}
     </ul>
