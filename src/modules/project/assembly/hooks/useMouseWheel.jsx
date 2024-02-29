@@ -1,6 +1,6 @@
 import { SCALE_RANGE } from '@/core/constants';
 import { useSetRecoilState } from 'recoil';
-import { stageAtom } from '../state';
+import { stageAtom } from '../../state';
 
 export const useMouseWheel = ({ isEditing }) => {
   const setStage = useSetRecoilState(stageAtom);

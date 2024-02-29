@@ -3,6 +3,8 @@ import AIAssembly from './ai-training/assembly';
 import AIDetail from './ai-training/assembly/ai-detail';
 import Cosmetic from './ai-training/cosmetic';
 import Dimensioning from './ai-training/dimensioning';
+import Annotation from './annotation';
+import AnnotationJob from './anotation-job';
 import Assembly from './assembly';
 import CameraConfiguration from './camera-configuration';
 import CameraPosition from './camera-position';
@@ -46,6 +48,19 @@ export const projectRouter = {
         {
           path: 'assembly',
           element: <Assembly />,
+        },
+      ],
+    },
+    {
+      path: 'annotation/:projectId',
+      children: [
+        {
+          path: '',
+          element: <Annotation />,
+        },
+        {
+          path: 'annotation-job',
+          element: <AnnotationJob />,
         },
       ],
     },

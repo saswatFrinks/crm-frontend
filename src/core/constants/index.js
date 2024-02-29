@@ -87,3 +87,8 @@ export const ASSEMBLY_STEPS = [
   'Label Images',
   'Pre-training analysis',
 ];
+
+export const RECTANGLE_TYPE = {
+  ANNOTATION_LABEL: 'ANNOTATION_LABEL',
+  ROI: 'ROI',
+};

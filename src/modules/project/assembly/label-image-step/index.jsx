@@ -1,12 +1,13 @@
 import React from 'react';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
+
+import { Trash } from 'react-feather';
+import Select from '@/shared/ui/Select';
 import {
   rectanglesAtom,
   selectedFileAtom,
   selectedRoiSelector,
-} from '../state';
-import { Trash } from 'react-feather';
-import Select from '@/shared/ui/Select';
+} from '../../state';
 
 export default function LabelImage() {
   const [labelClass, setLabelClass] = React.useState([
@@ -38,7 +39,7 @@ export default function LabelImage() {
 
   const selectedImage = useRecoilValue(selectedFileAtom);
 
-  const selectedRois = useRecoilValue(selectedRoiSelector(selectedImage.id));
+  const selectedRois = useRecoilValue(selectedRoiSelector(selectedImage?.id));
 
   const setRectangle = useSetRecoilState(rectanglesAtom);
 
