@@ -1,6 +1,6 @@
 import React from 'react';
 import { useRecoilState, useSetRecoilState } from 'recoil';
-import { selectedFileAtom, uploadedFileListAtom } from '../state';
+import { selectedFileAtom, uploadedFileListAtom } from '../../state';
 import Checkbox from '@/shared/ui/Checkbox';
 import X from '@/shared/icons/X';
 import Radio from '@/shared/ui/Radio';

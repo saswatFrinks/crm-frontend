@@ -21,7 +21,7 @@ import {
   STATUS,
 } from '@/core/constants';
 import DeleteRoiModal from '../inspection-parameter-step/DeleteRoiModal';
-import { assemblyAtom, currentRoiIdAtom, editingAtom } from '../state';
+import { assemblyAtom, currentRoiIdAtom, editingAtom } from '../../state';
 import ArrowUp from '@/shared/icons/ArrowUp';
 
 export default function Configuration(props) {

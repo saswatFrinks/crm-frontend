@@ -1,16 +1,17 @@
 import { useRecoilState, useRecoilValue } from 'recoil';
+
+import { getRandomHexColor } from '@/util/util';
+import { BASE_RECT, RECTANGLE_TYPE } from '@/core/constants';
+import { editingRectAtom } from '../state';
 import {
   currentRectangleIdAtom,
   currentRoiIdAtom,
-  editingRectAtom,
   imageStatusAtom,
   mousePositionAtom,
   rectanglesAtom,
-} from '../state';
-import { getRandomHexColor } from '@/util/util';
-import { BASE_RECT } from '@/core/constants';
+} from '../../state';
 
-export default function useDrawRectangle() {
+export default function useDrawRectangle(rectType = RECTANGLE_TYPE.ROI) {
   const [imageStatus, setImageStatus] = useRecoilState(imageStatusAtom);
 
   const [selectedRectId, setRectId] = useRecoilState(currentRectangleIdAtom);
@@ -24,7 +25,6 @@ export default function useDrawRectangle() {
   const isEditing = useRecoilValue(editingRectAtom);
 
   const create = (e, createOne = true, imageId) => {
-    console.log(imageId);
     if (imageStatus.drawing && !selectedRectId) {
       const stage = e.target.getStage();
 
@@ -51,6 +51,7 @@ export default function useDrawRectangle() {
           fill: color,
           stroke: color,
           imageId,
+          rectType: rectType,
         });
 
         return [...rects];
@@ -69,16 +70,19 @@ export default function useDrawRectangle() {
       if (selectedRectId && !isEditing) {
         // setHoveredId(null);
 
-        const updatedRectangles = [...rectangles];
-
-        const rect = updatedRectangles.find((t) => t.id === selectedRectId);
-
-        if (!rect) return;
-
-        rect.width = stage.getRelativePointerPosition().x - (rect?.x ?? 0);
-        rect.height = stage.getRelativePointerPosition().y - (rect?.y ?? 0);
-
-        setRectangles(updatedRectangles);
+        setRectangles((t) =>
+          t.map((k) => ({
+            ...k,
+            width:
+              k.id == selectedRectId
+                ? stage.getRelativePointerPosition().x - (k?.x ?? 0)
+                : k.width,
+            height:
+              k.id == selectedRectId
+                ? stage.getRelativePointerPosition().y - (k?.y ?? 0)
+                : k.height,
+          }))
+        );
       }
     }
   };

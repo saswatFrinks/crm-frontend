@@ -11,7 +11,7 @@ export default function Sidebar() {
     {
       to: `/project/${params.projectId}`,
       pathname: 'project',
-      state: {projectName: "kkkk" },
+      state: { projectName: 'kkkk' },
       icon: (active) => (
         <svg
           width="20"
@@ -66,8 +66,8 @@ export default function Sidebar() {
       ),
     },
     {
-      to: '',
-
+      to: `/annotation/${params.projectId}`,
+      pathname: 'annotation',
       icon: (active) => (
         <svg
           width="21"

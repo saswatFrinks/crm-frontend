@@ -42,16 +42,16 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
   }, []);
 
   const getPlantDropDown = () => {
-    if (user.plantId) {
-      return [{ id: user.plantId, name: user.plantName }];
+    if (user?.plantId) {
+      return [{ id: user?.plantId, name: user?.plantName }];
     } else {
       return [{ id: '', name: 'Select' }, ...plants];
     }
   };
 
   const getTeamDropDown = () => {
-    if (user.teamId) {
-      return [{ id: user.teamId, name: user.teamName }];
+    if (user?.teamId) {
+      return [{ id: user?.teamId, name: user?.teamName }];
     } else {
       return [{ id: '', name: 'Select' }, ...teams];
     }
@@ -63,8 +63,8 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
       inspectionSpeed: 10,
       isCameraFixed: false,
       isItemFixed: false,
-      plantId: user.plantId,
-      teamId: user.teamId,
+      plantId: user?.plantId,
+      teamId: user?.teamId,
       objectives: [],
       variants: [],
       assemblyInspection: [],

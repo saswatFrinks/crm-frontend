@@ -10,21 +10,21 @@ import {
   currentRectangleIdAtom,
   dragAtom,
   editingAtom,
-  editingRectAtom,
   imageStatusAtom,
   mousePositionAtom,
   rectanglesAtom,
   selectedFileAtom,
   selectedRoiSelector,
   stageAtom,
-  stepAtom,
   uploadedFileListAtom,
-} from '../state';
+} from '../../state';
 import Crosshair from './Crosshair';
 import useDrawRectangle from '../hooks/useDrawRectangle';
 import Rectangle from './Rectangle';
 import { v4 as uuidv4 } from 'uuid';
 import ImageList from '../label-image-step/ImageList';
+import { editingRectAtom, stepAtom } from '../state';
+import { RECTANGLE_TYPE } from '@/core/constants';
 
 export default function UploadImage() {
   const [file, setFile] = React.useState(null);
@@ -60,7 +60,7 @@ export default function UploadImage() {
   const selectedFile = useRecoilValue(selectedFileAtom);
 
   const selectedRectangles = useRecoilValue(
-    selectedRoiSelector(selectedFile.id)
+    selectedRoiSelector(selectedFile?.id)
   );
 
   const containerRef = React.useRef(null);
@@ -196,33 +196,41 @@ export default function UploadImage() {
                   width={image.width * scaleFactor}
                   height={image.height * scaleFactor}
                 />
-
-                {rectangles.map((rect, index) => (
-                  <Rectangle
-                    key={rect.id}
-                    shapeProps={rect}
-                    isSelected={
-                      rect?.id === selectedRectId && isEditingRect && isEditing
-                    }
-                    fill={
-                      // (hoveredId === rect.id && !isEditRect) ||
-                      selectedRectId === rect.id && isEditingRect && isEditing
-                        ? `${rect.fill}4D`
-                        : `transparent`
-                    }
-                    onChange={(newAttrs) => {
-                      const rects = rectangles.slice();
-                      rects[index] = newAttrs;
-                      setRectangles(rects);
-                    }}
-                    onMouseLeave={handleMouseLeave}
-                    strokeWidth={stage.scale > 3 ? 0.25 : rect.strokeWidth}
-                    selectedReactangleId={selectedRectId}
-                    onClick={(e) => handleClickRectangle(e, rect.id)}
-                  />
-                ))}
+                {console.log({ rectangles })}
+                {rectangles.map(
+                  (rect, index) =>
+                    rect.rectType == RECTANGLE_TYPE.ROI && (
+                      <Rectangle
+                        key={rect.id}
+                        shapeProps={rect}
+                        isSelected={
+                          rect?.id === selectedRectId &&
+                          isEditingRect &&
+                          isEditing
+                        }
+                        fill={
+                          // (hoveredId === rect.id && !isEditRect) ||
+                          selectedRectId === rect.id &&
+                          isEditingRect &&
+                          isEditing
+                            ? `${rect.fill}4D`
+                            : `transparent`
+                        }
+                        onChange={(newAttrs) => {
+                          const rects = rectangles.slice();
+                          rects[index] = newAttrs;
+                          setRectangles(rects);
+                        }}
+                        onMouseLeave={handleMouseLeave}
+                        strokeWidth={stage.scale > 3 ? 0.25 : rect.strokeWidth}
+                        selectedReactangleId={selectedRectId}
+                        onClick={(e) => handleClickRectangle(e, rect.id)}
+                      />
+                    )
+                )}
 
                 {rectangles.map((rect, i) => {
+                  if (rect.rectType !== RECTANGLE_TYPE.ROI) return null;
                   return (
                     <Text
                       key={`text-${rect.id}`}

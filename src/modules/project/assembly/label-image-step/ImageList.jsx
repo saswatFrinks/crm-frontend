@@ -1,18 +1,13 @@
 import React from 'react';
 import { useRecoilState, useRecoilValue } from 'recoil';
-import {
-  selectedFileAtom,
-  selectedRoiSelector,
-  uploadedFileListAtom,
-} from '../state';
+
 import { ChevronLeft, ChevronRight } from 'react-feather';
+import { selectedFileAtom, uploadedFileListAtom } from '../../state';
 
 export default function ImageList() {
   const [selectedFile, setSelectedFile] = useRecoilState(selectedFileAtom);
 
   const [images, setImages] = useRecoilState(uploadedFileListAtom);
-
-  console.log(images);
 
   const handleNext = () => {
     let currentIndex = images.findIndex((t) => t.id == selectedFile.id);

@@ -1,19 +1,23 @@
 import React from 'react';
 import { tv } from 'tailwind-variants';
 
-export default function Box({ active }) {
+export default function Box({ active, size = 'sm' }) {
   const clx = tv({
-    base: 'w-6 h-6',
+    base: '',
     variants: {
       active: {
         true: 'text-f-primary',
         false: '',
       },
+      size: {
+        xs: 'w-4 h-4',
+        sm: 'w-6 h-6',
+      },
     },
   });
   return (
     <svg
-      className={clx({ active })}
+      className={clx({ active, size })}
       viewBox="0 0 32 32"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
