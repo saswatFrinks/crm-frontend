@@ -40,7 +40,7 @@ export default function ModelConfiguration() {
             name="small"
             id="small"
             checked={modelSize['small']}
-            onClick={() => handleModelChange('small')}
+            onClick={() => handleModelChange(0)}
           />
           <Label htmlFor="small" main={false}>
             Small
@@ -53,7 +53,7 @@ export default function ModelConfiguration() {
             name="medium"
             id="medium"
             checked={modelSize['medium']}
-            onClick={() => handleModelChange('medium')}
+            onClick={() => handleModelChange(1)}
           />
           <Label htmlFor="medium" main={false}>
             Medium <span className=" text-blue-400">*Recommended</span>
@@ -66,7 +66,7 @@ export default function ModelConfiguration() {
             name="large"
             id="large"
             checked={modelSize['large']}
-            onClick={() => handleModelChange('large')}
+            onClick={() => handleModelChange(2)}
           />
           <Label htmlFor="large" main={false}>
             Large

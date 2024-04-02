@@ -64,12 +64,7 @@ export default function DataSet() {
   ]);
 
   const toggle = (id) => {
-    // setList((t) =>
-    //   t.map((k) => ({
-    //     ...k,
-    //     open: k.id == id ? !k.open : k.open,
-    //   }))
-    // );
+
     const newFolders = folders.map((folder) => {
       if (folder.id === id) {
         return { ...folder, open: !folder.open };
@@ -118,86 +113,6 @@ export default function DataSet() {
         good training results of this project.
       </p>
 
-      {/* <div>
-        {fol.map((k) => (
-          <div
-            key={k.id}
-            className="placeholder:*: relative  py-2 odd:border-t-[1px] sm:rounded-lg"
-          >
-            <table className="w-full text-left text-sm text-gray-500  ">
-              <thead className="bg-white text-sm uppercase text-gray-700 ">
-                <tr>
-                  {columns.map((t, i) => (
-                    <th scope="col" key={t} className="w-1/3">
-                      <div className="flex select-none items-center gap-2 px-2">
-                        {i == 0 ? (
-                          <ChevronUp
-                            size={20}
-                            onClick={() => toggle(k.id)}
-                            className={`cursor-pointer duration-75 ${k.open ? '' : 'rotate-180'}`}
-                          />
-                        ) : null}
-                        <span>{t}</span>
-                      </div>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              {k.open ? (
-                <tbody>
-                  <tr className="border-b ">
-                    <th
-                      scope="row"
-                      className="whitespace-nowrap px-6 py-4 font-medium text-gray-900 "
-                    >
-                      <div className="flex gap-2">
-                        <Checkbox
-                          id="class"
-                          value="class1"
-                          name="class"
-                          htmlFor="class1"
-                          checked={true}
-                        />
-                        <Label htmlFor="class1" main={false}>
-                          Folder 1
-                        </Label>
-                      </div>
-                    </th>
-                    <td className="px-6 py-4">200 images</td>
-                    <td className="py-4m px-6 text-green-500">
-                      Annotations complete
-                    </td>
-                  </tr>
-
-                  <tr className="border-b ">
-                    <th
-                      scope="row"
-                      className="whitespace-nowrap px-6 py-4 font-medium text-gray-900 "
-                    >
-                      <div className="flex gap-2">
-                        <Checkbox
-                          id="class"
-                          value="class1"
-                          name="class"
-                          htmlFor="class1"
-                          checked={false}
-                        />
-                        <Label htmlFor="class1" main={false}>
-                          Folder 1
-                        </Label>
-                      </div>
-                    </th>
-                    <td className="px-6 py-4">200 images</td>
-                    <td className="px-6 py-4 text-red-500">
-                      Annotations incomplete
-                    </td>
-                  </tr>
-                </tbody>
-              ) : null}
-            </table>
-          </div>
-        ))}
-      </div> */}
       <div>
         {folders.map((k) => (
           <div
@@ -230,59 +145,10 @@ export default function DataSet() {
                 </tr>
               </thead>
               {k.open ? (
-                // <tbody>
-                // <tr className="border-b ">
-                //   <th
-                //     scope="row"
-                //     className="whitespace-nowrap px-6 py-4 font-medium text-gray-900 "
-                //   >
-                //     <div className="flex gap-2">
-                //       <Checkbox
-                //         id="class"
-                //         value="class1"
-                //         name="class"
-                //         htmlFor="class1"
-                //         checked={true}
-                //       />
-                //       <Label htmlFor="class1" main={false}>
-                //         Folder 1
-                //       </Label>
-                //     </div>
-                //   </th>
-                //   <td className="px-6 py-4">200 images</td>
-                //   <td className="py-4m px-6 text-green-500">
-                //     Annotations complete
-                //   </td>
-                // </tr>
-
-                //   <tr className="border-b ">
-                //     <th
-                //       scope="row"
-                //       className="whitespace-nowrap px-6 py-4 font-medium text-gray-900 "
-                //     >
-                //       <div className="flex gap-2">
-                //         <Checkbox
-                //           id="class"
-                //           value="class1"
-                //           name="class"
-                //           htmlFor="class1"
-                //           checked={false}
-                //         />
-                //         <Label htmlFor="class1" main={false}>
-                //           Folder 1
-                //         </Label>
-                //       </div>
-                //     </th>
-                //     <td className="px-6 py-4">200 images</td>
-                //     <td className="px-6 py-4 text-red-500">
-                //       Annotations incomplete
-                //     </td>
-                //   </tr>
-                // </tbody>
                 <tbody>
                   {k.folders.map((folder, index) => {
                     return (
-                      <tr className="border-b ">
+                      <tr className="border-b " key={folder.id}>
                         <th
                           scope="row"
                           className="whitespace-nowrap px-6 py-4 font-medium text-gray-900 "

@@ -25,16 +25,12 @@ export default function Configuration() {
   const setClassAtom = useSetRecoilState(classAtom)
 
   const fetchAllRois = async () => {
-    const res = await axiosInstance.get('/roi/list', {
+    const res = await axiosInstance.get('/model/required', {
       params: {
         projectId: params.projectId,
       },
     });
-
-    const rois = res.data.data.map((roi) => {
-      return { ...roi, check: false };
-    });
-    setRois(rois);
+    setRois(res.data.data.detection);
   };
 
   const fetchAllClasses = async () => {
@@ -109,7 +105,7 @@ export default function Configuration() {
         <div className="flex gap-4">
           {classes.map((classObj) => {
             return (
-              <div className="flex gap-2">
+              <div className="flex gap-2"key={classObj.id} >
                 <Checkbox
                   id={classObj.id}
                   value="class1"
@@ -181,7 +177,7 @@ export default function Configuration() {
                     <td className="flex flex-wrap gap-2 px-6 py-4">
                       {roi.classNames.map((className, index) => {
                         return (
-                          <Chip color={`color-${index + 1}`}>{className}</Chip>
+                          <Chip key={className} color={`color-${index + 1}`}>{className}</Chip>
                         );
                       })}
                     </td>
