@@ -1,15 +1,19 @@
 import Button from '@/shared/ui/Button';
 import Chip from '@/shared/ui/Chip';
 import Drawer from '@/shared/ui/Drawer';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { FaPlus } from 'react-icons/fa';
 import BuildNTrainDrawer from './BuildNTrainDrawer';
 import { useRecoilState } from 'recoil';
 import { stepAtom } from './state';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
+import axiosInstance from '@/core/request/aixosinstance';
 
 export default function AIAssembly() {
+  const params = useParams()
   const [open, setOpenDrawer] = React.useState(false);
+  const [modelsList, setModelsList] = React.useState([]);
+  
   const [step, setStep] = useRecoilState(stepAtom);
 
   const handleNext = () => {
@@ -48,6 +52,24 @@ export default function AIAssembly() {
     setOpenDrawer(true);
   };
 
+  const fetchModelsList = async () => {
+    try {
+      const res = await axiosInstance.get('/model/list', {
+        params: {
+          projectId: params.projectId
+        },
+      });
+  
+      setModelsList(res)
+    } catch (error) {
+      
+    }
+  }
+
+  useEffect(()=>{
+    fetchModelsList()
+  }, [])
+
   return (
     <>
       <div className="mb-8 flex items-center justify-between">
@@ -72,8 +94,7 @@ export default function AIAssembly() {
             </tr>
           </thead>
           <tbody>
-            {Array(10)
-              .fill(1)
+            {modelsList
               .map((plant) => {
                 return (
                   <tr
