@@ -93,7 +93,6 @@ export const selectedRoiSelector = selectorFamily({
   get:
     (imageId) =>
     ({ get }) => {
-      console.log(get(rectanglesAtom));
       return get(rectanglesAtom).filter((k) => k.imageId == imageId);
     },
 });

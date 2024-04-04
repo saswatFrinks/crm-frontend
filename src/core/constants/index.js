@@ -42,7 +42,8 @@ export const DEFAULT_OBJECT = {
   id: 1,
   objectName: '',
   class: '',
-  operation: '',
+  className: '',
+  operation: 0,
   qty: '',
   classify: false,
   checked: false,
@@ -50,7 +51,7 @@ export const DEFAULT_OBJECT = {
 };
 
 export const DEFAULT_ROI = {
-  id: 2,
+  id: 0,
   checked: false,
   status: STATUS.DEFAULT,
   open: true,
@@ -59,16 +60,16 @@ export const DEFAULT_ROI = {
 
 export const OPERATIONS = [
   {
-    id: '<',
+    id: 0,
+    name: '=',
+  },
+  {
+    id: 1,
     name: '<',
   },
   {
-    id: '>',
+    id: 2,
     name: '>',
-  },
-  {
-    id: '=',
-    name: '=',
   },
 ];
 

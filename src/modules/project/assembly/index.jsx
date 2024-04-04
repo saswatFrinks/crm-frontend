@@ -20,7 +20,8 @@ export default function Assembly() {
 
   const [configuration, setConfiguration] = useRecoilState(assemblyAtom);
 
-  const currentRoiId = useRecoilValue(currentRoiIdAtom);
+  const [currentRoiId, setCurrentRoiId] = useRecoilState(currentRoiIdAtom);
+  
 
   const [isEditingRect, setEditingRect] = useRecoilState(editingRectAtom);
 
@@ -47,11 +48,13 @@ export default function Assembly() {
   const cancel = () => {
     setEditingRect(false);
     setIsEditing(false);
+    setCurrentRoiId(null)
   };
 
   const submit = () => {
     setEditingRect(false);
     setIsEditing(false);
+    setCurrentRoiId(null)
     setConfiguration((t) => ({
       ...t,
       rois: t.rois.map((k) => ({

@@ -196,10 +196,10 @@ export default function UploadImage() {
                   width={image.width * scaleFactor}
                   height={image.height * scaleFactor}
                 />
-                {console.log({ rectangles })}
                 {rectangles.map(
                   (rect, index) =>
-                    rect.rectType == RECTANGLE_TYPE.ROI && (
+                  <>
+                    {rect.rectType == RECTANGLE_TYPE.ROI && (
                       <Rectangle
                         key={rect.id}
                         shapeProps={rect}
@@ -226,19 +226,19 @@ export default function UploadImage() {
                         selectedReactangleId={selectedRectId}
                         onClick={(e) => handleClickRectangle(e, rect.id)}
                       />
-                    )
+                    )}
+                  </>
                 )}
-
                 {rectangles.map((rect, i) => {
                   if (rect.rectType !== RECTANGLE_TYPE.ROI) return null;
                   return (
                     <Text
                       key={`text-${rect.id}`}
                       x={rect.x}
-                      y={(rect.y ?? 0) - (rect.width <= 40 ? 6 : 8)}
-                      text={`ROI ${i + 1}`}
+                      y={(rect.y ?? 0) - (rect.width <= 40 ? 8 : 12)}
+                      text={rect.roiId}
                       fill={rect.fill}
-                      fontSize={rect.width <= 40 ? 4 : 8}
+                      fontSize={rect.width <= 40 ? 8 : 12}
                       align="left"
                       width={rect.width < 40 ? 100 : rect.width}
                     />
