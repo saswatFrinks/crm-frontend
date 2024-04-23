@@ -56,7 +56,7 @@ export default function Actions({ cancel, submit }) {
     let ret = false
     console.log(rectangles, currentRoiId)
     rectangles.forEach((rect)=>{
-      if(rect.roiId === currentRoiId){
+      if(rect.roiId && rect.roiId === currentRoiId){
         ret = true
       }
     })

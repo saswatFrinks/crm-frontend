@@ -33,6 +33,7 @@ export default function Select({ size, placeholder, ...props }) {
       value={value}
       onChange={onChange}
     >
+      <option value={""} disabled selected>{placeholder}</option>
       {options.map((t) => (
         <option key={t.id} value={t.id}>
           {t.name}

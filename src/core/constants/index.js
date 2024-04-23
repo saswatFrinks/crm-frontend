@@ -55,7 +55,7 @@ export const DEFAULT_ROI = {
   checked: false,
   status: STATUS.DEFAULT,
   open: true,
-  objects: [DEFAULT_OBJECT],
+  parts: [DEFAULT_OBJECT],
 };
 
 export const OPERATIONS = [

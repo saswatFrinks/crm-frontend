@@ -1,9 +1,9 @@
 import Button from '@/shared/ui/Button';
 
 import UploadImage from './components/UploadImage';
-import { useRecoilState, useRecoilValue } from 'recoil';
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 
-import { STATUS } from '@/core/constants';
+import { RECTANGLE_TYPE, STATUS } from '@/core/constants';
 import Steps from './components/Steps';
 import UploadImageStep from './upload-image-step';
 import InspectionParameterStep from './inspection-parameter-step';
@@ -13,10 +13,12 @@ import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader';
 import Actions from './components/Actions';
 
 import { editingRectAtom, stepAtom } from './state';
-import { assemblyAtom, currentRoiIdAtom, editingAtom } from '../state';
+import { assemblyAtom, currentRoiIdAtom, editingAtom, rectanglesTypeAtom } from '../state';
 
 export default function Assembly() {
   const [isEditing, setIsEditing] = useRecoilState(editingAtom);
+  const setRectangleType = useSetRecoilState(rectanglesTypeAtom)
+  
 
   const [configuration, setConfiguration] = useRecoilState(assemblyAtom);
 
@@ -49,6 +51,7 @@ export default function Assembly() {
     setEditingRect(false);
     setIsEditing(false);
     setCurrentRoiId(null)
+    setRectangleType(RECTANGLE_TYPE.ROI)
   };
 
   const submit = () => {
@@ -62,6 +65,7 @@ export default function Assembly() {
         status: k.id == currentRoiId ? STATUS.FINISH : k.status,
       })),
     }));
+    setRectangleType(RECTANGLE_TYPE.ROI)
   };
 
   const stepObj = {

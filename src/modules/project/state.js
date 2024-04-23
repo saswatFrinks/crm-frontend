@@ -3,6 +3,7 @@ import {
   DEFAULT_STAGE,
   IMAGE_STATUS,
   POSITION,
+  RECTANGLE_TYPE,
   STATUS,
 } from '@/core/constants';
 import { atom, selectorFamily } from 'recoil';
@@ -47,6 +48,16 @@ export const assemblyAtom = atom({
   },
 });
 
+export const labelClassAtom = atom({
+  key: 'labelClassAtom',
+  default: null
+})
+
+export const annotationMapAtom = atom({
+  key: 'annotationMapAtom',
+  default: {}
+})
+
 export const currentRoiIdAtom = atom({
   key: 'currentRoiId',
   default: null,
@@ -67,6 +78,16 @@ export const rectanglesAtom = atom({
   default: [],
   dangerouslyAllowMutability: true,
 });
+
+export const imageDimensionAtom = atom({
+  key: 'imageDimensionAtom',
+  default: {height: 0, width: 0},
+})
+
+export const rectanglesTypeAtom = atom({
+  key: 'rectanglesTypeAtom',
+  default: RECTANGLE_TYPE.ROI
+})
 
 // export const editingRectAtom = atom({
 //   key: 'editingRectAtom',

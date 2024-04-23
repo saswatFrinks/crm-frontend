@@ -57,10 +57,10 @@ export default function Configuration(props) {
       ...config,
       rois: config.rois.map((roi) => ({
         ...roi,
-        objects:
+        parts:
           roi.id == roiId
-            ? [...roi.objects, { ...DEFAULT_OBJECT, id: Date.now() }]
-            : roi.objects,
+            ? [...roi.parts, { ...DEFAULT_OBJECT, id: Date.now() }]
+            : roi.parts,
       })),
     }));
   };
@@ -69,7 +69,7 @@ export default function Configuration(props) {
     const selectedIds = [];
 
     configuration.rois.forEach((roi) => {
-      roi.objects.forEach((obj) => {
+      roi.parts.forEach((obj) => {
         if (obj.checked) {
           selectedIds.push(obj.id);
         }
@@ -94,7 +94,7 @@ export default function Configuration(props) {
       ...t,
       rois: t.rois.map((k) => ({
         ...k,
-        objects: k.objects.filter((h) => !h.checked),
+        parts: k.parts.filter((h) => !h.checked),
       })),
     }));
   };
@@ -146,7 +146,7 @@ export default function Configuration(props) {
       ...t,
       rois: t.rois.map((k) => ({
         ...k,
-        objects: k.objects.map((h) => ({
+        parts: k.parts.map((h) => ({
           ...h,
           open: h.id == id ? !h.open : h.open,
         })),
@@ -352,7 +352,7 @@ export default function Configuration(props) {
             </div>
             {/* object list */}
 
-            {t.objects.map((obj, objIndex) =>
+            {t.parts.map((obj, objIndex) =>
               t.open ? (
                 <div key={obj.id} className="ml-8 flex flex-col gap-4">
                   <Hr />
@@ -367,7 +367,7 @@ export default function Configuration(props) {
                             ...configuration,
                             rois: configuration.rois.map((k) => ({
                               ...k,
-                              objects: k.objects.map((h) => ({
+                              parts: k.parts.map((h) => ({
                                 ...h,
                                 checked:
                                   h.id == obj.id ? !h.checked : h.checked,
@@ -399,7 +399,7 @@ export default function Configuration(props) {
                                 ...t,
                                 rois: t.rois.map((roi) => ({
                                   ...roi,
-                                  objects: roi.objects.map((obj) => ({
+                                  parts: roi.parts.map((obj) => ({
                                     ...obj,
                                     objectName: e.target.value,
                                   })),
@@ -439,7 +439,7 @@ export default function Configuration(props) {
                                 ...t,
                                 rois: t.rois.map((roi) => ({
                                   ...roi,
-                                  objects: roi.objects.map((obj) => ({
+                                  parts: roi.parts.map((obj) => ({
                                     ...obj,
                                     qty: e.target.value,
                                   })),
@@ -461,7 +461,7 @@ export default function Configuration(props) {
                                 ...t,
                                 rois: t.rois.map((roi) => ({
                                   ...roi,
-                                  objects: roi.objects.map((obj) => ({
+                                  parts: roi.parts.map((obj) => ({
                                     ...obj,
                                     classify: e.target.checked,
                                   })),

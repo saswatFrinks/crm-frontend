@@ -12,7 +12,6 @@ const Rectangle = ({
 }) => {
   const shapeRef = React.useRef();
   const trRef = React.useRef();
-
   React.useEffect(() => {
     if (isSelected) {
       // we need to attach transformer manually
