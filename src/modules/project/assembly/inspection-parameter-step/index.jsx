@@ -33,6 +33,7 @@ import { cloneDeep } from 'lodash';
 export default function InspectionParameterStep(props) {
   // type: moving | stationary {{ASSEMBLY_CONFIG}}
   const { type = ASSEMBLY_CONFIG.STATIONARY } = props;
+  console.log(type)
   const param = useParams();
   
   const setModalState = useSetRecoilState(modalAtom);
@@ -63,6 +64,7 @@ export default function InspectionParameterStep(props) {
 
   useEffect(()=>{
     getClasses()
+    console.log(selectedConfiguration)
   },[])
 
   useEffect(()=>{
@@ -82,6 +84,7 @@ export default function InspectionParameterStep(props) {
   const addRoi = () => {
     setConfiguration((t) => ({
       ...t,
+      id: selectedConfiguration.id,
       rois: [
         ...t.rois,
         {
@@ -205,8 +208,8 @@ export default function InspectionParameterStep(props) {
             <div className="flex items-center gap-2">
               <Radio
                 name="productFlow"
-                value="up"
-                checked={configuration.productFlow == 'up'}
+                value={4}
+                checked={configuration.productFlow == 4}
                 onChange={(e) =>
                   setConfiguration((t) => ({
                     ...t,
@@ -219,8 +222,8 @@ export default function InspectionParameterStep(props) {
             <div className="flex items-center gap-2">
               <Radio
                 name="productFlow"
-                value="down"
-                checked={configuration.productFlow == 'down'}
+                value={3}
+                checked={configuration.productFlow == 3}
                 onChange={(e) =>
                   setConfiguration((t) => ({
                     ...t,
@@ -233,8 +236,8 @@ export default function InspectionParameterStep(props) {
             <div className="flex items-center gap-2">
               <Radio
                 name="productFlow"
-                value="left"
-                checked={configuration.productFlow == 'left'}
+                value={1}
+                checked={configuration.productFlow == 1}
                 onChange={(e) =>
                   setConfiguration((t) => ({
                     ...t,
@@ -247,8 +250,8 @@ export default function InspectionParameterStep(props) {
             <div className="flex items-center gap-2">
               <Radio
                 name="productFlow"
-                value="right"
-                checked={configuration.productFlow == 'right'}
+                value={2}
+                checked={configuration.productFlow == 2}
                 onChange={(e) =>
                   setConfiguration((t) => ({
                     ...t,
@@ -266,6 +269,7 @@ export default function InspectionParameterStep(props) {
               <Input
                 placeholder="Enter primary object"
                 size="xs"
+                value={configuration.primaryObject}
                 onChange={(e) => {
                   setConfiguration((t) => ({
                     ...t,
@@ -279,8 +283,16 @@ export default function InspectionParameterStep(props) {
           <div className="flex items-center gap-2">
             <Label main={false}>Primary Object Class:</Label>
             <div className="ml-8 w-44 max-w-xs">
-              123
-              <Select size="xs" placeholder="Select class" />
+              <Select size="xs" placeholder="Select class" 
+              options={classOptions}
+              value={configuration.primaryObjectClass}
+              onChange={(e)=>{
+                setConfiguration((d) => ({
+                  ...d,
+                  primaryObjectClass: e.target.value
+                }));
+              }}
+              />
             </div>
           </div>
 

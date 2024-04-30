@@ -3,7 +3,7 @@ import Button from '@/shared/ui/Button';
 import UploadImage from './components/UploadImage';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 
-import { RECTANGLE_TYPE, STATUS } from '@/core/constants';
+import { ASSEMBLY_CONFIG, RECTANGLE_TYPE, STATUS } from '@/core/constants';
 import Steps from './components/Steps';
 import UploadImageStep from './upload-image-step';
 import InspectionParameterStep from './inspection-parameter-step';
@@ -70,7 +70,7 @@ export default function Assembly() {
 
   const stepObj = {
     0: <UploadImageStep />,
-    1: <InspectionParameterStep />,
+    1: <InspectionParameterStep/>,
     2: <LabelImage />,
     3: <PreTrainingStep />,
   };

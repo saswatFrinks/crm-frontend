@@ -84,11 +84,11 @@ export default function ProjectConfiguration() {
               </tr>
             </thead>
             <tbody>
-              {configurations.map((configuration, index) => {
+              {configurations.map((config, index) => {
                 return (
                   <tr
                     className="border-b odd:bg-white even:bg-[#C6C4FF]/10"
-                    key={configuration.id}
+                    key={config.id}
                   >
                     <th
                       scope="row"
@@ -98,24 +98,24 @@ export default function ProjectConfiguration() {
                         value="stationary"
                         name="isItemFixed"
                         id="stationary"
-                        checked={selectedConfiguration.id===configuration.id}
+                        checked={selectedConfiguration.id===config.id}
                         onClick={(e) => {
                           setSelectedConfiguration({
-                            id: configuration.id,
-                            objective: configuration.objective
+                            id: config.id,
+                            objective: config.objective
                           })
                         }}
                       />
                     </th>
-                    <td className="px-6 py-4">{configuration.variant}</td>
-                    <td className="px-6 py-4">{configuration.cameraPosition}</td>
-                    <td className="px-6 py-4">{configuration.cameraConfig}</td>
-                    <td className="px-6 py-4">{configuration.objective}</td>
+                    <td className="px-6 py-4">{config.variant}</td>
+                    <td className="px-6 py-4">{config.cameraPosition}</td>
+                    <td className="px-6 py-4">{config.cameraConfig}</td>
+                    <td className="px-6 py-4">{config.objective}</td>
                     <td className="px-6 py-4">
                       <span
-                        className={`${configuration.status == 'Pending' ? 'text-red-500' : 'text-green-500'}`}
+                        className={`${config.status == 'Pending' ? 'text-red-500' : 'text-green-500'}`}
                       >
-                        {configuration.status}
+                        {config.status}
                       </span>
                     </td>
                   </tr>

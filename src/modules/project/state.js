@@ -41,7 +41,7 @@ export const editingAtom = atom({
 export const assemblyAtom = atom({
   key: 'assemblyAtom',
   default: {
-    productFlow: 'up',
+    productFlow: 0,
     primaryObject: '',
     primaryObjectClass: '',
     rois: [DEFAULT_ROI],

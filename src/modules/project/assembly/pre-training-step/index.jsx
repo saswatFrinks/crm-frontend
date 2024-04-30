@@ -3,6 +3,7 @@ import { useRecoilValue } from "recoil";
 import { annotationMapAtom, assemblyAtom, imageDimensionAtom, rectanglesAtom, uploadedFileListAtom } from "../../state";
 import { cloneDeep } from "lodash";
 import { RECTANGLE_TYPE } from "@/core/constants";
+import axiosInstance from "@/core/request/aixosinstance";
 
 export default function PreTrainingStep() {
   const columns = ['', 'Positive', 'Negative'];
@@ -16,13 +17,15 @@ export default function PreTrainingStep() {
   const prepareApiData = async()=>{
     const imgMap = {}
     const temp = cloneDeep(configuration)
+    temp.direction = parseInt(temp.productFlow)
+    delete temp.productFlow
     temp.rois = temp.rois.map((roi, index)=>{
       const tempParts = roi.parts.map((part)=>{
         return {
           classify: part.classify,
           class: part.class,
           name: part.objectName,
-          count: part.count,
+          count: part.qty,
           operator: part.operation
         }
       })
@@ -44,6 +47,18 @@ export default function PreTrainingStep() {
         parts: tempParts
       }
     })
+    if(temp.direction!=0){
+      temp.rois[0].x1 = 0
+      temp.rois[0].x2 = 1
+      temp.rois[0].y1 = 0
+      temp.rois[0].y2 = 1
+      temp.rois[0].primaryObject = {
+        name: temp.primaryObject,
+        class: temp.primaryObjectClass,
+      }
+      delete temp.primaryObject
+      delete temp.primaryObjectClass
+    }
     const formData = new FormData();
     annotationRects.forEach((rect)=>{
       const classNo = annotationMap[rect.id]
@@ -66,7 +81,11 @@ export default function PreTrainingStep() {
       formData.append('files', fileBlob, img.id)
     }))
     formData.append('data', JSON.stringify(temp))
+    formData.append('configurationId', temp.id)
+    formData.append('isGood', JSON.stringify([true, true, false, false, false, true, false, true, true, false]))
     console.log(formData.get('data'))
+    const data = await axiosInstance.post("/configuration/assembly", formData)
+    console.log(data)
   }
 
   useState(()=>{
