@@ -3,6 +3,7 @@ import {
   DEFAULT_STAGE,
   IMAGE_STATUS,
   POSITION,
+  RECTANGLE_TYPE,
   STATUS,
 } from '@/core/constants';
 import { atom, selectorFamily } from 'recoil';
@@ -40,12 +41,22 @@ export const editingAtom = atom({
 export const assemblyAtom = atom({
   key: 'assemblyAtom',
   default: {
-    productFlow: 'up',
+    productFlow: 0,
     primaryObject: '',
     primaryObjectClass: '',
     rois: [DEFAULT_ROI],
   },
 });
+
+export const labelClassAtom = atom({
+  key: 'labelClassAtom',
+  default: null
+})
+
+export const annotationMapAtom = atom({
+  key: 'annotationMapAtom',
+  default: {}
+})
 
 export const currentRoiIdAtom = atom({
   key: 'currentRoiId',
@@ -67,6 +78,16 @@ export const rectanglesAtom = atom({
   default: [],
   dangerouslyAllowMutability: true,
 });
+
+export const imageDimensionAtom = atom({
+  key: 'imageDimensionAtom',
+  default: {height: 0, width: 0},
+})
+
+export const rectanglesTypeAtom = atom({
+  key: 'rectanglesTypeAtom',
+  default: RECTANGLE_TYPE.ROI
+})
 
 // export const editingRectAtom = atom({
 //   key: 'editingRectAtom',
@@ -93,7 +114,6 @@ export const selectedRoiSelector = selectorFamily({
   get:
     (imageId) =>
     ({ get }) => {
-      console.log(get(rectanglesAtom));
       return get(rectanglesAtom).filter((k) => k.imageId == imageId);
     },
 });

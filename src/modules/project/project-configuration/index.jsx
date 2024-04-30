@@ -1,10 +1,13 @@
+import axiosInstance from '@/core/request/aixosinstance';
 import ArrowRight from '@/shared/icons/ArrowRight';
 import Setting from '@/shared/icons/Setting';
 import Heading from '@/shared/layouts/main/heading';
 import Button from '@/shared/ui/Button';
 import Radio from '@/shared/ui/Radio';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { useRecoilState } from 'recoil';
+import { selectedConfigurationAtom } from './state';
 
 const columns = [
   '',
@@ -19,9 +22,26 @@ export default function ProjectConfiguration() {
   const params = useParams();
 
   const [configurations, setConfigurations] = React.useState([
-    { id: 1, status: 'Pending' },
-    { id: 2, status: 'Complete' },
   ]);
+
+  const [selectedConfiguration, setSelectedConfiguration] = useRecoilState(selectedConfigurationAtom)
+
+  const getConfigurations = async () => {
+    try {
+      const res = await axiosInstance.get('/configuration/list', {
+        params: {
+          projectId: params.projectId,
+        },
+      });
+      setConfigurations(res.data.data)
+    } catch (error) {
+      
+    }
+  }
+
+  useEffect(()=>{
+    getConfigurations()
+  }, [])
 
   return (
     <>
@@ -45,7 +65,7 @@ export default function ProjectConfiguration() {
         <div className="mb-8 flex items-center justify-between">
           <h1 className=" text-2xl font-semibold">Project Configuration</h1>
           <Button fullWidth={false} size="xs">
-            <Link className="flex items-center gap-2" to={`assembly`}>
+            <Link className="flex items-center gap-2" to={selectedConfiguration.objective.toLowerCase()}>
               <Setting />
               Start Configuration
             </Link>
@@ -64,11 +84,11 @@ export default function ProjectConfiguration() {
               </tr>
             </thead>
             <tbody>
-              {configurations.map((plant, index) => {
+              {configurations.map((config, index) => {
                 return (
                   <tr
                     className="border-b odd:bg-white even:bg-[#C6C4FF]/10"
-                    key={plant.id}
+                    key={config.id}
                   >
                     <th
                       scope="row"
@@ -78,19 +98,24 @@ export default function ProjectConfiguration() {
                         value="stationary"
                         name="isItemFixed"
                         id="stationary"
-                        checked={false}
-                        onChange={(e) => console.log(e.target.checked)}
+                        checked={selectedConfiguration.id===config.id}
+                        onClick={(e) => {
+                          setSelectedConfiguration({
+                            id: config.id,
+                            objective: config.objective
+                          })
+                        }}
                       />
                     </th>
-                    <td className="px-6 py-4">Name</td>
-                    <td className="px-6 py-4">Position</td>
-                    <td className="px-6 py-4">Configuration</td>
-                    <td className="px-6 py-4">Objective</td>
+                    <td className="px-6 py-4">{config.variant}</td>
+                    <td className="px-6 py-4">{config.cameraPosition}</td>
+                    <td className="px-6 py-4">{config.cameraConfig}</td>
+                    <td className="px-6 py-4">{config.objective}</td>
                     <td className="px-6 py-4">
                       <span
-                        className={`${plant.status == 'Pending' ? 'text-red-500' : 'text-green-500'}`}
+                        className={`${config.status == 'Pending' ? 'text-red-500' : 'text-green-500'}`}
                       >
-                        {plant.status}
+                        {config.status}
                       </span>
                     </td>
                   </tr>

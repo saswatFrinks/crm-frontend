@@ -8,10 +8,10 @@ import Pen from '@/shared/icons/Pen';
 import Radio from '@/shared/ui/Radio';
 import Select from '@/shared/ui/Select';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ChevronDown, Plus, Trash } from 'react-feather';
 
-import { useRecoilState, useSetRecoilState } from 'recoil';
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import { modalAtom } from '@/shared/states/modal.state';
 import {
   ASSEMBLY_CONFIG,
@@ -25,25 +25,66 @@ import { assemblyAtom, currentRoiIdAtom, editingAtom } from '../../state';
 import ArrowUp from '@/shared/icons/ArrowUp';
 import DeleteObjectModal from './DeleteObjectModal';
 import DeleteRoiModal from './DeleteRoiModal';
+import axiosInstance from '@/core/request/aixosinstance';
+import { useParams } from 'react-router-dom';
+import { selectedConfigurationAtom } from '../../project-configuration/state';
+import { cloneDeep } from 'lodash';
 
 export default function InspectionParameterStep(props) {
   // type: moving | stationary {{ASSEMBLY_CONFIG}}
-
   const { type = ASSEMBLY_CONFIG.STATIONARY } = props;
-
+  console.log(type)
+  const param = useParams();
+  
   const setModalState = useSetRecoilState(modalAtom);
-
-  const [isEditing, setIsEditing] = useRecoilState(editingAtom);
-
+  
+  const setIsEditing = useSetRecoilState(editingAtom);
+  
   const [deleteModal, setDeleteModal] = React.useState('roi');
-
+  
   const [configuration, setConfiguration] = useRecoilState(assemblyAtom);
+  const selectedConfiguration = useRecoilValue(selectedConfigurationAtom)
+
+  const [classOptions, setClassOptions] = useState([])
 
   const setCurrentRoiId = useSetRecoilState(currentRoiIdAtom);
+
+  const getClasses = async() => {
+    try {
+      const classes = await axiosInstance.get("/class/list", {
+        params: {
+          projectId: param.projectId,
+        }
+      })
+      setClassOptions(classes.data.data)
+    } catch (error) {
+      
+    }
+  }
+
+  useEffect(()=>{
+    getClasses()
+    console.log(selectedConfiguration)
+  },[])
+
+  useEffect(()=>{
+    if(!classOptions?.length>0){
+      return
+    }
+    let tempRois = cloneDeep(configuration.rois)
+    if(tempRois[0].parts[0].class === ''){
+      tempRois[0].parts[0].class = classOptions[0].id
+      tempRois[0].parts[0].className = classOptions[0].name
+    }
+    setConfiguration({
+      ...configuration, rois: tempRois, id: selectedConfiguration.id
+    })
+  }, [classOptions])
 
   const addRoi = () => {
     setConfiguration((t) => ({
       ...t,
+      id: selectedConfiguration.id,
       rois: [
         ...t.rois,
         {
@@ -59,10 +100,10 @@ export default function InspectionParameterStep(props) {
       ...config,
       rois: config.rois.map((roi) => ({
         ...roi,
-        objects:
+        parts:
           roi.id == roiId
-            ? [...roi.objects, { ...DEFAULT_OBJECT, id: Date.now() }]
-            : roi.objects,
+            ? [...roi.parts, { ...DEFAULT_OBJECT, id: Date.now() }]
+            : roi.parts,
       })),
     }));
   };
@@ -71,7 +112,7 @@ export default function InspectionParameterStep(props) {
     const selectedIds = [];
 
     configuration.rois.forEach((roi) => {
-      roi.objects.forEach((obj) => {
+      roi.parts.forEach((obj) => {
         if (obj.checked) {
           selectedIds.push(obj.id);
         }
@@ -96,7 +137,7 @@ export default function InspectionParameterStep(props) {
       ...t,
       rois: t.rois.map((k) => ({
         ...k,
-        objects: k.objects.filter((h) => !h.checked),
+        parts: k.parts.filter((h) => !h.checked),
       })),
     }));
   };
@@ -148,13 +189,14 @@ export default function InspectionParameterStep(props) {
       ...t,
       rois: t.rois.map((k) => ({
         ...k,
-        objects: k.objects.map((h) => ({
+        parts: k.parts.map((h) => ({
           ...h,
           open: h.id == id ? !h.open : h.open,
         })),
       })),
     }));
   };
+
 
   const renderAssemblyHeading = () => {
     if (type == ASSEMBLY_CONFIG.MOVING) {
@@ -166,8 +208,8 @@ export default function InspectionParameterStep(props) {
             <div className="flex items-center gap-2">
               <Radio
                 name="productFlow"
-                value="up"
-                checked={configuration.productFlow == 'up'}
+                value={4}
+                checked={configuration.productFlow == 4}
                 onChange={(e) =>
                   setConfiguration((t) => ({
                     ...t,
@@ -180,8 +222,8 @@ export default function InspectionParameterStep(props) {
             <div className="flex items-center gap-2">
               <Radio
                 name="productFlow"
-                value="down"
-                checked={configuration.productFlow == 'down'}
+                value={3}
+                checked={configuration.productFlow == 3}
                 onChange={(e) =>
                   setConfiguration((t) => ({
                     ...t,
@@ -194,8 +236,8 @@ export default function InspectionParameterStep(props) {
             <div className="flex items-center gap-2">
               <Radio
                 name="productFlow"
-                value="left"
-                checked={configuration.productFlow == 'left'}
+                value={1}
+                checked={configuration.productFlow == 1}
                 onChange={(e) =>
                   setConfiguration((t) => ({
                     ...t,
@@ -208,8 +250,8 @@ export default function InspectionParameterStep(props) {
             <div className="flex items-center gap-2">
               <Radio
                 name="productFlow"
-                value="right"
-                checked={configuration.productFlow == 'right'}
+                value={2}
+                checked={configuration.productFlow == 2}
                 onChange={(e) =>
                   setConfiguration((t) => ({
                     ...t,
@@ -227,6 +269,7 @@ export default function InspectionParameterStep(props) {
               <Input
                 placeholder="Enter primary object"
                 size="xs"
+                value={configuration.primaryObject}
                 onChange={(e) => {
                   setConfiguration((t) => ({
                     ...t,
@@ -240,8 +283,16 @@ export default function InspectionParameterStep(props) {
           <div className="flex items-center gap-2">
             <Label main={false}>Primary Object Class:</Label>
             <div className="ml-8 w-44 max-w-xs">
-              123
-              <Select size="xs" placeholder="Select class" />
+              <Select size="xs" placeholder="Select class" 
+              options={classOptions}
+              value={configuration.primaryObjectClass}
+              onChange={(e)=>{
+                setConfiguration((d) => ({
+                  ...d,
+                  primaryObjectClass: e.target.value
+                }));
+              }}
+              />
             </div>
           </div>
 
@@ -301,8 +352,8 @@ export default function InspectionParameterStep(props) {
                 id={t.id}
                 value={t.id}
                 checked={t.checked}
-                onChange={() =>
-                  setConfiguration((configuration) => ({
+                onClick={() =>
+                    setConfiguration((configuration) => ({
                     ...configuration,
                     rois: configuration.rois.map((k) => ({
                       ...k,
@@ -312,7 +363,7 @@ export default function InspectionParameterStep(props) {
                 }
                 htmlFor={t.id}
               />
-              <span>Roi {i + 1}</span>
+              <span>Roi {t.id}</span>
               <div className="flex-1">
                 <Button
                   size="tiny"
@@ -354,7 +405,7 @@ export default function InspectionParameterStep(props) {
             </div>
             {/* object list */}
 
-            {t.objects.map((obj, objIndex) =>
+            {t.parts.map((obj, objIndex) =>
               t.open ? (
                 <div key={obj.id} className="ml-8 flex flex-col gap-4">
                   <Hr />
@@ -364,12 +415,12 @@ export default function InspectionParameterStep(props) {
                         id={genObjId(obj.id)}
                         value={obj.id}
                         checked={obj.checked}
-                        onChange={() =>
+                        onClick={() =>
                           setConfiguration((configuration) => ({
                             ...configuration,
                             rois: configuration.rois.map((k) => ({
                               ...k,
-                              objects: k.objects.map((h) => ({
+                              parts: k.parts.map((h) => ({
                                 ...h,
                                 checked:
                                   h.id == obj.id ? !h.checked : h.checked,
@@ -396,16 +447,21 @@ export default function InspectionParameterStep(props) {
                           <Input
                             placeholder="Enter object name"
                             size="xs"
+                            value={configuration.rois[i].parts[objIndex].objectName}
                             onChange={(e) => {
-                              setConfiguration((t) => ({
-                                ...t,
-                                rois: t.rois.map((roi) => ({
+                              setConfiguration((d) => ({
+                                ...d,
+                                rois: d.rois.map((roi, locRIdx) => {
+                                  if(locRIdx!=i) return roi
+                                  return{
                                   ...roi,
-                                  objects: roi.objects.map((obj) => ({
+                                  parts: roi.parts.map((obj, locOIdx) => {
+                                    if(locOIdx!=objIndex) return obj
+                                    return{
                                     ...obj,
                                     objectName: e.target.value,
-                                  })),
-                                })),
+                                  }}),
+                                }}),
                               }));
                             }}
                           />
@@ -415,7 +471,32 @@ export default function InspectionParameterStep(props) {
                       <div className="flex items-center gap-2">
                         <Label main={false}>Select Class:</Label>
                         <div className="ml-11 w-44">
-                          <Select size="xs" placeholder="Select class" />
+                          <Select size="xs" placeholder="Select class" 
+                          value={configuration.rois[i].parts[objIndex].class}
+                          onChange={(e)=>{
+                            let temp = ''
+                            classOptions.forEach((opt)=>{
+                              if(opt.id===e.target.value){
+                                temp = opt.name
+                              }
+                            })
+                            setConfiguration((d) => ({
+                              ...d,
+                              rois: d.rois.map((roi, locRIdx) => {
+                                if(locRIdx!=i) return roi
+                                return{
+                                ...roi,
+                                parts: roi.parts.map((obj, locOIdx) => {
+                                  if(locOIdx!=objIndex) return obj
+                                  return{
+                                  ...obj,
+                                  class: e.target.value,
+                                  className: temp
+                                }}),
+                              }}),
+                            }));
+                          }}
+                          options={classOptions}/>
                         </div>
                       </div>
 
@@ -424,6 +505,23 @@ export default function InspectionParameterStep(props) {
                         <div className="ml-2 w-44">
                           <Select
                             size="xs"
+                            value={configuration.rois[i].parts[objIndex].operation}
+                            onChange={(e)=>{
+                              setConfiguration((d) => ({
+                                ...d,
+                                rois: d.rois.map((roi, locRIdx) => {
+                                  if(locRIdx!=i) return roi
+                                  return{
+                                  ...roi,
+                                  parts: roi.parts.map((obj, locOIdx) => {
+                                    if(locOIdx!=objIndex) return obj
+                                    return{
+                                    ...obj,
+                                    operation: e.target.value,
+                                  }}),
+                                }}),
+                              }));
+                            }}
                             placeholder="Select operation"
                             options={OPERATIONS}
                           />
@@ -436,16 +534,21 @@ export default function InspectionParameterStep(props) {
                           <Input
                             placeholder="Enter object qty"
                             size="xs"
+                            value={configuration.rois[i].parts[objIndex].qty}
                             onChange={(e) => {
-                              setConfiguration((t) => ({
-                                ...t,
-                                rois: t.rois.map((roi) => ({
+                              setConfiguration((d) => ({
+                                ...d,
+                                rois: d.rois.map((roi, locRIdx) => {
+                                  if(locRIdx!=i) return roi
+                                  return{
                                   ...roi,
-                                  objects: roi.objects.map((obj) => ({
+                                  parts: roi.parts.map((obj, locOIdx) => {
+                                    if(locOIdx!=objIndex) return obj
+                                    return{
                                     ...obj,
                                     qty: e.target.value,
-                                  })),
-                                })),
+                                  }}),
+                                }}),
                               }));
                             }}
                           />
@@ -456,18 +559,21 @@ export default function InspectionParameterStep(props) {
                         <label className="mb-5 inline-flex cursor-pointer items-center">
                           <input
                             type="checkbox"
-                            value=""
                             className="peer sr-only"
-                            onChange={(e) => {
-                              setConfiguration((t) => ({
-                                ...t,
-                                rois: t.rois.map((roi) => ({
+                            onClick={(e) => {
+                              setConfiguration((d) => ({
+                                ...d,
+                                rois: d.rois.map((roi, locRIdx) => {
+                                  if(locRIdx!=i) return roi
+                                  return{
                                   ...roi,
-                                  objects: roi.objects.map((obj) => ({
+                                  parts: roi.parts.map((obj, locOIdx) => {
+                                    if(locOIdx!=objIndex) return obj
+                                    return{
                                     ...obj,
-                                    classify: e.target.checked,
-                                  })),
-                                })),
+                                    classify: e.target.value,
+                                  }}),
+                                }}),
                               }));
                             }}
                           />

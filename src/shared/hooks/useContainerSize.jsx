@@ -1,4 +1,6 @@
+import { imageDimensionAtom } from '@/modules/project/state';
 import { useEffect, useState } from 'react';
+import { useSetRecoilState } from 'recoil';
 
 /**
  * @param {containerRef} param0 container ref
@@ -8,8 +10,9 @@ import { useEffect, useState } from 'react';
  */
 
 export const useContainerSize = ({ containerRef, isOpen, image }) => {
-  // console.log('333', image);
-  const [size, setSize] = useState({ width: 0, height: 0 });
+  const [size, setSize] = useState(null);
+  const setImageDimensions = useSetRecoilState(imageDimensionAtom)
+
 
   const [img, setImg] = useState(image);
 
@@ -25,9 +28,14 @@ export const useContainerSize = ({ containerRef, isOpen, image }) => {
   useEffect(() => {
     if (image?.width && image?.height) {
       setImg(image);
+      const tempScale = Math.min(size.width / image.width, size.height / image.height)
       setScaleFactor(
-        Math.min(size.width / image.width, size.height / image.height)
+        tempScale
       );
+      setImageDimensions({
+        height: image.height * tempScale,
+        width: image.width * tempScale,
+      })
     }
   }, [image, size]);
 

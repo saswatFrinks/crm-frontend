@@ -13,6 +13,7 @@ import {
   imageStatusAtom,
   mousePositionAtom,
   rectanglesAtom,
+  rectanglesTypeAtom,
   selectedFileAtom,
   selectedRoiSelector,
   stageAtom,
@@ -30,8 +31,8 @@ export default function UploadImage() {
   const [file, setFile] = React.useState(null);
 
   const { wheel } = useMouseWheel({});
-
-  const drawRectHook = useDrawRectangle();
+  const rectType = useRecoilValue(rectanglesTypeAtom)
+  const drawRectHook = useDrawRectangle(rectType);
 
   const stage = useRecoilValue(stageAtom);
 
@@ -59,9 +60,9 @@ export default function UploadImage() {
 
   const selectedFile = useRecoilValue(selectedFileAtom);
 
-  const selectedRectangles = useRecoilValue(
-    selectedRoiSelector(selectedFile?.id)
-  );
+  // const selectedRectangles = useRecoilValue(
+  //   selectedRoiSelector(selectedFile?.id)
+  // );
 
   const containerRef = React.useRef(null);
 
@@ -71,6 +72,7 @@ export default function UploadImage() {
     containerRef,
     image,
   });
+
 
   const handleChangeFile = (e) => {
     if (step == 0) {
@@ -124,16 +126,10 @@ export default function UploadImage() {
   };
 
   const handleClickRectangle = (e, id) => {
-    console.log(e.target, id);
     if (id == e.target.attrs.id) {
       setEditingRect(true);
       setSelectedRectId(id);
     }
-    // if (labelType === e.target.attrs.type) {
-    //   setIsEditRect(true);
-    //   setSelectRectangleId(id);
-    //   setHoveredId(id);
-    // }
   };
 
   const handleMouseLeave = () => {};
@@ -196,10 +192,10 @@ export default function UploadImage() {
                   width={image.width * scaleFactor}
                   height={image.height * scaleFactor}
                 />
-                {console.log({ rectangles })}
                 {rectangles.map(
                   (rect, index) =>
-                    rect.rectType == RECTANGLE_TYPE.ROI && (
+                  <>
+                    {((rect.rectType == RECTANGLE_TYPE.ROI) || (rect.imageId == selectedFile.id)) && (
                       <Rectangle
                         key={rect.id}
                         shapeProps={rect}
@@ -226,19 +222,30 @@ export default function UploadImage() {
                         selectedReactangleId={selectedRectId}
                         onClick={(e) => handleClickRectangle(e, rect.id)}
                       />
-                    )
+                    )}
+                  </>
                 )}
-
                 {rectangles.map((rect, i) => {
-                  if (rect.rectType !== RECTANGLE_TYPE.ROI) return null;
+                  if (rect.rectType !== RECTANGLE_TYPE.ROI && rect.imageId == selectedFile.id) return (
+                    <Text
+                      key={`text-${rect.id}`}
+                      x={rect.x}
+                      y={(rect.y ?? 0) - (rect.width <= 40 ? 8 : 12)}
+                      text={rect.id}
+                      fill={rect.fill}
+                      fontSize={rect.width <= 40 ? 8 : 12}
+                      align="left"
+                      width={rect.width < 40 ? 100 : rect.width}
+                    />
+                  );
                   return (
                     <Text
                       key={`text-${rect.id}`}
                       x={rect.x}
-                      y={(rect.y ?? 0) - (rect.width <= 40 ? 6 : 8)}
-                      text={`ROI ${i + 1}`}
+                      y={(rect.y ?? 0) - (rect.width <= 40 ? 8 : 12)}
+                      text={rect.roiId}
                       fill={rect.fill}
-                      fontSize={rect.width <= 40 ? 4 : 8}
+                      fontSize={rect.width <= 40 ? 8 : 12}
                       align="left"
                       width={rect.width < 40 ? 100 : rect.width}
                     />

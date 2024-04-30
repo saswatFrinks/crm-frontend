@@ -45,7 +45,7 @@ export default function useDrawRectangle(rectType = RECTANGLE_TYPE.ROI) {
         rects.push({
           ...BASE_RECT,
           id,
-          roidId: selectedRoiId,
+          roiId: selectedRoiId,
           x: stage.getRelativePointerPosition().x,
           y: stage.getRelativePointerPosition().y,
           fill: color,

@@ -1,9 +1,9 @@
 import Button from '@/shared/ui/Button';
 
 import UploadImage from './components/UploadImage';
-import { useRecoilState, useRecoilValue } from 'recoil';
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 
-import { STATUS } from '@/core/constants';
+import { ASSEMBLY_CONFIG, RECTANGLE_TYPE, STATUS } from '@/core/constants';
 import Steps from './components/Steps';
 import UploadImageStep from './upload-image-step';
 import InspectionParameterStep from './inspection-parameter-step';
@@ -13,14 +13,17 @@ import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader';
 import Actions from './components/Actions';
 
 import { editingRectAtom, stepAtom } from './state';
-import { assemblyAtom, currentRoiIdAtom, editingAtom } from '../state';
+import { assemblyAtom, currentRoiIdAtom, editingAtom, rectanglesTypeAtom } from '../state';
 
 export default function Assembly() {
   const [isEditing, setIsEditing] = useRecoilState(editingAtom);
+  const setRectangleType = useSetRecoilState(rectanglesTypeAtom)
+  
 
   const [configuration, setConfiguration] = useRecoilState(assemblyAtom);
 
-  const currentRoiId = useRecoilValue(currentRoiIdAtom);
+  const [currentRoiId, setCurrentRoiId] = useRecoilState(currentRoiIdAtom);
+  
 
   const [isEditingRect, setEditingRect] = useRecoilState(editingRectAtom);
 
@@ -47,11 +50,14 @@ export default function Assembly() {
   const cancel = () => {
     setEditingRect(false);
     setIsEditing(false);
+    setCurrentRoiId(null)
+    setRectangleType(RECTANGLE_TYPE.ROI)
   };
 
   const submit = () => {
     setEditingRect(false);
     setIsEditing(false);
+    setCurrentRoiId(null)
     setConfiguration((t) => ({
       ...t,
       rois: t.rois.map((k) => ({
@@ -59,11 +65,12 @@ export default function Assembly() {
         status: k.id == currentRoiId ? STATUS.FINISH : k.status,
       })),
     }));
+    setRectangleType(RECTANGLE_TYPE.ROI)
   };
 
   const stepObj = {
     0: <UploadImageStep />,
-    1: <InspectionParameterStep />,
+    1: <InspectionParameterStep/>,
     2: <LabelImage />,
     3: <PreTrainingStep />,
   };

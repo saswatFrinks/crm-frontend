@@ -3,10 +3,10 @@ import Pan from '@/shared/icons/Pan';
 import ZoomIn from '@/shared/icons/ZoomIn';
 import ZoomOut from '@/shared/icons/ZoomOut';
 import Button from '@/shared/ui/Button';
-import { useRecoilState, useSetRecoilState } from 'recoil';
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 
 import { IMAGE_STATUS, STATUS } from '@/core/constants';
-import { editingAtom, imageStatusAtom, stageAtom } from '../../state';
+import { currentRoiIdAtom, editingAtom, imageStatusAtom, rectanglesAtom, selectedRoiSelector, stageAtom } from '../../state';
 // import { editingRectAtom } from '../state';
 
 export default function Actions({ cancel, submit }) {
@@ -15,6 +15,8 @@ export default function Actions({ cancel, submit }) {
   const [imageStatus, setImageStatus] = useRecoilState(imageStatusAtom);
 
   const [isEditing, setIsEditing] = useRecoilState(editingAtom);
+  const currentRoiId = useRecoilValue(currentRoiIdAtom);
+  const rectangles = useRecoilValue(rectanglesAtom)
 
   //   const [isEditingRect, setEditingRect] = useRecoilState(editingRectAtom);
 
@@ -51,7 +53,14 @@ export default function Actions({ cancel, submit }) {
 
   const handleDrawBox = () => {
     if (!isEditing) return;
-
+    let ret = false
+    console.log(rectangles, currentRoiId)
+    rectangles.forEach((rect)=>{
+      if(rect.roiId && rect.roiId === currentRoiId){
+        ret = true
+      }
+    })
+    if(ret) return;
     setImageStatus((t) => ({
       ...IMAGE_STATUS,
       draw: !t.draw,
