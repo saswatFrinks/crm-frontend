@@ -7,6 +7,7 @@ export default function FPhoneInput({ errorMessage, ...props }) {
     <div>
       <PhoneInput
         {...props}
+        disabled={props?.disabled}
         className={`${errorMessage ? 'error' : ''}`}
       />
       {errorMessage ? (
