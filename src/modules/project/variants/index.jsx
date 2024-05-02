@@ -15,6 +15,19 @@ export default function Variants() {
   const [variants, setVariants] = React.useState([]);
   const location = useLocation();
 
+  const deleteVariant = async (id) => {
+    try {
+      await axiosInstance.delete('/variant', {
+        params: {
+          id
+        }
+      })
+      fetchAllVariants()
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   const fetchAllVariants = async () => {
     const res = await axiosInstance.get('/variant/fetch', {
       params: {
@@ -58,8 +71,12 @@ export default function Variants() {
           {variants.map((variant, i) => (
             <Variant.Card
               key={variant.id}
+              id={variant.id}
               to={`variant/${variant.id}`}
               title={variant.name}
+              deleteFn={()=>{
+                deleteVariant(variant.id)
+              }}
               state={{...location.state, variantName: variant.name}}
             />
           ))}

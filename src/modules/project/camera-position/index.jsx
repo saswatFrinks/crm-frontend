@@ -15,6 +15,19 @@ export default function CameraPosition() {
   const [cameraPositions, setCameraPositions] = React.useState([]);
   const location = useLocation();
 
+  const deleteCapturePosition = async (id) => {
+    try {
+      await axiosInstance.delete('/capturePosition', {
+        params: {
+          id
+        }
+      })
+      fetchAllCameraPosition()
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   const fetchAllCameraPosition = async () => {
     const res = await axiosInstance.get('/capturePosition/fetch', {
       params: {
@@ -23,6 +36,7 @@ export default function CameraPosition() {
     });
     setCameraPositions(res.data.data);
   };
+
 
   React.useEffect(() => {
     fetchAllCameraPosition();
@@ -71,7 +85,11 @@ export default function CameraPosition() {
             return (
               <Variant.Card
                 key={cameraPosition.id}
+                id={cameraPosition.id}
                 title={cameraPosition.name}
+                deleteFn={()=>{
+                  deleteCapturePosition(cameraPosition.id)
+                }}
                 to={`camera-position/${cameraPosition.id}`}
                 state={{...location.state, cameraPositionName: cameraPosition.name}}
               />

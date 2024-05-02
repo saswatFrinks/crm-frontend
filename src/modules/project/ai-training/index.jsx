@@ -1,5 +1,7 @@
+import axiosInstance from '@/core/request/aixosinstance';
 import ArrowRight from '@/shared/icons/ArrowRight';
 import Heading from '@/shared/layouts/main/heading';
+import { useEffect } from 'react';
 
 import {
   Link,
@@ -10,7 +12,17 @@ import {
 } from 'react-router-dom';
 
 export default function AiTrainingLayout() {
-  const params = useParams();
+  
+const params = useParams();
+
+  const makeApiCall = async() => {
+   const data =  await axiosInstance.get(`magic/${params.id}`)
+   console.log(data.data)
+  }
+
+  useEffect(()=>{
+    makeApiCall()
+  }, [])
 
   const location = useLocation();
 

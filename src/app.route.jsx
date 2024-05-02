@@ -8,6 +8,8 @@ import MainLayout from './shared/layouts/main';
 
 import { createBrowserRouter } from 'react-router-dom';
 import { projectRouter } from './modules/project/project.route';
+import Magic from './modules/magic';
+import ResetPassword from './modules/auth/reset-password';
 
 const router = createBrowserRouter([
   {
@@ -17,6 +19,14 @@ const router = createBrowserRouter([
   {
     path: 'register',
     element: <Register />,
+  },
+  {
+    path: 'magic/:id',
+    element: <Magic />,
+  },
+  {
+    path: 'reset-password/:magicId',
+    element: <ResetPassword />,
   },
   {
     path: '/',

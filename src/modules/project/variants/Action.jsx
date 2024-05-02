@@ -3,14 +3,13 @@ import { HiDotsVertical } from 'react-icons/hi';
 import { FaRegTrashCan } from 'react-icons/fa6';
 import { FiEdit2 } from 'react-icons/fi';
 import useClickOutSide from '@/shared/hooks/useClickOutside';
-import { FiKey } from 'react-icons/fi';
 import { tv } from 'tailwind-variants';
 
 export default function Action(props) {
   const {
     handleOpenModal,
-    hasReset = false,
     id,
+    hasReset=false,
     setId,
     deleteImageById = null,
   } = props;
@@ -31,30 +30,24 @@ export default function Action(props) {
   });
 
   return (
-    <div className="relative flex justify-end">
+    <div className="relative flex justify-end z-10" onClick={(event) => {event.preventDefault();event.stopPropagation();}}>
       <HiDotsVertical
         size={18}
         className="cursor-pointer"
-        onClick={() => setOpen(true)}
+        onClick={(event) => {event.preventDefault();event.stopPropagation();setOpen(true)}}
       />
       {open && (
         <ul className={ul({ hasReset })} ref={ref}>
           <li className="flex cursor-pointer items-center gap-2 p-2 text-xs hover:bg-gray-100">
             <FiEdit2 /> Edit
           </li>
-          {hasReset && (
-            <li className="flex cursor-pointer items-center gap-2 p-2 text-xs hover:bg-gray-100">
-              <FiKey /> Reset password
-            </li>
-          )}
-
           <li
             className="flex cursor-pointer items-center gap-2 p-2 text-xs text-red-500 hover:bg-gray-100"
             onClick={() => {
               if(setId){
                 setId(id);
               }
-              handleOpenModal('delete');
+              handleOpenModal && handleOpenModal('delete');
 
               if (deleteImageById) {
                 deleteImageById(id);

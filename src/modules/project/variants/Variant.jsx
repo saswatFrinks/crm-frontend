@@ -1,9 +1,9 @@
-import ThreeDots from '@/shared/icons/File';
 import PlusFile from '@/shared/icons/PlusFile';
 import { CiFileOn } from 'react-icons/ci';
 import { Link } from 'react-router-dom';
+import Action from './Action';
 
-function Card({ title = 'Variant name', to, state }) {
+function Card({ title = 'Variant name', to, state, id, deleteFn, handleOpenModal }) {
   return (
     <Link
       to={to}
@@ -14,7 +14,12 @@ function Card({ title = 'Variant name', to, state }) {
         <CiFileOn className="h-6 w-6 text-f-primary duration-100 group-hover:h-6 group-hover:w-6" />
       </div>
       {title}
-      <ThreeDots />
+      <div onClick={event=>{event.preventDefault();event.stopPropagation()}}>
+        <Action id={id}
+        deleteImageById={deleteFn}
+        />
+      {/* <ThreeDots /> */}
+      </div>
     </Link>
   );
 }

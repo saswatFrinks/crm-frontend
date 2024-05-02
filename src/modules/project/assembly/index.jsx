@@ -11,15 +11,20 @@ import LabelImage from './label-image-step';
 import PreTrainingStep from './pre-training-step';
 import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader';
 import Actions from './components/Actions';
+import {useParams} from 'react-router-dom'
 
 import { editingRectAtom, stepAtom } from './state';
 import { assemblyAtom, currentRoiIdAtom, editingAtom, rectanglesTypeAtom } from '../state';
+import { useEffect, useState } from 'react';
+import axiosInstance from '@/core/request/aixosinstance';
 
 export default function Assembly() {
   const [isEditing, setIsEditing] = useRecoilState(editingAtom);
   const setRectangleType = useSetRecoilState(rectanglesTypeAtom)
   
+  const {projectId} = useParams()
 
+  const [type, setType] = useState(ASSEMBLY_CONFIG.STATIONARY)
   const [configuration, setConfiguration] = useRecoilState(assemblyAtom);
 
   const [currentRoiId, setCurrentRoiId] = useRecoilState(currentRoiIdAtom);
@@ -28,6 +33,19 @@ export default function Assembly() {
   const [isEditingRect, setEditingRect] = useRecoilState(editingRectAtom);
 
   const [step, setStep] = useRecoilState(stepAtom);
+
+  const getProject = async () => {
+    try {
+      const {data} = await axiosInstance.get('/project', {
+        params: {
+          projectId
+        }
+      })
+      !data.data.isItemFixed && setType(ASSEMBLY_CONFIG.MOVING)
+    } catch (error) {
+      console.log(error)
+    }
+  }
 
   const handleNext = () => {
     setStep((t) => {
@@ -70,10 +88,14 @@ export default function Assembly() {
 
   const stepObj = {
     0: <UploadImageStep />,
-    1: <InspectionParameterStep/>,
+    1: <InspectionParameterStep type={type}/>,
     2: <LabelImage />,
     3: <PreTrainingStep />,
   };
+
+  useEffect(()=>{
+    getProject()
+  },[])
 
   return (
     <>
