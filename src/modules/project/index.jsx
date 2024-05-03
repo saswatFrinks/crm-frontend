@@ -111,7 +111,7 @@ export default function Home() {
         ))}
       </div>
 
-      <Drawer
+      {open && <Drawer
         isOpen={open}
         handleClose={closeDrawer}
         title={'Create a new project'}
@@ -132,7 +132,7 @@ export default function Home() {
               className="min-w-[150px]"
               onClick={() => ref.current?.submitForm()}
             >
-              Creat Project
+              Create Project
             </Button>
           </div>
         }
@@ -144,7 +144,7 @@ export default function Home() {
           fetchAllProjects={fetchAllProjects}
         />
         {showLoader && <ProjectCreateLoader />}
-      </Drawer>
+      </Drawer>}
     </>
   );
 }

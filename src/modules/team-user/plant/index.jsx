@@ -9,6 +9,7 @@ import AddPlantModal from './AddPlantModal';
 import DeleteModal from '../DeleteModal';
 import { getOrganizationId } from '@/util/util';
 import axiosInstance from '@/core/request/aixosinstance';
+import EditPlantModal from './EditPlantModal';
 
 export default function Plants() {
   const columns = ['Plant Name', 'Location'];
@@ -16,6 +17,7 @@ export default function Plants() {
 
   const [action, setAction] = React.useState('add');
   const [id, setId] = React.useState('')
+  const [editIndex, setEditIndex] = React.useState(null);
   const [plants, setPlants] = React.useState([]);
 
   const deletePlant = async () => {
@@ -47,6 +49,7 @@ export default function Plants() {
     const obj = {
       add: <AddPlantModal fetchAllPlants={fetchAllPlants}/>,
       delete: <DeleteModal deleteById={deletePlant}/>,
+      edit: <EditPlantModal fetchAllPlants={fetchAllPlants} plant={plants[editIndex]}/>
     };
 
     return obj[action];
@@ -56,6 +59,11 @@ export default function Plants() {
     setAction(type);
     setModalState(true);
   };
+
+  const handleEdit = (index) => {
+    handleOpenModal('edit')
+    setEditIndex(index)
+  }
 
   return (
     <>
@@ -90,7 +98,7 @@ export default function Plants() {
               </tr>
             </thead>
             <tbody>
-              {plants.map((plant) => {
+              {plants.map((plant,i) => {
                 return (
                   <tr className="border-b odd:bg-white even:bg-[#C6C4FF]/10" key={plant.id}>
                     <th
@@ -101,7 +109,7 @@ export default function Plants() {
                     </th>
                     <td className="px-6 py-4">{plant.location}</td>
                     <td className="px-6 py-4">
-                      <Action handleOpenModal={handleOpenModal} id={plant.id} setId={setId}/>
+                      <Action handleOpenModal={handleOpenModal} id={plant.id} setId={setId} editIndex={i} handleEdit={handleEdit}/>
                     </td>
                   </tr>
                 );

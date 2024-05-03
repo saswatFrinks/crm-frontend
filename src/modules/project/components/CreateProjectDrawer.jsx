@@ -60,6 +60,7 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
   const formik = useFormik({
     initialValues: {
       name: '',
+      description: '',
       inspectionSpeed: 10,
       isCameraFixed: false,
       isItemFixed: false,
@@ -152,6 +153,7 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
   const createProjectJSON = (values) => {
     const json = {
       name: values.name,
+      description: values.description,
       inspectionSpeed: values.inspectionSpeed,
       isCameraFixed: values.isCameraFixed == 'fixed',
       isItemFixed: values.isItemFixed == 'stationary',
@@ -238,7 +240,18 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
           errorMessage={formik.errors.name}
         />
       </div>
-
+      <div>
+        <Label>Project Description</Label>
+        <Input
+          placeholder="Enter project description"
+          type="text"
+          name="description"
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
+          value={formik.values.description}
+          errorMessage={formik.errors.name}
+        />
+      </div>
       <div>
         <Label>Inspection speed (products/minute)</Label>
         <Input
