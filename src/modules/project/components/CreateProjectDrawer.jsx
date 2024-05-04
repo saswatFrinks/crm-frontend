@@ -11,7 +11,8 @@ import { getOrganizationId } from '@/util/util';
 import storageService from '@/core/storage';
 
 const CreateProjectDrawer = React.forwardRef((props, ref) => {
-  const { closeDrawer, setShowLoader, fetchAllProjects } = props;
+  const { closeDrawer, setShowLoader, fetchAllProjects, projectToEdit } = props;
+  console.log(projectToEdit)
   const [plants, setPlants] = React.useState([]);
   const [teams, setTeams] = React.useState([]);
   const user = JSON.parse(storageService.get('user'));

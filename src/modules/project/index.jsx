@@ -16,6 +16,7 @@ export default function Home() {
   const [open, setOpenDrawer] = React.useState(false);
   const [showLoader, setShowLoader] = React.useState(false);
   const [projects, setProjects] = React.useState([]);
+  const [projectEditIndex, setProjectEditIndex] = React.useState(null);
   const [projectForDelete, setProjectForDelete] = React.useState(null);
 
   const fetchAllProjects = async () => {
@@ -61,11 +62,17 @@ export default function Home() {
 
   const closeDrawer = () => {
     setOpenDrawer(false);
+    setProjectEditIndex(null);
   };
 
   const openDrawer = () => {
     setOpenDrawer(true);
   };
+
+  const handleProjectEdit = (index) => {
+    setProjectEditIndex(index);
+    openDrawer();
+  }
 
   return (
     <>
@@ -102,11 +109,13 @@ export default function Home() {
 
       <div className="flex flex-wrap gap-6 p-10">
         <Project.Create onClick={openDrawer} />
-        {projects.map((project) => (
+        {projects.map((project,i) => (
           <Project.Card
             key={project.id}
             project={project}
             setProjectForDelete={setProjectForDelete}
+            handleEdit={handleProjectEdit}
+            editIndex={i}
           />
         ))}
       </div>
@@ -114,7 +123,7 @@ export default function Home() {
       {open && <Drawer
         isOpen={open}
         handleClose={closeDrawer}
-        title={'Create a new project'}
+        title={(projectEditIndex != null) ? 'Edit Project ' : 'Create a new project'}
         footer={
           <div className="flex  items-end justify-end gap-4 ">
             <Button
@@ -142,6 +151,7 @@ export default function Home() {
           closeDrawer={closeDrawer}
           setShowLoader={setShowLoader}
           fetchAllProjects={fetchAllProjects}
+          projectToEdit={projects[projectEditIndex]}
         />
         {showLoader && <ProjectCreateLoader />}
       </Drawer>}
