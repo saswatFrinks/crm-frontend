@@ -58,9 +58,11 @@ export default function Variants() {
           {variants.map((variant, i) => (
             <Variant.Card
               key={variant.id}
+              id={variant.id}
               to={`variant/${variant.id}`}
               title={variant.name}
               state={{...location.state, variantName: variant.name}}
+              fetchAllVariants={fetchAllVariants}
             />
           ))}
         </div>

@@ -141,7 +141,7 @@ export default function Home() {
               className="min-w-[150px]"
               onClick={() => ref.current?.submitForm()}
             >
-              Create Project
+              {`${projectEditIndex != null ? 'Save' : 'Create'} Project`}
             </Button>
           </div>
         }

@@ -66,6 +66,7 @@ export default function Radio(props) {
         type="radio"
         hidden
         className="justify-center"
+        disabled={disabled}
       />
     </label>
   );
