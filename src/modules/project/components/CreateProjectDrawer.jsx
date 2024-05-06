@@ -490,7 +490,7 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
               id="assemblyInspection"
               value="assemblyInspection"
               name="objectives"
-              checked={formik.values.objectives.includes('assemblyInspection') || assemblyClasses.length > 0}
+              checked={formik.values.objectives.includes('assemblyInspection')}
               onChange={() => handleCheckboxChange('assemblyInspection')}
               htmlFor="assemblyInspection"
             />
@@ -503,7 +503,7 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
               id="cosmeticInspection"
               value="cosmeticInspection"
               name="objectives"
-              checked={formik.values.objectives.includes('cosmeticInspection') || cosmeticClasses.length > 0}
+              checked={formik.values.objectives.includes('cosmeticInspection')}
               onChange={() => handleCheckboxChange('cosmeticInspection')}
               htmlFor="cosmeticInspection"
             />
