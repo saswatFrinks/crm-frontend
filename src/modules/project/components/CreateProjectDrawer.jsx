@@ -285,7 +285,7 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
   };
 
   const handleCheckboxChange = (value) => {
-    console.log('formik', formik.values.objectives)
+    if(getAutofilledObjectives(value).length > 0)return;
     if (formik.values.objectives.includes(value)) {
       formik.setValues({
         ...formik.values,
@@ -518,7 +518,7 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
               name="objectives"
               checked={formik.values.objectives.includes(
                 'dimensioningInspection'
-              ) || dimensionClasses.length > 0}
+              )}
               onChange={() => handleCheckboxChange('dimensioningInspection')}
               htmlFor="dimensioningInspection"
             />
