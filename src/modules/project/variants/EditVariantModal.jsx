@@ -6,16 +6,14 @@ import Label from '@/shared/ui/Label';
 import { ModalBody, ModalFooter, ModalHeader } from '@/shared/ui/Modal';
 import { useFormik } from 'formik';
 import toast from 'react-hot-toast';
-import { useParams } from 'react-router-dom';
 import { useSetRecoilState } from 'recoil';
 
-export default function AddVariantModal({ fetchAllVariants }) {
+export default function EditVariantModal({ fetchAllVariants, editVariant }) {
   const setOpenModal = useSetRecoilState(modalAtom);
-  const params = useParams();
 
   const addVariants = async (values) => {
-    await axiosInstance.post('/variant/', {
-      projectId: params.projectId,
+    await axiosInstance.put('/variant/edit', {
+      variantId: editVariant.id,
       name: values.name,
     });
     fetchAllVariants();
@@ -23,7 +21,7 @@ export default function AddVariantModal({ fetchAllVariants }) {
 
   const formik = useFormik({
     initialValues: {
-      name: '',
+      name: editVariant.name,
     },
     validate: (values) => {
       const errors = {};
@@ -47,7 +45,7 @@ export default function AddVariantModal({ fetchAllVariants }) {
 
   return (
     <>
-      <ModalHeader>Add a new product variant</ModalHeader>
+      <ModalHeader>Edit product variant</ModalHeader>
       <ModalBody>
         <div className="mb-4">
           <Label>Variant Name</Label>

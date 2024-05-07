@@ -9,7 +9,9 @@ export default function Modal({ children }) {
 
   const ref = React.useRef(null);
 
-  useClickOutSide(ref, () => setOpenModal(false));
+  // useClickOutSide(ref, () => {
+  //   setOpenModal(false);
+  // });
 
   if (!open) return null;
 
