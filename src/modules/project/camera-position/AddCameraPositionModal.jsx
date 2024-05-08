@@ -17,7 +17,7 @@ export default function AddCameraPositionModal({fetchAllCameraPosition, editPosi
     if(editPosition){
       await axiosInstance.put('/capturePosition/edit', {
         name: values.name,
-        cameraPositionId: editPosition.id
+        id: editPosition.id
       });
     } else {
       await axiosInstance.post('/capturePosition', {
@@ -59,7 +59,7 @@ export default function AddCameraPositionModal({fetchAllCameraPosition, editPosi
         <div className="mb-4">
           <Label>Camera position name</Label>
           <Input
-            placeholder="Enter the variant name"
+            placeholder="Enter the camera position name"
             type="name"
             name="name"
             onChange={formik.handleChange}

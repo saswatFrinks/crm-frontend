@@ -3,19 +3,18 @@ import logo from '@/assets/logo.svg';
 import Label from '@/shared/ui/Label';
 import Input from '@/shared/ui/Input';
 import Button from '@/shared/ui/Button';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import FPhoneInput from '@/shared/ui/PhoneInput';
 import authService from '../auth.service';
 import toast, { Toaster } from 'react-hot-toast';
 import { useFormik } from 'formik';
 import { formatPhoneNumber } from 'react-phone-number-input';
+import Modal from '@/shared/ui/Modal';
+import SignUpSuccess from './SignUpSuccess';
 import { useSetRecoilState } from 'recoil';
 import { modalAtom } from '@/shared/states/modal.state';
-import Modal from '@/shared/ui/Modal';
-import EmailRedirectModal from './EmailRedirectModal';
 
 export default function Register() {
-  const navigate = useNavigate();
 
   const [phone, setPhone] = React.useState(undefined);
   const setOpen = useSetRecoilState(modalAtom);
@@ -73,8 +72,8 @@ export default function Register() {
           number = number.slice(1);
         }
         await authService.create({ ...value, phone: number });
-        toast.success('Register successfully!');
-        navigate('/login');
+        toast.success('Registered successfully!');
+        setOpen(true);
       } catch (error) {
         console.log(error);
         toast.error(error.response.data.data.details);
@@ -102,7 +101,7 @@ export default function Register() {
     <div className="flex h-screen flex-col items-center justify-center">
       <Toaster position='top-center'/>
       <Modal>
-        <EmailRedirectModal />
+        <SignUpSuccess />
       </Modal>
       <img src={logo} alt="logo" className="mb-8" />
 
@@ -200,11 +199,7 @@ export default function Register() {
           </Link>
 
           <div className=" min-w-[180px] place-self-start ">
-            <Button type="submit" onClick={(e) => {
-              formik.handleSubmit()
-              // e.preventDefault();
-              // setOpen(true)
-            }}>
+            <Button type="submit" onClick={formik.handleSubmit}>
               Sign up
             </Button>
           </div>

@@ -161,11 +161,6 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
         return errors;
       }
 
-      if (values.cameraCount <= 0) {
-        errors.inspectionSpeed = 'Number of camera must be greater than 0';
-        return errors;
-      }
-
       if (!values.isCameraFixed) {
         errors.camera = 'Camera mount is mandatory';
         return errors;
@@ -183,6 +178,11 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
 
       if(!values.inspectionType){
         errors.inspectionType = 'Inspection Type is required';
+        return errors;
+      }
+
+      if (values.cameraCount <= 0) {
+        errors.cameraCount = 'Number of camera must be greater than 0';
         return errors;
       }
 
@@ -357,7 +357,7 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
           value={formik.values.description}
-          errorMessage={formik.errors.name}
+          errorMessage={formik.errors.description}
         />
       </div>
       <div>
@@ -372,6 +372,9 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
           value={formik.values.inspectionSpeed}
           errorMessage={formik.errors.inspectionSpeed}
           disabled={!!projectToEdit}
+          onKeyDown = {(e) => {
+            if(e.key === '.')e.preventDefault();
+          }}
         />
       </div>
 
@@ -387,6 +390,9 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
           value={formik.values.cameraCount}
           errorMessage={formik.errors.cameraCount}
           disabled={!!projectToEdit}
+          onKeyDown = {(e) => {
+            if(e.key === '.')e.preventDefault();
+          }}
         />
       </div>
 
@@ -420,8 +426,8 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
             </Label>
           </div>
         </div>
-        {formik.errors.camera ? (
-          <p className="text-xs text-red-500">{formik.errors.camera}</p>
+        {formik.errors.isCameraFixed ? (
+          <p className="text-xs text-red-500">{formik.errors.isCameraFixed}</p>
         ) : null}
       </div>
 
@@ -455,8 +461,8 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
             </Label>
           </div>
         </div>
-        {formik.errors.item ? (
-          <p className="text-xs text-red-500">{formik.errors.item}</p>
+        {formik.errors.isItemFixed ? (
+          <p className="text-xs text-red-500">{formik.errors.isItemFixed}</p>
         ) : null}
       </div>
 

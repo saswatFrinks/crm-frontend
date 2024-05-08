@@ -197,6 +197,18 @@ export default function InspectionParameterStep(props) {
     }));
   };
 
+  const checkIsObjectChecked = () => {
+    let flag = false;
+    configuration.rois.forEach((roi) => {
+      roi.parts.forEach((obj) => {
+        if (obj.checked) {
+          flag = true;
+        }
+      });
+    });
+    return flag;
+  }
+
 
   const renderAssemblyHeading = () => {
     if (type == ASSEMBLY_CONFIG.MOVING) {
@@ -303,17 +315,19 @@ export default function InspectionParameterStep(props) {
     return (
       <div className="mb-4">
         <div className="mb-4 flex justify-end gap-4">
-          <Button
-            size="tiny"
-            variant="border"
-            color="danger"
-            fullWidth={false}
-            onClick={openDeleteRoiModal}
-          >
-            <div className="flex items-center justify-center gap-2">
-              <Trash size={18} /> Delete ROI
-            </div>
-          </Button>
+          {configuration.rois.some((t) => t.checked) && (
+            <Button
+              size="tiny"
+              variant="border"
+              color="danger"
+              fullWidth={false}
+              onClick={openDeleteRoiModal}
+            >
+              <div className="flex items-center justify-center gap-2">
+                <Trash size={18} /> Delete ROI
+              </div>
+            </Button>
+          )}
           <Button
             size="tiny"
             variant="border"
@@ -377,16 +391,20 @@ export default function InspectionParameterStep(props) {
                 </Button>
               </div>
               <div className="flex w-[320px] items-center gap-4">
-                <Button
-                  size="tiny"
-                  variant="border"
-                  color="danger"
-                  onClick={openDeleteModal}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    <Trash size={18} /> Delete object
-                  </div>
-                </Button>
+                {
+                  checkIsObjectChecked() && (
+                    <Button
+                      size="tiny"
+                      variant="border"
+                      color="danger"
+                      onClick={openDeleteModal}
+                    >
+                      <div className="flex items-center justify-center gap-2">
+                        <Trash size={18} /> Delete object
+                      </div>
+                    </Button>
+                  )
+                }
                 <Button
                   size="tiny"
                   variant="border"
