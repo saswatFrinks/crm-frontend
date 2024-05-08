@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useRecoilState, useRecoilValue } from 'recoil';
 
 import { ChevronLeft, ChevronRight } from 'react-feather';
@@ -42,6 +42,18 @@ export default function ImageList() {
     );
     setSelectedFile(images.find((_, i) => i == currentIndex));
   };
+
+  const sortImages = () => {
+    const masterImages = images.filter(img => img.type === 'master');
+    const goodImages = images.filter(img => img.type === 'good');
+    const badImages = images.filter(img => img.type === 'bad');
+
+    setImages([...masterImages, ...goodImages, ...badImages]);
+  }
+
+  useEffect(() => {
+    sortImages();
+  }, [])
 
   return (
     <div className="absolute bottom-0 right-0 z-50 flex w-full items-center gap-4 border-b-[1px] border-t-[1px] bg-white p-2">

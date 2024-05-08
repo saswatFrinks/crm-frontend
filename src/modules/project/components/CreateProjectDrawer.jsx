@@ -11,19 +11,23 @@ import { getOrganizationId } from '@/util/util';
 import storageService from '@/core/storage';
 import { v4 as uuidv4 } from 'uuid';
 import AutofilledDisabledInput from '@/shared/ui/AutofilledDisabledInput';
+import toast, { Toaster } from 'react-hot-toast';
 
 const CreateProjectDrawer = React.forwardRef((props, ref) => {
   const { closeDrawer, setShowLoader, fetchAllProjects, projectToEdit } = props;
   console.log(projectToEdit)
   const [plants, setPlants] = React.useState([]);
   const [teams, setTeams] = React.useState([]);
-  const [selectedTeamName, setSelectedTeamName] = React.useState('');
-  const [selectedPlantName, setSelectedPlantName] = React.useState('');
   const [variants, setVariants] = React.useState([]);
   const [assemblyClasses, setAssemblyClasses] = React.useState([]);
   const [cosmeticClasses, setCosmeticClasses] = React.useState([]);
   const [dimensionClasses, setDimensionClasses] = React.useState([]);
   const user = JSON.parse(storageService.get('user'));
+  const inspectionTypes = [
+    {id: '0', name: 'Fast'},
+    {id: '1', name: 'Balanced'},
+    {id: '2', name: 'Accurate'}
+  ]
 
   const fetchAllVariants = async () => {
     if(!projectToEdit)return;
@@ -76,9 +80,6 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
       },
     });
     const plantsFetched = res.data.data;
-    if(projectToEdit){
-      setSelectedPlantName(plantsFetched.filter(plant => plant.id === projectToEdit?.plantId)[0].name);
-    }
 
     setPlants(plantsFetched);
   };
@@ -90,9 +91,6 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
       },
     });
     const teamsFetched = res.data.data;
-    if(projectToEdit){
-      setSelectedTeamName(teamsFetched.filter(team => team.id === projectToEdit?.teamId)[0].name);
-    }
 
     setTeams(teamsFetched);
   };
@@ -138,8 +136,10 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
       name: projectToEdit?.name || '',
       description: projectToEdit?.description || '',
       inspectionSpeed: projectToEdit?.inspectionSpeed || 10,
+      cameraCount: projectToEdit?.cameraCount || 5,
       isCameraFixed: projectToEdit ? (projectToEdit?.isCameraFixed ? "fixed" : "robo") : false,
       isItemFixed: projectToEdit ? (projectToEdit?.isItemFixed ? "stationary" : "moving") : false,
+      inspectionType: projectToEdit ? projectToEdit.inspectionType : '',
       plantId: user?.plantId,
       teamId: user?.teamId,
       objectives: [],
@@ -161,6 +161,11 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
         return errors;
       }
 
+      if (values.cameraCount <= 0) {
+        errors.inspectionSpeed = 'Number of camera must be greater than 0';
+        return errors;
+      }
+
       if (!values.isCameraFixed) {
         errors.camera = 'Camera mount is mandatory';
         return errors;
@@ -173,6 +178,11 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
 
       if (values.variants.length <= 1 && !variants.length) {
         errors.variants = 'One variant is required';
+        return errors;
+      }
+
+      if(!values.inspectionType){
+        errors.inspectionType = 'Inspection Type is required';
         return errors;
       }
 
@@ -220,23 +230,29 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
     onSubmit: async (values) => {
       setShowLoader(true);
       let projectJson = createProjectJSON(values);
-      if(projectToEdit){
-        projectJson = {
-          projectId: projectToEdit.id,
-          classes: projectJson.classes,
-          variants: projectJson.variants,
-          name: projectJson.name,
-          description: projectJson.description
+      try {
+        if(projectToEdit){
+          projectJson = {
+            projectId: projectToEdit.id,
+            classes: projectJson.classes,
+            variants: projectJson.variants,
+            name: projectJson.name,
+            description: projectJson.description
+          }
+          await axiosInstance.put('/project/edit', projectJson);
+        }else{
+          await axiosInstance.post('/project/create', projectJson);
         }
-        await axiosInstance.put('/project/edit', projectJson);
-      }else{
-        await axiosInstance.post('/project/create', projectJson);
+        closeDrawer();
+        fetchAllProjects();
+      } catch(error) {
+        toast.error(error.response.data.data.details)
+      } finally {
+        setShowLoader(false);
       }
-      setShowLoader(false);
-      closeDrawer();
-      fetchAllProjects();
     },
   });
+  console.log('formik', formik.values.inspectionType)
 
   const createProjectJSON = (values) => {
     const json = {
@@ -247,6 +263,8 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
       isItemFixed: values.isItemFixed == 'stationary',
       plantId: values.plantId,
       teamId: values.teamId,
+      inspectionType: Number(values.inspectionType),
+      cameraCount: values.cameraCount
     };
 
     json['variants'] = values.variants
@@ -317,6 +335,7 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
 
   return (
     <form onSubmit={formik.handleSubmit} className="flex flex-col gap-4">
+      <Toaster position='top-center'/>
       <div>
         <Label>Project name</Label>
         <Input
@@ -352,6 +371,21 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
           onBlur={formik.handleBlur}
           value={formik.values.inspectionSpeed}
           errorMessage={formik.errors.inspectionSpeed}
+          disabled={!!projectToEdit}
+        />
+      </div>
+
+      <div>
+        <Label>Number of Camera</Label>
+        <Input
+          placeholder="Enter number of camera"
+          type="number"
+          name="cameraCount"
+          min={1}
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
+          value={formik.values.cameraCount}
+          errorMessage={formik.errors.cameraCount}
           disabled={!!projectToEdit}
         />
       </div>
@@ -427,6 +461,31 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
       </div>
 
       <div>
+        <Label>Inspection Requirement</Label>
+        <div className="flex gap-8">
+          {inspectionTypes.map(type => {
+            console.log(type, formik.values.inspectionType, type.id)
+            return <div className="flex gap-2">
+              <Radio
+                id={type.name}
+                name={'inspectionType'}
+                value={type.id}
+                checked={formik.values.inspectionType == type.id}
+                onChange={formik.handleChange}
+                disabled={!!projectToEdit}
+              />{' '}
+              <Label htmlFor={type.name} main={false}>
+                {type.name}
+              </Label>
+            </div>
+          })}
+        </div>
+        {formik.errors.inspectionType ? (
+          <p className="text-xs text-red-500">{formik.errors.inspectionType}</p>
+        ) : null}
+      </div>
+
+      <div>
         <Label>Add variants</Label>
         <div className="flex flex-wrap align-items-center gap-4">
           {
@@ -450,37 +509,33 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
         ) : null}
       </div>
 
-      <div>
-        <Label>Plant</Label>
-        {projectToEdit ? (
-          <AutofilledDisabledInput
-            value={selectedPlantName}
-          />
-        ) : (
-          <Select
-            options={getPlantDropDown()}
-            formik={formik}
-            field="plantId"
-            errorMessage={formik.errors.plantId}
-          />
-        )}
-      </div>
+      {
+        !projectToEdit && (
+          <div>
+            <Label>Plant</Label>
+            <Select
+              options={getPlantDropDown()}
+              formik={formik}
+              field="plantId"
+              errorMessage={formik.errors.plantId}
+            />
+          </div>
+        )
+      }
 
-      <div>
-        <Label>Team</Label>
-        {projectToEdit ? (
-          <AutofilledDisabledInput
-            value={selectedTeamName}
-          />
-        ) : (
-          <Select
-            options={getTeamDropDown()}
-            formik={formik}
-            field="teamId"
-            errorMessage={formik.errors.teamId}
-          />
-        )}
-      </div>
+      {
+        !projectToEdit && (
+          <div>
+            <Label>Team</Label>
+            <Select
+              options={getTeamDropDown()}
+              formik={formik}
+              field="teamId"
+              errorMessage={formik.errors.teamId}
+            />
+          </div>
+        )
+      }
 
       <div>
         <Label>Select Objective</Label>

@@ -98,16 +98,6 @@ export default function Variants() {
             handleOpenModal('add');
           }} />
           {variants.map((variant, i) => (
-            // <Variant.Card
-            //   key={variant.id}
-            //   id={variant.id}
-            //   to={`variant/${variant.id}`}
-            //   title={variant.name}
-            //   deleteFn={()=>{
-            //     deleteVariant(variant.id)
-            //   }}
-            //   state={{...location.state, variantName: variant.name}}
-            // />
             <Link
               to={`variant/${variant.id}`}
               key={variant.id}
@@ -126,7 +116,6 @@ export default function Variants() {
                   editIndex = {i}
                   setId={setId}
                 />
-              {/* <ThreeDots /> */}
               </div>
             </Link>
           ))}

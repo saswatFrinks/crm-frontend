@@ -6,14 +6,19 @@ import Button from '@/shared/ui/Button';
 import { Link, useNavigate } from 'react-router-dom';
 import FPhoneInput from '@/shared/ui/PhoneInput';
 import authService from '../auth.service';
-import toast from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast';
 import { useFormik } from 'formik';
 import { formatPhoneNumber } from 'react-phone-number-input';
+import { useSetRecoilState } from 'recoil';
+import { modalAtom } from '@/shared/states/modal.state';
+import Modal from '@/shared/ui/Modal';
+import EmailRedirectModal from './EmailRedirectModal';
 
 export default function Register() {
   const navigate = useNavigate();
 
   const [phone, setPhone] = React.useState(undefined);
+  const setOpen = useSetRecoilState(modalAtom);
 
   const formik = useFormik({
     initialValues: {
@@ -95,6 +100,10 @@ export default function Register() {
 
   return (
     <div className="flex h-screen flex-col items-center justify-center">
+      <Toaster position='top-center'/>
+      <Modal>
+        <EmailRedirectModal />
+      </Modal>
       <img src={logo} alt="logo" className="mb-8" />
 
       <div className="flex  flex-col gap-6 rounded-lg border-[1px] border-gray-500  bg-white p-6 shadow ">
@@ -191,13 +200,17 @@ export default function Register() {
           </Link>
 
           <div className=" min-w-[180px] place-self-start ">
-            <Button type="submit" onClick={formik.handleSubmit}>
+            <Button type="submit" onClick={(e) => {
+              formik.handleSubmit()
+              // e.preventDefault();
+              // setOpen(true)
+            }}>
               Sign up
             </Button>
           </div>
         </form>
         <p className="text-center">
-          You can latter add more users in Teams & Users Section
+          You can later add more users in Teams & Users Section
         </p>
       </div>
     </div>

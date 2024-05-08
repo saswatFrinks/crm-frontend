@@ -4,7 +4,7 @@ import { ModalBody, ModalFooter, ModalHeader } from '@/shared/ui/Modal';
 import React from 'react';
 import { useSetRecoilState } from 'recoil';
 
-function DeleteModal({ deleteById }) {
+function DeleteModal({ deleteById, title = '' }) {
   const setOpenModal = useSetRecoilState(modalAtom);
 
   return (
@@ -13,7 +13,7 @@ function DeleteModal({ deleteById }) {
 
       <ModalBody>
         <p>
-          The project <span className="font-semibold">#name</span> and
+          The {`${title || 'project'}`} <span className="font-semibold">#name</span> and
           assosiated date will be permanently deleted, do you want to continue?
         </p>
       </ModalBody>

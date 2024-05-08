@@ -9,22 +9,29 @@ import toast from 'react-hot-toast';
 import { useParams } from 'react-router-dom';
 import { useSetRecoilState } from 'recoil';
 
-export default function AddCameraPositionModal({fetchAllCameraPosition}) {
+export default function AddCameraPositionModal({fetchAllCameraPosition, editPosition = null}) {
   const setOpenModal = useSetRecoilState(modalAtom);
   const params = useParams();
 
   const addCapturePostion = async (values) => {
-    await axiosInstance.post('/capturePosition', {
-      name: values.name,
-      variantId: params.variantId,
-    });
+    if(editPosition){
+      await axiosInstance.put('/capturePosition/edit', {
+        name: values.name,
+        cameraPositionId: editPosition.id
+      });
+    } else {
+      await axiosInstance.post('/capturePosition', {
+        name: values.name,
+        variantId: params.variantId,
+      });
+    }
 
     fetchAllCameraPosition();
   };
 
   const formik = useFormik({
     initialValues: {
-      name: '',
+      name: editPosition?.name || '',
     },
     validate: (values) => {
       const errors = {};
