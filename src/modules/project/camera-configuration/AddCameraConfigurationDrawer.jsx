@@ -46,7 +46,7 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
         const data = {
           name: values.name,
           order: values.order,
-          modules: JSON.stringify(modules),
+          modules: modules,
           capturePositionId: params.cameraPositionId
         }
 
