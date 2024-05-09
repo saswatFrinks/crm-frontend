@@ -179,7 +179,12 @@ export default function UploadImageStep() {
                   {
                     images[imageNum] ? (
                       <div className='flex items-center gap-4'>
-                        {images[imageNum]?.fileName}
+                        <a 
+                          href={`${import.meta.env.VITE_BASE_API_URL}/configurationImage/view?imageId=${images[imageNum].id}`} 
+                          target='_blank'
+                        >
+                          {images[imageNum]?.fileName}
+                        </a>
                         {
                           imageLoader[imageNum] ? (
                             <div>Deleting...</div>
