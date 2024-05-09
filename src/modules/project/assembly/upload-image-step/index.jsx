@@ -12,11 +12,11 @@ export default function UploadImageStep() {
   const [images, setImages] = useRecoilState(uploadedFileListAtom);
   const configurationId = useParams().configurationId;
   
-  const [imagesWithTypes, setImagesWithTypes] = React.useState({
+  const imagesWithTypes = {
     master: Array.from({ length: 1 }, () => ({ image: null })),
     good: Array.from({ length: 4 }, () => ({ image: null })),
     bad: Array.from({ length: 5 }, () => ({ image: null }))
-  });
+  };
   const [imageLoader, setImageLoader] = React.useState(
     Array.from({length: 10}, () => false)
   );
@@ -120,14 +120,7 @@ export default function UploadImageStep() {
   const handleChangeFile = (e, type, index, typeIndex) => {
     const fileList = e.target.files;
     const imageNum = getImageNumber(index, typeIndex, type);
-    
-    setSelectedFiles(prev => {
-      const temp = [...prev];
-      temp[imageNum] = fileList[0];
-      console.log("selectedFiles:",temp)
-      return temp;
-    });
-  
+
     const files = Array.from(fileList);
     const allFilesArePNG = files.every((file) => file.type === 'image/png');
   
@@ -135,24 +128,13 @@ export default function UploadImageStep() {
       toast.error('Please select only PNG images');
       return;
     }
-  
-    const imageToAdd = files.map((file) => ({
-      id: uuidv4(),
-      fileName: file.name,
-      url: URL.createObjectURL(file),
-      checked: false,
-      type,
-      number: imageNum
-    }))[0];
-    const createDeepCopy = (obj) => {
-      return Array.isArray(obj)
-        ? obj.map(item => ({ ...item }))
-        : { ...obj };
-    };
-    const oldImagesWithTypes = createDeepCopy(imagesWithTypes);
-    oldImagesWithTypes[type][typeIndex].image = imageToAdd;
-    console.log({oldImagesWithTypes})
-    setImagesWithTypes(oldImagesWithTypes);
+    
+    setSelectedFiles(prev => {
+      const temp = [...prev];
+      temp[imageNum] = fileList[0];
+      console.log("selectedFiles:",temp)
+      return temp;
+    });
   };
 
   const uploadImage = async (type, index, typeIndex) => {
@@ -200,7 +182,7 @@ export default function UploadImageStep() {
                         {images[imageNum]?.fileName}
                         {
                           imageLoader[imageNum] ? (
-                            <div>Loading...</div>
+                            <div>Deleting...</div>
                           ) : (
                             <label onClick={() => {removeImage(imageNum)}}>
                               <X />
