@@ -22,7 +22,7 @@ export default function Configuration() {
   const [classes, setClasses] = useState([]);
   const [rois, setRois] = useState([]);
   const setConfiguration = useSetRecoilState(configurationAtom);
-  const setClassAtom = useSetRecoilState(classAtom)
+  const setClassAtom = useSetRecoilState(classAtom);
 
   const fetchAllRois = async () => {
     const res = await axiosInstance.get('/model/required', {
@@ -30,7 +30,10 @@ export default function Configuration() {
         projectId: params.projectId,
       },
     });
-    setRois(res.data.data.detection);
+    const roiArr = res.data.data.detection.map((obj) => {
+      return { ...obj, check: false };
+    });
+    setRois(roiArr);
   };
 
   const fetchAllClasses = async () => {
@@ -58,6 +61,20 @@ export default function Configuration() {
     }
   };
 
+  const handleROICheckbox = (roiId) => {
+    const selectedRoi = rois.filter((roiObj) => roiObj.roi.id === roiId);
+    console.log('selectedRoi:', selectedRoi[0], roiId);
+    if (selectedRoi[0].check) {
+      selectedRoi[0].classes.map((className) => {
+        handleDeSelect(className);
+      });
+    } else {
+      selectedRoi[0].classes.map((className) => {
+        handleSelect(className);
+      });
+    }
+  };
+
   const handleDeSelect = (frontEle) => {
     const [newRois, newClasses] = getRoisAndClasses(
       frontEle,
@@ -65,10 +82,11 @@ export default function Configuration() {
       classes,
       false
     );
+    console.log('deselecting:', frontEle, newRois, newClasses);
     setClasses(newClasses);
     setClassAtom(newClasses);
     setRois(newRois);
-    setConfiguration(newRois);
+    setConfiguration([...newRois]);
   };
 
   const handleSelect = (frontEle) => {
@@ -78,10 +96,11 @@ export default function Configuration() {
       classes,
       true
     );
-    setClasses(newClasses);
-    setClassAtom(newClasses);
-    setRois(newRois);
-    setConfiguration(newRois);
+    console.log('selecting:', frontEle, newRois, newClasses);
+    setClasses([...newClasses]);
+    setClassAtom([...newClasses]);
+    setRois([...newRois]);
+    setConfiguration([...newRois]);
   };
 
   React.useEffect(() => {
@@ -105,14 +124,21 @@ export default function Configuration() {
         <div className="flex gap-4">
           {classes.map((classObj) => {
             return (
-              <div className="flex gap-2"key={classObj.id} >
+              <div
+                className="flex gap-2"
+                key={classObj.id}
+                onClick={() => {
+                  console.log('here');
+                  handleCheckbox(classObj.id);
+                }}
+              >
                 <Checkbox
                   id={classObj.id}
                   value="class1"
                   name={classObj.name}
                   htmlFor="class1"
                   checked={classObj.check}
-                  onChange={() => handleCheckbox(classObj.id)}
+                  onChange={() => {}}
                 />
                 <Label htmlFor="class1" main={false}>
                   {classObj.name}
@@ -130,7 +156,11 @@ export default function Configuration() {
             <thead className="bg-white text-sm uppercase text-gray-700 ">
               <tr>
                 {columns.map((t) => (
-                  <th scope="col" className="px-6 py-3" key={t}>
+                  <th
+                    scope="col"
+                    className="whitespace-nowrap px-6 py-3"
+                    key={t}
+                  >
                     {t}
                   </th>
                 ))}
@@ -147,37 +177,30 @@ export default function Configuration() {
                       scope="row"
                       className="whitespace-nowrap px-6 py-4 font-medium text-gray-900 "
                     >
-                      {/* <Checkbox
-                        id={roi.id}
-                        value="class1"
-                        name="ssss"
-                        htmlFor="class1"
-                        checked={true}
-                        onChange={() => handleCheckbox(classObj.id)}
-                      />
-                      {roi.variantName} */}
                       <div className="flex gap-2">
                         <Checkbox
-                          id={roi.id}
-                          value="class1"
-                          name="asda"
-                          htmlFor="class1"
+                          id={roi.roi.id}
                           checked={roi.check}
-                          // onChange={() => handleCheckbox(classObj.id)}
+                          onChange={() => {}}
+                          onClick={() => {
+                            handleROICheckbox(roi.roi.id);
+                          }}
                         />
                         <Label htmlFor="class1" main={false}>
-                          {'asda'}
+                          {roi.variant.name}
                         </Label>
                       </div>
                     </th>
-                    <td className="px-6 py-4">{roi.capturePositionName}</td>
-                    <td className="px-6 py-4">{roi.cameraConfig}</td>
-                    <td className="px-6 py-4">{roi.roi}</td>
+                    <td className="px-6 py-4">{roi.capturePosition.name}</td>
+                    <td className="px-6 py-4">{roi.cameraConfig.name}</td>
+                    <td className="px-6 py-4">{roi.roi.name}</td>
                     {/* <td className={`px-6 py-4 ${statusObj['success']}`}>-</td> */}
                     <td className="flex flex-wrap gap-2 px-6 py-4">
-                      {roi.classNames.map((className, index) => {
+                      {roi.classes.map((className, index) => {
                         return (
-                          <Chip key={className} color={`color-${index + 1}`}>{className}</Chip>
+                          <Chip key={className} color={`color-${index + 1}`}>
+                            {className}
+                          </Chip>
                         );
                       })}
                     </td>
