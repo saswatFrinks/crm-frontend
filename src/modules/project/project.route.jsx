@@ -46,7 +46,7 @@ export const projectRouter = {
           element: <ProjectConfiguration />,
         },
         {
-          path: 'assembly',
+          path: 'assembly/:configurationId',
           element: <Assembly />,
         },
       ],

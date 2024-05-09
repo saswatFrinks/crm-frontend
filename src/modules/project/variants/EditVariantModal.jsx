@@ -6,46 +6,37 @@ import Label from '@/shared/ui/Label';
 import { ModalBody, ModalFooter, ModalHeader } from '@/shared/ui/Modal';
 import { useFormik } from 'formik';
 import toast from 'react-hot-toast';
-import { useParams } from 'react-router-dom';
 import { useSetRecoilState } from 'recoil';
 
-export default function AddCameraPositionModal({fetchAllCameraPosition, editPosition = null}) {
+export default function EditVariantModal({ fetchAllVariants, editVariant }) {
   const setOpenModal = useSetRecoilState(modalAtom);
-  const params = useParams();
 
-  const addCapturePostion = async (values) => {
-    if(editPosition){
-      await axiosInstance.put('/capturePosition/edit', {
-        name: values.name,
-        id: editPosition.id
-      });
-    } else {
-      await axiosInstance.post('/capturePosition', {
-        name: values.name,
-        variantId: params.variantId,
-      });
-    }
-
-    fetchAllCameraPosition();
+  const addVariants = async (values) => {
+    await axiosInstance.put('/variant/edit', {
+      variantId: editVariant.id,
+      name: values.name,
+    });
+    fetchAllVariants();
   };
 
   const formik = useFormik({
     initialValues: {
-      name: editPosition?.name || '',
+      name: editVariant.name,
     },
     validate: (values) => {
       const errors = {};
 
       // Add your custom validation logic here
       if (!values.name) {
-        errors.name = 'Camara position name is required';
+        errors.name = 'Team name is required';
       }
 
       return errors;
     },
     onSubmit: async (values) => {
       try {
-        addCapturePostion(values);
+        addVariants(values);
+        setOpenModal(false);
       } catch (error) {
         toast.error(error.message);
       }
@@ -54,12 +45,12 @@ export default function AddCameraPositionModal({fetchAllCameraPosition, editPosi
 
   return (
     <>
-      <ModalHeader>Add camera position</ModalHeader>
+      <ModalHeader>Edit product variant</ModalHeader>
       <ModalBody>
         <div className="mb-4">
-          <Label>Camera position name</Label>
+          <Label>Variant Name</Label>
           <Input
-            placeholder="Enter the camera position name"
+            placeholder="Enter the variant name"
             type="name"
             name="name"
             onChange={formik.handleChange}
@@ -79,14 +70,7 @@ export default function AddCameraPositionModal({fetchAllCameraPosition, editPosi
           >
             Cancel
           </Button>
-          <Button
-            size="xs"
-            fullWidth={true}
-            onClick={() => {
-              formik.handleSubmit();
-              setOpenModal(false);
-            }}
-          >
+          <Button size="xs" fullWidth={true} onClick={formik.handleSubmit}>
             Confirm
           </Button>
         </div>

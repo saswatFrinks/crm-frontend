@@ -11,6 +11,9 @@ import { getOrganizationId } from '@/util/util';
 
 const CreateUserDrawer = React.forwardRef((props, ref) => {
   const { closeDrawer, fetchAllUsers } = props;
+  const userToEdit = props?.userToEdit;
+  const defaultPlantId = userToEdit?.plantId
+  const defaultTeamId = userToEdit?.teamId
   const [phone, setPhone] = React.useState(undefined);
   const [plants, setPlants] = React.useState([]);
   const [teams, setTeams] = React.useState([]);
@@ -41,14 +44,15 @@ const CreateUserDrawer = React.forwardRef((props, ref) => {
 
   const formik = useFormik({
     initialValues: {
-      name: '',
-      email: '',
-      plantId: '',
-      teamId: '',
+      name    : userToEdit?.name || '',
+      email   : userToEdit?.email || '',
+      plantId : userToEdit?.plantId || '',
+      teamId  : userToEdit?.teamId || '',
     },
     validate: (values) => {
       const errors = {};
-
+      console.log('form values', values)
+      if(userToEdit) return
       if (!values.name) {
         errors.name = 'Name is required';
       } else if (!/^[a-zA-Z\s]*$/.test(values.name)) {
@@ -68,7 +72,14 @@ const CreateUserDrawer = React.forwardRef((props, ref) => {
     onSubmit: async (values) => {
       try {
         const userJson = createUserJson(values);
-        await axiosInstance.post('/user/create', userJson);
+        console.log(' submit', userJson)
+        userToEdit ?  
+          await axiosInstance.post('/user/edit', {
+            ...userJson, 
+            id: userToEdit.id,
+            phone 
+          }) : 
+          await axiosInstance.post('/user/create', userJson);
 
         closeDrawer();
         fetchAllUsers();
@@ -116,7 +127,7 @@ const CreateUserDrawer = React.forwardRef((props, ref) => {
     }
 
     if (formik.dirty && phone && number.length !== 10) {
-      return 'Contact  number should be 10 digit number';
+      return 'Contact number should be 10 digit number';
     }
     return null;
   };
@@ -126,6 +137,10 @@ const CreateUserDrawer = React.forwardRef((props, ref) => {
       formik.handleSubmit();
     },
   }));
+
+  React.useEffect(() => {
+    if(userToEdit) setPhone(userToEdit.phone)
+  }, [])
 
   return (
     <div className="flex flex-col gap-4">
@@ -148,9 +163,11 @@ const CreateUserDrawer = React.forwardRef((props, ref) => {
           placeholder="Enter your email"
           type="email"
           name="email"
+          disabled={userToEdit?true:false}
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
           value={formik.values.email}
+          // value={userToEdit?userToEdit.email:formik.values.email}
           errorMessage={formik.errors.email}
         />
       </div>
@@ -159,6 +176,7 @@ const CreateUserDrawer = React.forwardRef((props, ref) => {
         <Label>Phone number</Label>
         <FPhoneInput
           defaultCountry="US"
+          disabled={userToEdit?true:false}
           placeholder="Enter your contact number"
           name="phone"
           onChange={setPhone}
@@ -169,21 +187,21 @@ const CreateUserDrawer = React.forwardRef((props, ref) => {
 
       <div>
         <Label>Plant</Label>
-
         <Select
           options={[{ id: '', name: 'Select' }, ...plants]}
           field="plantId"
           formik={formik}
+          selectedId={defaultPlantId}
         />
       </div>
 
       <div>
         <Label>Team</Label>
-
         <Select
           options={[{ id: '', name: 'Select' }, ...teams]}
           field="teamId"
           formik={formik}
+          selectedId={defaultTeamId}
         />
       </div>
     </div>

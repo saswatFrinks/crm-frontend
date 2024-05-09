@@ -3,17 +3,21 @@ import logo from '@/assets/logo.svg';
 import Label from '@/shared/ui/Label';
 import Input from '@/shared/ui/Input';
 import Button from '@/shared/ui/Button';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import FPhoneInput from '@/shared/ui/PhoneInput';
 import authService from '../auth.service';
-import toast from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast';
 import { useFormik } from 'formik';
 import { formatPhoneNumber } from 'react-phone-number-input';
+import Modal from '@/shared/ui/Modal';
+import SignUpSuccess from './SignUpSuccess';
+import { useSetRecoilState } from 'recoil';
+import { modalAtom } from '@/shared/states/modal.state';
 
 export default function Register() {
-  const navigate = useNavigate();
 
   const [phone, setPhone] = React.useState(undefined);
+  const setOpen = useSetRecoilState(modalAtom);
 
   const formik = useFormik({
     initialValues: {
@@ -68,8 +72,8 @@ export default function Register() {
           number = number.slice(1);
         }
         await authService.create({ ...value, phone: number });
-        toast.success('Register successfully!');
-        navigate('/login');
+        toast.success('Registered successfully!');
+        setOpen(true);
       } catch (error) {
         console.log(error);
         toast.error(error.response.data.data.details);
@@ -95,6 +99,10 @@ export default function Register() {
 
   return (
     <div className="flex h-screen flex-col items-center justify-center">
+      <Toaster position='top-center'/>
+      <Modal>
+        <SignUpSuccess />
+      </Modal>
       <img src={logo} alt="logo" className="mb-8" />
 
       <div className="flex  flex-col gap-6 rounded-lg border-[1px] border-gray-500  bg-white p-6 shadow ">
@@ -197,7 +205,7 @@ export default function Register() {
           </div>
         </form>
         <p className="text-center">
-          You can latter add more users in Teams & Users Section
+          You can later add more users in Teams & Users Section
         </p>
       </div>
     </div>

@@ -14,9 +14,9 @@ import Actions from './components/Actions';
 import {useParams} from 'react-router-dom'
 
 import { editingRectAtom, stepAtom } from './state';
-import { assemblyAtom, currentRoiIdAtom, editingAtom, rectanglesTypeAtom } from '../state';
 import { useEffect, useState } from 'react';
 import axiosInstance from '@/core/request/aixosinstance';
+import { assemblyAtom, currentRoiIdAtom, editingAtom, rectanglesTypeAtom, uploadedFileListAtom } from '../state';
 
 export default function Assembly() {
   const [isEditing, setIsEditing] = useRecoilState(editingAtom);
@@ -46,9 +46,11 @@ export default function Assembly() {
       console.log(error)
     }
   }
+  const [images, setImages] = useRecoilState(uploadedFileListAtom);
 
   const handleNext = () => {
     setStep((t) => {
+      if(images.length !== 10 || (t == 0 && images.some(img => !img)))return 0;
       if (t == 3) return t;
       return t + 1;
     });
@@ -123,10 +125,14 @@ export default function Assembly() {
               <Button size="xs" variant="border">
                 Cancel
               </Button>
-              <Button size="xs" variant="flat" onClick={handlePrev}>
-                Back
-              </Button>
-              <Button size="xs" onClick={handleNext}>
+              {
+                step > 0 && (
+                  <Button size="xs" variant="flat" onClick={handlePrev}>
+                    Back
+                  </Button>
+                )
+              }
+              <Button size="xs" disabled = {images.length !== 10 || (step == 0 && images.some(img => !img))} onClick={handleNext}>
                 Next
               </Button>
             </div>

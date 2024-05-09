@@ -5,6 +5,7 @@ import InputFile from '@/shared/ui/InputFile';
 import Label from '@/shared/ui/Label';
 import { useFormik } from 'formik';
 import React from 'react';
+import toast, { Toaster } from 'react-hot-toast';
 import { useParams } from 'react-router-dom';
 
 const objectivesModulesMapping = {
@@ -21,7 +22,7 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
   const formik = useFormik({
     initialValues: {
       name: '',
-      file: null,
+      order: null,
       objectives: [],
     },
     validate: (values) => {
@@ -36,23 +37,25 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
     },
     onSubmit: async (values) => {
       // change to form data
-      const data = new FormData();
+      try {
+        const modules = []
 
-      data.append('name', values.name);
-      const modules = []
+        values.objectives.forEach((t) => {
+          modules.push(objectivesModulesMapping[t])
+        });
+        const data = {
+          name: values.name,
+          order: values.order,
+          modules: modules,
+          capturePositionId: params.cameraPositionId
+        }
 
-      values.objectives.forEach((t) => {
-        modules.push(objectivesModulesMapping[t])
-      });
-
-
-      data.append('file', values.file);
-      data.append('modules', JSON.stringify(modules));
-      data.append('capturePositionId', params.cameraPositionId)
-
-      await axiosInstance.post('/cameraConfig/setup', data)
-      fetchAllCameraConfigs()
-      closeDrawer()
+        await axiosInstance.post('/cameraConfig/setup', data)
+        fetchAllCameraConfigs()
+        closeDrawer()
+      } catch (err) {
+        toast.error(err.response.data.data.details);
+      }
     },
   });
 
@@ -78,6 +81,7 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
 
   return (
     <div className="flex flex-col gap-4">
+      <Toaster position='top-center'/>
       <div>
         <Label>Camera configuration name</Label>
         <Input
@@ -91,14 +95,15 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
         />
       </div>
       <div>
-        <Label htmlFor="file">Camera configuration file</Label>
-        <InputFile
-          ref={inputRef}
-          formik={formik}
-          //onChange={(event) => formik.setFieldValue('file', event.target.files)}
-          // onBlur={formik.handleBlur}
-          // value={formik.values.name}
-          // errorMessage={formik.errors.name}
+        <Label htmlFor="file">Capture Order</Label>
+        <Input
+          placeholder="Enter Capture Order"
+          type="number"
+          name="order"
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
+          value={formik.values.order}
+          errorMessage={formik.errors.order}
         />
       </div>
       <div>

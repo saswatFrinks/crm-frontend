@@ -12,6 +12,8 @@ export default function Action(props) {
     hasReset = false,
     id,
     setId,
+    editIndex,
+    handleEdit,
     deleteImageById = null,
   } = props;
   const [open, setOpen] = React.useState(false);
@@ -39,7 +41,9 @@ export default function Action(props) {
       />
       {open && (
         <ul className={ul({ hasReset })} ref={ref}>
-          <li className="flex cursor-pointer items-center gap-2 p-2 text-xs hover:bg-gray-100">
+          <li className="flex cursor-pointer items-center gap-2 p-2 text-xs hover:bg-gray-100"
+            onClick={() => handleEdit(editIndex)}
+          >
             <FiEdit2 /> Edit
           </li>
           {hasReset && (

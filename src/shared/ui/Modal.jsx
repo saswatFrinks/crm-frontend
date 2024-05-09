@@ -6,10 +6,13 @@ import { modalAtom } from '../states/modal.state';
 
 export default function Modal({ children }) {
   const [open, setOpenModal] = useRecoilState(modalAtom);
+  console.log('open', open)
 
   const ref = React.useRef(null);
 
-  useClickOutSide(ref, () => setOpenModal(false));
+  useClickOutSide(ref, () => {
+    setOpenModal(false);
+  });
 
   if (!open) return null;
 

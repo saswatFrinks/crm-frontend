@@ -4,48 +4,40 @@ import Button from '@/shared/ui/Button';
 import Input from '@/shared/ui/Input';
 import Label from '@/shared/ui/Label';
 import { ModalBody, ModalFooter, ModalHeader } from '@/shared/ui/Modal';
+import { getOrganizationId } from '@/util/util';
 import { useFormik } from 'formik';
 import toast from 'react-hot-toast';
-import { useParams } from 'react-router-dom';
 import { useSetRecoilState } from 'recoil';
 
-export default function AddCameraPositionModal({fetchAllCameraPosition, editPosition = null}) {
+export default function EditPlantModal({ plant, fetchAllPlants }) {
   const setOpenModal = useSetRecoilState(modalAtom);
-  const params = useParams();
-
-  const addCapturePostion = async (values) => {
-    if(editPosition){
-      await axiosInstance.put('/capturePosition/edit', {
-        name: values.name,
-        id: editPosition.id
-      });
-    } else {
-      await axiosInstance.post('/capturePosition', {
-        name: values.name,
-        variantId: params.variantId,
-      });
-    }
-
-    fetchAllCameraPosition();
-  };
-
   const formik = useFormik({
     initialValues: {
-      name: editPosition?.name || '',
+      name: plant.name || '',
+      location: plant.location || '',
     },
     validate: (values) => {
       const errors = {};
 
       // Add your custom validation logic here
       if (!values.name) {
-        errors.name = 'Camara position name is required';
+        errors.name = 'Plant name is required';
+      }
+
+      if (!values.location) {
+        errors.location = 'Plant location is required';
       }
 
       return errors;
     },
     onSubmit: async (values) => {
       try {
-        addCapturePostion(values);
+        await axiosInstance.put('/plant', {
+					plantId: plant.id,
+          name: values.name,
+          location: values.location,
+        });
+        fetchAllPlants();
       } catch (error) {
         toast.error(error.message);
       }
@@ -54,18 +46,30 @@ export default function AddCameraPositionModal({fetchAllCameraPosition, editPosi
 
   return (
     <>
-      <ModalHeader>Add camera position</ModalHeader>
+      <ModalHeader>Edit plant</ModalHeader>
       <ModalBody>
         <div className="mb-4">
-          <Label>Camera position name</Label>
+          <Label>Plant Name</Label>
           <Input
-            placeholder="Enter the camera position name"
+            placeholder="Enter plant name"
             type="name"
             name="name"
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
             value={formik.values.name}
             errorMessage={formik.errors.name}
+          />
+        </div>
+        <div>
+          <Label>Plant Location</Label>
+          <Input
+            placeholder="Enter plant location"
+            type="location"
+            name="location"
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            value={formik.values.location}
+            errorMessage={formik.errors.location}
           />
         </div>
       </ModalBody>
@@ -79,14 +83,10 @@ export default function AddCameraPositionModal({fetchAllCameraPosition, editPosi
           >
             Cancel
           </Button>
-          <Button
-            size="xs"
-            fullWidth={true}
-            onClick={() => {
-              formik.handleSubmit();
-              setOpenModal(false);
-            }}
-          >
+          <Button size="xs" fullWidth={true} onClick={() => {
+            formik.handleSubmit()
+            setOpenModal(false)
+          }}>
             Confirm
           </Button>
         </div>
