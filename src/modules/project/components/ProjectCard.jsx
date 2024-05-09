@@ -11,7 +11,7 @@ import { Link } from 'react-router-dom';
 import PlusFile from '../../../shared/icons/PlusFile';
 import ThreeDots from '../../../shared/icons/File';
 
-function Card({ project, setProjectForDelete }) {
+function Card({ project, setProjectForDelete, handleEdit, editIndex}) {
   const setOpenModal = useSetRecoilState(modalAtom);
 
   const [open, setOpen] = React.useState(false);
@@ -65,10 +65,10 @@ function Card({ project, setProjectForDelete }) {
       <h3 className="mb-2 text-lg font-semibold">{project.name}</h3>
 
       <p className="line-clamp-2 min-h-8 text-[#464A4D] duration-100 group-hover:hidden">
-        Project descciption in one line or two
+        {project?.description}
       </p>
       <div className=" hidden h-8 items-center justify-center gap-4 duration-100 group-hover:flex">
-        <Button size="xs" color="flat">
+        <Button size="xs" color="flat" onClick={() => handleEdit(editIndex)}>
           Edit
         </Button>
         <Button size="xs">

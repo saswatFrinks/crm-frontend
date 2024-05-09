@@ -21,7 +21,8 @@ export default function User() {
   const [action, setAction] = React.useState('delete');
   const [users, setUsers] = React.useState([]);
   const [id, setId] = React.useState('')
-
+  const [editIndex, setEditIndex] = React.useState(null)
+  const [drawerAction, setDrawerAction] = React.useState('');
   const [open, setOpenDrawer] = React.useState(false);
   const fetchAllUsers = async () => {
     const res = await axiosInstance.get('/user/getList', {
@@ -53,6 +54,11 @@ export default function User() {
     setOpenDrawer(false);
   };
 
+  const handleAddUser = () => {
+    setDrawerAction('AddUser');
+    openDrawer();
+  }
+
   const openDrawer = () => {
     setOpenDrawer(true);
   };
@@ -69,6 +75,12 @@ export default function User() {
     setModalState(true);
   };
 
+  const handleEditUser = (index) => {
+    setDrawerAction('EditUser');
+    setEditIndex(index);
+    openDrawer();
+  }
+
   return (
     <>
       <Modal>{renderModalAction()}</Modal>
@@ -76,7 +88,7 @@ export default function User() {
       <div>
         <div className="mb-8 flex items-center justify-between">
           <h1 className="text-2xl font-semibold">Users</h1>
-          <Button fullWidth={false} size="xs" onClick={openDrawer}>
+          <Button fullWidth={false} size="xs" onClick={handleAddUser}>
             <div className="flex items-center gap-2">
               <FaPlus />
               Add user
@@ -98,7 +110,7 @@ export default function User() {
               </tr>
             </thead>
             <tbody>
-              {users.map((user) => {
+              {users.map((user, i) => {
                 return (
                   <tr
                     className="border-b odd:bg-white even:bg-[#C6C4FF]/10  "
@@ -121,7 +133,9 @@ export default function User() {
                         hasReset={true}
                         id={user.id}
                         setId={setId}
+                        editIndex={i}
                         delete={deleteById}
+                        handleEdit={handleEditUser}
                       />
                     </td>
                   </tr>
@@ -132,7 +146,7 @@ export default function User() {
         </div>
       </div>
 
-      <Drawer
+      {drawerAction==='AddUser' && <Drawer
         isOpen={open}
         handleClose={closeDrawer}
         title={'Create a new user'}
@@ -156,8 +170,34 @@ export default function User() {
           </div>
         }
       >
-        <CreateUserDrawer ref={ref} closeDrawer={closeDrawer} fetchAllUsers={fetchAllUsers}/>
-      </Drawer>
+        {open && <CreateUserDrawer ref={ref} closeDrawer={closeDrawer} fetchAllUsers={fetchAllUsers}/>}
+      </Drawer>}
+
+      {drawerAction==='EditUser' && <Drawer
+        isOpen={open}
+        handleClose={closeDrawer}
+        title={'Edit new user'}
+        size="xs"
+        footer={
+          <div className="flex w-2/3 items-end justify-end gap-2 ">
+            <Button size="xs" color="flat" onClick={closeDrawer}>
+              Cancel
+            </Button>
+            <Button
+              size="xs"
+              onClick={() => {
+                ref.current?.submitForm();
+              }}
+            >
+              <div className="flex items-center justify-center gap-2">
+                Finish
+              </div>
+            </Button>
+          </div>
+        }
+      >
+        {open && <CreateUserDrawer ref={ref} closeDrawer={closeDrawer} fetchAllUsers={fetchAllUsers} userToEdit={users[editIndex]}/>}
+      </Drawer>}
     </>
   );
 }

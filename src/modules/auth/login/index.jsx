@@ -4,7 +4,7 @@ import Label from '@/shared/ui/Label';
 import Button from '@/shared/ui/Button';
 import { Link, useNavigate } from 'react-router-dom';
 import authService from '../auth.service';
-import toast from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast';
 import { useFormik } from 'formik';
 import storageService from '@/core/storage';
 import { TOKEN } from '@/core/constants';
@@ -88,6 +88,7 @@ export default function Login() {
 
   return (
     <div className="flex h-screen flex-col items-center justify-center">
+      <Toaster position='top-center' />
       <img src={logo} alt="logo" className="mb-8" />
 
       <form

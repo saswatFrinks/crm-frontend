@@ -22,7 +22,6 @@ import {
 import Crosshair from './Crosshair';
 import useDrawRectangle from '../hooks/useDrawRectangle';
 import Rectangle from './Rectangle';
-import { v4 as uuidv4 } from 'uuid';
 import ImageList from '../label-image-step/ImageList';
 import { editingRectAtom, stepAtom } from '../state';
 import { RECTANGLE_TYPE } from '@/core/constants';
@@ -56,8 +55,6 @@ export default function UploadImage() {
 
   const step = useRecoilValue(stepAtom);
 
-  const [images, setUploadedFileList] = useRecoilState(uploadedFileListAtom);
-
   const selectedFile = useRecoilValue(selectedFileAtom);
 
   // const selectedRectangles = useRecoilValue(
@@ -72,20 +69,6 @@ export default function UploadImage() {
     containerRef,
     image,
   });
-
-
-  const handleChangeFile = (e) => {
-    if (step == 0) {
-      const files = Array.from(e.target.files).map((t) => ({
-        id: uuidv4(),
-        fileName: t.name,
-        url: URL.createObjectURL(t),
-        checked: false,
-      }));
-
-      setUploadedFileList(files);
-    }
-  };
 
   const handleMouseUp = (e) => {
     console.log('up');
@@ -138,6 +121,7 @@ export default function UploadImage() {
     if (selectedFile?.url) {
       setFile(selectedFile?.url);
     }
+    console.log(selectedFile)
   }, [selectedFile?.id, selectedFile]);
 
   return (
@@ -151,9 +135,8 @@ export default function UploadImage() {
       {step == 0 ? (
         <>
           <BigImage />
-          <label className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-f-primary px-20 py-2 text-white duration-100 hover:bg-f-secondary">
-            <Upload /> Upload master image
-            <input type="file" hidden onChange={handleChangeFile} multiple />
+          <label className="px-20 py-2 text-xl">
+            Upload images to get started with the configuration
           </label>
         </>
       ) : null}
@@ -163,7 +146,7 @@ export default function UploadImage() {
       image?.width &&
       !isNaN(scaleFactor) ? (
         <>
-          <ImageList />
+          {/* <ImageList /> */}
 
           <div
             className={`grow overflow-auto ${imageStatus.dragging ? 'cursor-crosshair' : ''}`}

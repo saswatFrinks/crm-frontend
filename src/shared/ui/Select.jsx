@@ -2,6 +2,7 @@ import { tv } from 'tailwind-variants';
 
 export default function Select({ size, placeholder, ...props }) {
   const { options = [], formik, field, errorMessage, value, onChange } = props;
+  const selectedId = props?.selectedId
   const select = tv({
     base: 'block w-full  border text-gray-300 border-gray-300 bg-white  text-sm text-gray-900 focus:border-f-primary focus:ring-f-primary focus-visible:border-f-primary focus-visible:outline-f-primary',
     variants: {
@@ -23,23 +24,28 @@ export default function Select({ size, placeholder, ...props }) {
         }}
       >
         {options.map((t) => (
+          (selectedId && selectedId === t.id) ? 
+          <option key={t.id} value={t.id} selected>
+            {t.name}
+          </option> : 
           <option key={t.id} value={t.id}>
             {t.name}
           </option>
+
         ))}
       </select>: 
       <select
       className={select({ size })}
       value={value}
       onChange={onChange}
-    >
-      <option value={""} disabled selected>{placeholder}</option>
-      {options.map((t) => (
-        <option key={t.id} value={t.id}>
-          {t.name}
-        </option>
-      ))}
-    </select>}
+      >
+        <option value="" disabled selected>{placeholder}</option>
+        {options.map((t) => (
+          <option key={t.id} value={t.id}>
+            {t.name}
+          </option>
+        ))}
+      </select>}
       {errorMessage ? (
         <p className="text-xs text-red-500">{errorMessage}</p>
       ) : null}

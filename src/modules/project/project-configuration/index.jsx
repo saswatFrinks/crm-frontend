@@ -64,8 +64,8 @@ export default function ProjectConfiguration() {
       <div className="p-10">
         <div className="mb-8 flex items-center justify-between">
           <h1 className=" text-2xl font-semibold">Project Configuration</h1>
-          <Button fullWidth={false} size="xs">
-            <Link className="flex items-center gap-2" to={selectedConfiguration.objective.toLowerCase()}>
+          <Button fullWidth={false} size="xs" disabled={selectedConfiguration.id === ""}>
+            <Link className="flex items-center gap-2" to={`${selectedConfiguration.objective.toLowerCase()}/${selectedConfiguration.id}`}>
               <Setting />
               Start Configuration
             </Link>

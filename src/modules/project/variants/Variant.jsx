@@ -1,7 +1,7 @@
 import PlusFile from '@/shared/icons/PlusFile';
 import { CiFileOn } from 'react-icons/ci';
 import { Link } from 'react-router-dom';
-import Action from './Action';
+import Action from '@/modules/team-user/Action';
 
 function Card({ title = 'Variant name', to, state, id, deleteFn, handleOpenModal }) {
   return (

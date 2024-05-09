@@ -31,6 +31,7 @@ export default function InputList(props) {
     const newList = [...list, { value: '', id: uuidv4() }];
     setList(newList);
     formik.setFieldValue(field, newList);
+    console.log(newList)
   };
 
   const remove = (id) => {

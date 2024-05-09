@@ -2,6 +2,8 @@ import Box from '@/shared/icons/Box';
 import Pan from '@/shared/icons/Pan';
 import ZoomIn from '@/shared/icons/ZoomIn';
 import ZoomOut from '@/shared/icons/ZoomOut';
+import FitToCenter from '@/shared/icons/FitToCenter';
+import OneIsToOne from '@/shared/icons/OneIsToOne';
 import Button from '@/shared/ui/Button';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 
@@ -91,6 +93,20 @@ export default function Actions({ cancel, submit }) {
       canAction: true,
     },
     {
+      title: 'Fit To Center',
+      icon: FitToCenter,
+      action: handleDrawBox,
+      active: imageStatus.draw,
+      canAction: isEditing,
+    },
+    {
+      title: 'Fit 1:1',
+      icon: OneIsToOne,
+      action: handleDrawBox,
+      active: imageStatus.draw,
+      canAction: isEditing,
+    },
+    {
       title: 'box',
       icon: Box,
       action: handleDrawBox,
@@ -109,7 +125,7 @@ export default function Actions({ cancel, submit }) {
             onClick={t?.action}
           >
             <t.icon active={t.active} />
-            {t.title}
+            {/* {t.title} */}
           </li>
         ))}
       </ul>
