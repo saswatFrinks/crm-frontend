@@ -14,11 +14,15 @@ export default function AddVariantModal({ fetchAllVariants }) {
   const params = useParams();
 
   const addVariants = async (values) => {
-    await axiosInstance.post('/variant/', {
-      projectId: params.projectId,
-      name: values.name,
-    });
-    fetchAllVariants();
+    try {
+      await axiosInstance.post('/variant/', {
+        projectId: params.projectId,
+        name: values.name,
+      });
+      fetchAllVariants();
+    } catch (error) {
+      toast.error(error.response.data.data.message)
+    }
   };
 
   const formik = useFormik({

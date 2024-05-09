@@ -8,11 +8,18 @@ import Modal from '@/shared/ui/Modal';
 import AddFolderModal from './AddFolderModal';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import axiosInstance from '@/core/request/aixosinstance';
+import { CiFileOn } from 'react-icons/ci';
+import Action from '@/modules/team-user/Action';
+import DeleteModal from '@/modules/team-user/DeleteModal';
+import toast from 'react-hot-toast';
 
 export default function DataSet() {
   const setModalState = useSetRecoilState(modalAtom);
   const params = useParams();
   const [folders, setFolders] = React.useState([]);
+  const [action, setAction] = React.useState('add');
+  const [editIndex, setEditIndex] = React.useState(0);
+  const [id, setId] = React.useState('');
   const location = useLocation();
 
   const fetchAllFolders = async () => {
@@ -25,14 +32,47 @@ export default function DataSet() {
     setFolders(res.data.data);
   };
 
+  const deleteFolder = async () => {
+    try {
+      await axiosInstance.delete('/dataset', {
+        params: {
+          id: id
+        }
+      })
+      fetchAllFolders()
+    } catch (error) {
+      toast.error(error.response.data.data.message)
+    }
+  }
+
   React.useEffect(() => {
     fetchAllFolders();
   }, []);
 
+  const renderModalAction = () => {
+    const obj = {
+      add: <AddFolderModal fetchAllFolders={fetchAllFolders} />,
+      delete: <DeleteModal deleteById={deleteFolder} title={'dataset'}/>,
+      edit: <AddFolderModal editFolder = {folders[editIndex]} fetchAllFolders={fetchAllFolders} />,
+    };
+
+    return obj[action];
+  };
+
+  const handleOpenModal = (type) => {
+    setAction(type);
+    setModalState(true);
+  };
+
+  const handleEdit = (index) => {
+    handleOpenModal('edit')
+    setEditIndex(index)
+  }
+
   return (
     <>
       <Modal>
-        <AddFolderModal fetchAllFolders={fetchAllFolders} />
+        {renderModalAction()}
       </Modal>
 
       <Heading
@@ -82,18 +122,32 @@ export default function DataSet() {
         <h1 className="text-2xl font-semibold">Data Sets</h1>
         <div className="mt-10 flex flex-wrap gap-6">
           <Variant.Create
-            onClick={() => setModalState(true)}
+            onClick={() => handleOpenModal('add')}
             title="Create Folder"
           />
 
-          {folders.map((folder) => {
+          {folders.map((folder, i) => {
             return (
-              <Variant.Card
-                key={folder.id}
-                title={folder.name}
+              <Link
                 to={`folder/${folder.id}`}
+                key={folder.id}
                 state={{...location.state, folderName: folder.name}}
-              />
+                className=" flex basis-80 items-center justify-between rounded-md border border-gray-300/90 bg-white px-10 py-4 shadow-sm"
+              >
+                <div className="inline-flex rounded-md bg-[#E7E7FF]/50 p-2">
+                  <CiFileOn className="h-6 w-6 text-f-primary duration-100 group-hover:h-6 group-hover:w-6" />
+                </div>
+                {folder.name}
+                <div onClick={event=>{event.preventDefault();event.stopPropagation()}}>
+                  <Action
+                    id={folder.id}
+                    handleEdit = {handleEdit}
+                    handleOpenModal = {handleOpenModal}
+                    editIndex = {i}
+                    setId={setId}
+                  />
+                </div>
+              </Link>
             );
           })}
         </div>
