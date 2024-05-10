@@ -119,7 +119,7 @@ export default function AiTrainingLayout() {
         Project
       </Heading>
       <div className="flex h-[calc(100vh-56px)]">
-        {/* <ul className="flex h-full w-56  flex-col gap-2 border-t-[1px] bg-white px-2 py-8 shadow-md">
+        <ul className="flex h-full w-56  flex-col gap-2 border-t-[1px] bg-white px-2 py-8 shadow-md">
           {menus.map((t) => (
             <li key={t.to}>
               <NavLink
@@ -138,7 +138,7 @@ export default function AiTrainingLayout() {
               </NavLink>
             </li>
           ))}
-        </ul> */}
+        </ul>
 
         <div className="flex-1 overflow-y-auto px-10 py-8">
           <Outlet />
