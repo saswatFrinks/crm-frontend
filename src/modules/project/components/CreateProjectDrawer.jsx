@@ -252,7 +252,6 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
       }
     },
   });
-  console.log('formik', formik.values.inspectionType)
 
   const createProjectJSON = (values) => {
     const json = {
@@ -335,7 +334,6 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
 
   return (
     <form onSubmit={formik.handleSubmit} className="flex flex-col gap-4">
-      <Toaster position='top-center'/>
       <div>
         <Label>Project name</Label>
         <Input

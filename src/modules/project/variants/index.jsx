@@ -31,18 +31,22 @@ export default function Variants() {
       })
       fetchAllVariants()
     } catch (error) {
-      console.log(error)
+      toast.error(error.response.data.data.message)
     }
   }
 
   const fetchAllVariants = async () => {
-    const res = await axiosInstance.get('/variant/fetch', {
-      params: {
-        projectId: params.projectId,
-      },
-    });
-
-    setVariants(res.data.data);
+    try {
+      const res = await axiosInstance.get('/variant/fetch', {
+        params: {
+          projectId: params.projectId,
+        },
+      });
+  
+      setVariants(res.data.data);
+    } catch (error) {
+      toast.error(error.response.data.data.message)
+    }
   };
 
   const renderModalAction = () => {

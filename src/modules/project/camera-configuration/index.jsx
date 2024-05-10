@@ -9,20 +9,34 @@ import Button from '@/shared/ui/Button';
 import AddCameraConfigurationDrawer from './AddCameraConfigurationDrawer';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import axiosInstance from '@/core/request/aixosinstance';
+import { CiFileOn } from 'react-icons/ci';
+import Action from '@/modules/team-user/Action';
+import toast from 'react-hot-toast';
+import Modal from '@/shared/ui/Modal';
+import DeleteModal from '@/modules/team-user/DeleteModal';
 
 export default function CameraConfiguration() {
   const [open, setOpenDrawer] = React.useState(false);
   const params = useParams();
   const [cameraConfigs, setCameraConfigs] = React.useState([]);
+  const [editIndex, setEditIndex] = React.useState(null);
+  const [editConfig, setEditConfig] = React.useState(null);
+  const [id, setId] = React.useState('');
   const location = useLocation();
 
+  const setModalState = useSetRecoilState(modalAtom);
+
   const fetchAllCameraConfigs = async () => {
-    const res = await axiosInstance.get('/cameraConfig/fetch', {
-      params: {
-        capturePositionId: params.cameraPositionId,
-      },
-    });
-    setCameraConfigs(res.data.data);
+    try {
+      const res = await axiosInstance.get('/cameraConfig/fetch', {
+        params: {
+          capturePositionId: params.cameraPositionId,
+        },
+      });
+      setCameraConfigs(res.data.data);
+    } catch (error) {
+      toast.error(error.response.data.data.message)
+    }
   };
 
   React.useEffect(() => {
@@ -31,16 +45,44 @@ export default function CameraConfiguration() {
 
   const ref = React.useRef(null);
 
+  const deleteCameraConfig = async () => {
+    try {
+      await axiosInstance.delete('/cameraConfig', {
+        params: {
+          id: id
+        }
+      })
+      fetchAllCameraConfigs()
+    } catch (error) {
+      toast.error(error.response.data.data.message)
+    }
+  }
+
   const closeDrawer = () => {
     setOpenDrawer(false);
+    setEditIndex(null);
+    setEditConfig(null);
   };
 
   const openDrawer = () => {
     setOpenDrawer(true);
   };
 
+  const handleOpenModal = (type) => {
+    setModalState(true);
+  };
+
+  const handleEdit = (index) => {
+    setEditIndex(index)
+    setEditConfig(cameraConfigs[index]);
+    openDrawer();
+  }
+
   return (
     <>
+      <Modal>
+        <DeleteModal deleteById={deleteCameraConfig} title={'camera configuration'}/>
+      </Modal>
       <Heading
         subcontent={
           <>
@@ -83,14 +125,28 @@ export default function CameraConfiguration() {
             title="Add Camera Configuration"
           />
 
-          {cameraConfigs.map((cameraConfig) => {
+          {cameraConfigs.map((cameraConfig, i) => {
             return (
-              <Variant.Card
-                key={cameraConfig.id}
-                title={cameraConfig.name}
+              <Link
                 to={`camera-config/${cameraConfig.id}`}
+                key={cameraConfig.id}
                 state={{...location.state, cameraConfigName: cameraConfig.name}}
-              />
+                className=" flex basis-80 items-center justify-between rounded-md border border-gray-300/90 bg-white px-10 py-4 shadow-sm"
+              >
+                <div className="inline-flex rounded-md bg-[#E7E7FF]/50 p-2">
+                  <CiFileOn className="h-6 w-6 text-f-primary duration-100 group-hover:h-6 group-hover:w-6" />
+                </div>
+                {cameraConfig.name}
+                <div onClick={event=>{event.preventDefault();event.stopPropagation()}}>
+                  <Action
+                    id={cameraConfig.id}
+                    handleEdit = {handleEdit}
+                    handleOpenModal = {handleOpenModal}
+                    editIndex = {i}
+                    setId={setId}
+                  />
+                </div>
+              </Link>
             );
           })}
         </div>
@@ -123,7 +179,7 @@ export default function CameraConfiguration() {
           </div>
         }
       >
-        <AddCameraConfigurationDrawer ref={ref} closeDrawer={closeDrawer} fetchAllCameraConfigs={fetchAllCameraConfigs}/>
+        <AddCameraConfigurationDrawer editConfig = {editConfig} ref={ref} closeDrawer={closeDrawer} fetchAllCameraConfigs={fetchAllCameraConfigs}/>
       </Drawer>
     </>
   );

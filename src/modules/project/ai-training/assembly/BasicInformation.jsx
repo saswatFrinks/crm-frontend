@@ -31,7 +31,18 @@ export default function BasicInformation() {
             }
           />
         </div>
-
+        <div>
+          <Label required={true}>Model Key</Label>
+          <Input
+            placeholder="Enter model key"
+            type="number"
+            min="0"
+            defaultValue="0"
+            onChange={(e) =>
+              setModelInfo({ ...modelInfo, modelKey: e.target.value })
+            }
+          />
+        </div>
         <div>
           <Label required={true}>Model Description</Label>
           <TextArea

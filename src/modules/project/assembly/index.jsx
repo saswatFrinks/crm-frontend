@@ -17,6 +17,7 @@ import { editingRectAtom, stepAtom } from './state';
 import { useEffect, useState } from 'react';
 import axiosInstance from '@/core/request/aixosinstance';
 import { assemblyAtom, currentRoiIdAtom, editingAtom, rectanglesTypeAtom, uploadedFileListAtom } from '../state';
+import { useNavigate } from 'react-router-dom';
 
 export default function Assembly() {
   const [isEditing, setIsEditing] = useRecoilState(editingAtom);
@@ -48,9 +49,12 @@ export default function Assembly() {
   }
   const [images, setImages] = useRecoilState(uploadedFileListAtom);
 
+  const canGoNext = !(images.length !== 10 || (step == 0 && images.some(img => !img)));
+  const navigate = useNavigate();
+
   const handleNext = () => {
     setStep((t) => {
-      if(images.length !== 10 || (t == 0 && images.some(img => !img)))return 0;
+      if(!canGoNext)return 0;
       if (t == 3) return t;
       return t + 1;
     });
@@ -122,7 +126,7 @@ export default function Assembly() {
 
           <div className=" flex justify-center border-t-[1px] border-gray-400 bg-white">
             <div className="flex max-w-md flex-1 items-center justify-center gap-4">
-              <Button size="xs" variant="border">
+              <Button size="xs" variant="border" onClick = {() => navigate(-1)} >
                 Cancel
               </Button>
               {
@@ -132,9 +136,11 @@ export default function Assembly() {
                   </Button>
                 )
               }
-              <Button size="xs" disabled = {images.length !== 10 || (step == 0 && images.some(img => !img))} onClick={handleNext}>
-                Next
-              </Button>
+              {canGoNext && (
+                <Button size="xs" onClick={handleNext}>
+                  Next
+                </Button>
+              )}
             </div>
           </div>
         </div>

@@ -16,11 +16,12 @@ export default function DataSet() {
   const setDataSet = useSetRecoilState(datasetAtom);
 
   const fetchAllFolders = async () => {
+    console.log('configuration:', configuration);
     const newFolders = await Promise.all(
       configuration.map(async (config) => {
         const res = await axiosInstance.get('/dataset/folders', {
           params: {
-            cameraConfigId: config.cameraConfigId,
+            cameraConfigId: config.cameraConfig.id,
           },
         });
 
@@ -31,10 +32,17 @@ export default function DataSet() {
                 folderId: data.id,
               },
             });
-
+            let flag = true;
+            res.data.data.map((image) => {
+              if (!image.annotated) {
+                flag = false;
+              }
+            });
             return {
+              id: data.id,
               folderName: data.name,
               totalImages: res.data.data.length,
+              annotated: flag,
               check: false,
             };
           })
@@ -50,23 +58,23 @@ export default function DataSet() {
   React.useEffect(() => {
     fetchAllFolders();
   }, []);
-  const columns = ['Variant 1', 'CP1', 'CC1'];
 
-  const [list, setList] = React.useState([
-    {
-      id: 1,
-      open: true,
-    },
-    {
-      id: 2,
-      open: true,
-    },
-  ]);
+  // const columns = ['Variant 1', 'CP1', 'CC1'];
+
+  // const [list, setList] = React.useState([
+  //   {
+  //     id: 1,
+  //     open: true,
+  //   },
+  //   {
+  //     id: 2,
+  //     open: true,
+  //   },
+  // ]);
 
   const toggle = (id) => {
-
     const newFolders = folders.map((folder) => {
-      if (folder.id === id) {
+      if (folder.roi.id === id) {
         return { ...folder, open: !folder.open };
       }
 
@@ -78,7 +86,7 @@ export default function DataSet() {
 
   const handleCheckboxChange = (id, index) => {
     const newFolders = folders.map((folder) => {
-      if (folder.id === id) {
+      if (folder.roi.id === id) {
         const updatedFolder = {
           ...folder,
           folders: folder.folders.map((innerFolder, innerIndex) => {
@@ -91,13 +99,13 @@ export default function DataSet() {
             return innerFolder;
           }),
         };
-  
+
         return updatedFolder;
       }
-  
+
       return folder;
     });
-  
+
     setFolders(newFolders);
     setDataSet(newFolders);
   };
@@ -116,7 +124,7 @@ export default function DataSet() {
       <div>
         {folders.map((k) => (
           <div
-            key={k.id}
+            key={k.roi.id}
             className="placeholder:*: relative  py-2 odd:border-t-[1px] sm:rounded-lg"
           >
             <table className="w-full text-left text-sm text-gray-500  ">
@@ -126,20 +134,20 @@ export default function DataSet() {
                     <div className="flex select-none items-center gap-2 px-2">
                       <ChevronUp
                         size={20}
-                        onClick={() => toggle(k.id)}
+                        onClick={() => toggle(k.roi.id)}
                         className={`cursor-pointer duration-75 ${k.open ? '' : 'rotate-180'}`}
                       />
-                      <span>{k.variantName}</span>
+                      <span>{k.variant.name}</span>
                     </div>
                   </th>
                   <th scope="col" key={2} className="w-1/3">
                     <div className="flex select-none items-center gap-2 px-2">
-                      <span>{k.cameraConfig}</span>
+                      <span>{k.cameraConfig.name}</span>
                     </div>
                   </th>
                   <th scope="col" key={3} className="w-1/3">
                     <div className="flex select-none items-center gap-2 px-2">
-                      <span>{k.capturePositionName}</span>
+                      <span>{k.capturePosition.name}</span>
                     </div>
                   </th>
                 </tr>
@@ -156,20 +164,23 @@ export default function DataSet() {
                           <div className="flex gap-2">
                             <Checkbox
                               id="class"
-                              value="class1"
-                              name="class"
-                              htmlFor="class1"
                               checked={folder.check}
-                              onChange={() => handleCheckboxChange(k.id, index)}
+                              onChange={() => {}}
+                              className="cursor-pointer"
+                              onClick={() => {
+                                handleCheckboxChange(k.roi.id, index);
+                              }}
                             />
                             <Label htmlFor="class1" main={false}>
-                              {folder.name}
+                              {folder.folderName}
                             </Label>
                           </div>
                         </th>
-                        <td className="px-6 py-4">{folder.totalImages}</td>
-                        <td className="py-4m px-6 text-green-500">
-                          Annotations complete
+                        <td className="px-6 py-4">{`${folder.totalImages} image${folder?.totalImages == 1 ? '' : 's'}`}</td>
+                        <td
+                          className={`py-4m px-6 text-${folder.annotated ? 'green' : 'red'}-500`}
+                        >
+                          Annotations {folder.annotated ? '' : 'in'}complete
                         </td>
                       </tr>
                     );

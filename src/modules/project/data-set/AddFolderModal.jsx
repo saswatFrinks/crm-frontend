@@ -9,22 +9,33 @@ import toast from 'react-hot-toast';
 import { useParams } from 'react-router-dom';
 import { useSetRecoilState } from 'recoil';
 
-export default function AddFolderModal({fetchAllFolders}) {
+export default function AddFolderModal({fetchAllFolders, editFolder}) {
   const setOpenModal = useSetRecoilState(modalAtom);
   const params = useParams();
 
   const addFolder = async (values) => {
-    await axiosInstance.post('/dataset/create', {
-      cameraConfigId: params.cameraConfigId,
-      folderName: values.name,
-    });
-
-    fetchAllFolders();
+    try {
+      if(editFolder){
+        await axiosInstance.put('/dataset/edit', {
+          datasetId: editFolder?.id,
+          name: values.name,
+        });
+      } else {
+        await axiosInstance.post('/dataset/create', {
+          cameraConfigId: params.cameraConfigId,
+          folderName: values.name,
+        });
+      }
+  
+      fetchAllFolders();
+    } catch (error) {
+      toast.error(error.message);
+    }
   };
 
   const formik = useFormik({
     initialValues: {
-      name: '',
+      name: editFolder?.name || '',
     },
     validate: (values) => {
       const errors = {};

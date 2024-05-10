@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRecoilState, useSetRecoilState } from 'recoil';
 import { selectedFileAtom, uploadedFileListAtom } from '../../state';
 import X from '@/shared/icons/X';
@@ -20,6 +20,10 @@ export default function UploadImageStep() {
   const [imageLoader, setImageLoader] = React.useState(
     Array.from({length: 10}, () => false)
   );
+  const [imageRemoveLoader, setImageRemoveLoader] = useState(
+    Array.from({length: 10}, () => false)
+  );
+
   const [selectedFiles, setSelectedFiles] = React.useState(
     Array.from({length: 10}, () => (null))
   );
@@ -74,12 +78,12 @@ export default function UploadImageStep() {
 
   const removeImage = async (index) => {
     try{
-      if(imageLoader[index])return;
+      if(imageLoader[index] || imageRemoveLoader[index])return;
       const data = {
         id: images[index].id,
         configurationId
       }
-      setLoading(index, true);
+      setDeleteLoading(index, true);
       await axiosInstance.delete('/configuration/', {
         params: data
       });
@@ -93,7 +97,7 @@ export default function UploadImageStep() {
       console.log(error)
       toast.error(error?.response?.data?.data?.message)
     } finally {
-      setLoading(index, false);
+      setDeleteLoading(index, false);
     }
   };
 
@@ -115,6 +119,14 @@ export default function UploadImageStep() {
 
   const setLoading = (index, flag) => {
     setImageLoader(loaders => {
+      const newLoaders = [...loaders];
+      newLoaders[index] = flag;
+      return newLoaders;
+    })
+  }
+
+  const setDeleteLoading = (index, flag) => {
+    setImageRemoveLoader(loaders => {
       const newLoaders = [...loaders];
       newLoaders[index] = flag;
       return newLoaders;
@@ -144,7 +156,7 @@ export default function UploadImageStep() {
   const uploadImage = async (type, index, typeIndex) => {
     try {
       const imageNum = getImageNumber(index, typeIndex, type);
-      if(!selectedFiles[imageNum] || imageLoader[imageNum])return;
+      if(!selectedFiles[imageNum] || imageLoader[imageNum] || imageRemoveLoader[imageNum])return;
       const formData = new FormData();
       formData.append('file', selectedFiles[imageNum]);
       formData.append('configurationId', configurationId);
@@ -190,7 +202,7 @@ export default function UploadImageStep() {
                           {images[imageNum]?.fileName}
                         </a>
                         {
-                          imageLoader[imageNum] ? (
+                          imageRemoveLoader[imageNum] ? (
                             <div>Deleting...</div>
                           ) : (
                             <label onClick={() => {removeImage(imageNum)}}>
