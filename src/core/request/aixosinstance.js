@@ -9,7 +9,6 @@ axiosInstance.interceptors.response.use(
   (res) => res,
   async (err) => {
     // set up get new token here
-
     return await Promise.reject(err);
   }
 );

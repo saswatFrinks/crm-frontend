@@ -88,7 +88,7 @@ export default function Finish() {
 
       <div className="flex items-center gap-2">
         <label htmlFor="" className="font-semibold">
-          Classes
+          Classes:
         </label>
         <div className="flex gap-2">
           {classes.map((className) => (
