@@ -3,6 +3,7 @@ import AIAssembly from './ai-training/assembly';
 import AIDetail from './ai-training/assembly/ai-detail';
 import Cosmetic from './ai-training/cosmetic';
 import Dimensioning from './ai-training/dimensioning';
+import Instances from './ai-training/instances';
 import Annotation from './annotation';
 import AnnotationJob from './anotation-job';
 import Assembly from './assembly';
@@ -68,6 +69,10 @@ export const projectRouter = {
       path: 'ai-training/:projectId',
       element: <AiTrainingLayout />,
       children: [
+        {
+          path: '',
+          element: <Instances />,
+        },
         {
           path: 'assembly',
           children: [

@@ -2,8 +2,8 @@ import React from 'react';
 import { useRecoilValue } from 'recoil';
 import { stepAtom } from './state';
 
-export default function TimeLine() {
-  const [timelines, setTimelines] = React.useState([
+export default function TimeLine(props) {
+  const [timelines, setTimelines] = React.useState(props?.timelines || [
     'Basic',
     'Configuration & Classes',
     'Datasets',
@@ -11,7 +11,7 @@ export default function TimeLine() {
     'Finish',
   ]);
 
-  const step = useRecoilValue(stepAtom);
+  const step = props?.step || useRecoilValue(stepAtom);
 
   return (
     <div className="relative flex flex-col gap-20">
