@@ -70,10 +70,6 @@ export const projectRouter = {
       element: <AiTrainingLayout />,
       children: [
         {
-          path: '',
-          element: <Instances />,
-        },
-        {
           path: 'assembly',
           children: [
             {
@@ -95,6 +91,10 @@ export const projectRouter = {
           element: <Cosmetic />,
         },
       ],
+    },
+    {
+      path: '/instances/:projectId',
+      element: <Instances />,
     },
   ],
 };

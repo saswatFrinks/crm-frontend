@@ -45,6 +45,10 @@ export default function AIAssembly() {
     });
   };
 
+  const status=[
+    "In progress","","Successful"
+  ]
+
   const columns = [
     'Model Name',
     'Date Created',
@@ -177,14 +181,17 @@ export default function AIAssembly() {
                         scope="row"
                         className="whitespace-nowrap px-6 py-4 font-medium text-gray-900 hover:underline "
                       >
-                        <Link to={`${123}#result`}>Model 1234</Link>
+                        <Link to={`${123}#result`}>{model.name}</Link>
                       </th>
-                      <td className="px-6 py-4">-</td>
+                      <td className="px-6 py-4">
+                        {new Date(Number(model.createdAt)).toLocaleString()}
+                      </td>
                       <td className="px-6 py-4">-</td>
                       <td className={`px-6 py-4 ${statusObj['success']}`}>-</td>
                       <td className="flex flex-wrap gap-2 px-6 py-4">
-                        <Chip>Class 1</Chip>
-                        <Chip>Class 2</Chip>
+                        {model?.classes?.length>0 && model?.classes.map((class)=>{
+                          return <Chip>{class}</Chip>
+                        })}
                       </td>
                     </tr>
                   );
