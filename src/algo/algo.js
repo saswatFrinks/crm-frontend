@@ -15,8 +15,8 @@ export const getRoisAndClasses = (frontEle, rois, classes, flag) => {
     names.push(top);
 
     for (const ele of rois) {
-      if (ele.classNames.includes(top)) {
-        for (const subEle of ele.classNames) {
+      if (ele.classes.includes(top)) {
+        for (const subEle of ele.classes) {
           if (!set.has(subEle)) {
             queue.push(subEle);
           }
@@ -27,7 +27,7 @@ export const getRoisAndClasses = (frontEle, rois, classes, flag) => {
 
   const newRois = [];
   for (const ele of rois) {
-    const check = ele.classNames.some((obj) => names.includes(obj));
+    const check = ele.classes.some((obj) => names.includes(obj));
     if (check) {
       newRois.push({ ...ele, check: flag });
     } else {

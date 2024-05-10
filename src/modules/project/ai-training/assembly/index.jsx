@@ -5,16 +5,30 @@ import React, { useEffect } from 'react';
 import { FaPlus } from 'react-icons/fa';
 import BuildNTrainDrawer from './BuildNTrainDrawer';
 import { useRecoilState } from 'recoil';
-import { stepAtom } from './state';
+import {
+  augmentationsAtom,
+  classAtom,
+  configurationAtom,
+  datasetAtom,
+  modelInfoAtom,
+  stepAtom,
+} from './state';
 import { Link, useParams } from 'react-router-dom';
 import axiosInstance from '@/core/request/aixosinstance';
+import toast, { Toaster } from 'react-hot-toast';
 
 export default function AIAssembly() {
-  const params = useParams()
+  const params = useParams();
   const [open, setOpenDrawer] = React.useState(false);
-  const [modelsList, setModelsList] = React.useState([]);
-  
+  const [modelsList, setModelsList] = React.useState({});
+
   const [step, setStep] = useRecoilState(stepAtom);
+  const configuration = useRecoilState(configurationAtom);
+  // const classes = useRecoilState(classAtom);
+  // const rois = useRecoilState();
+  const datasets = useRecoilState(datasetAtom);
+  const augmentations = useRecoilState(augmentationsAtom);
+  const modelInfo = useRecoilState(modelInfoAtom);
 
   const handleNext = () => {
     setStep((t) => {
@@ -54,24 +68,72 @@ export default function AIAssembly() {
 
   const fetchModelsList = async () => {
     try {
-      const res = await axiosInstance.get('/model/list', {
+      const res = await axiosInstance.get('/model/model-status', {
         params: {
-          projectId: params.projectId
+          projectId: params.projectId,
         },
       });
-  
-      setModelsList(res)
-    } catch (error) {
-      
-    }
-  }
 
-  useEffect(()=>{
-    fetchModelsList()
-  }, [])
+      setModelsList([...res]);
+    } catch (error) {
+      toast.error();
+    }
+  };
+
+  useEffect(() => {
+    fetchModelsList();
+  }, []);
+
+  const startTraining = async () => {
+    console.log('starting training');
+    const roiList = configuration[0]
+      .filter((configItem) => {
+        return configItem.check;
+      })
+      .map((filteredConfigItem) => {
+        return filteredConfigItem.roi.id;
+      });
+    const augmentationList = Object.keys(augmentations[0]).filter((key) => {
+      return augmentations[0][key];
+    });
+    const datasetList = [];
+    datasets[0]
+      .filter((datasetItem) => {
+        return datasetItem.check;
+      })
+      .map((datasetItem) => {
+        datasetItem.folders
+          .filter((folderItem) => {
+            return folderItem.check;
+          })
+          .map((folderItem) => {
+            datasetList.push(folderItem.id);
+          });
+      });
+    const modelInfoObj = modelInfo[0];
+    const data = {
+      modelKey: modelInfoObj.modelKey,
+      name: modelInfoObj.modelName,
+      comment: modelInfoObj.modelDescription,
+      rois: roiList,
+      datasets: datasetList,
+      augmentations: augmentationList,
+    };
+    try {
+      console.log('data:', data);
+      const resp = await axiosInstance.post('/model/detection', data);
+      console.log('started training:', resp);
+      closeDrawer();
+      // console.log('values:', roiList, datasetList, augmentationList);
+    } catch (e) {
+      console.error('Got error:', e);
+      // toast.error(e);
+    }
+  };
 
   return (
     <>
+      {/* <Toaster> */}
       <div className="mb-8 flex items-center justify-between">
         <h1 className="text-2xl font-semibold">AI Models</h1>
         <Button fullWidth={false} size="xs" onClick={openDrawer}>
@@ -94,12 +156,12 @@ export default function AIAssembly() {
             </tr>
           </thead>
           <tbody>
-            {modelsList
-              .map((plant) => {
+            {Object.keys(modelsList).map((key) => {
+              modelsList[key]?.map((model) => {
                 return (
                   <tr
                     className="border-b odd:bg-white even:bg-[#C6C4FF]/10"
-                    key={plant.id}
+                    key={model.id}
                   >
                     <th
                       scope="row"
@@ -116,7 +178,8 @@ export default function AIAssembly() {
                     </td>
                   </tr>
                 );
-              })}
+              });
+            })}
           </tbody>
         </table>
       </div>
@@ -152,7 +215,14 @@ export default function AIAssembly() {
                     Next
                   </Button>
                 ) : (
-                  <Button size="xs" fullWidth={false} className="min-w-[150px]">
+                  <Button
+                    size="xs"
+                    fullWidth={false}
+                    onClick={() => {
+                      startTraining();
+                    }}
+                    className="min-w-[150px]"
+                  >
                     Start Training
                   </Button>
                 )}
@@ -173,6 +243,7 @@ export default function AIAssembly() {
       >
         <BuildNTrainDrawer />
       </Drawer>
+      {/* </Toaster> */}
     </>
   );
 }
