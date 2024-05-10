@@ -1,18 +1,20 @@
 import React from 'react'
-import BasicInformation from './BasicInformation';
-import ModelSelection from './ModelSelection';
-import Finish from './Finish';
+import BasicInformation from './steps/BasicInformation';
+import ModelSelection from './steps/ModelSelection';
+import Finish from './steps/Finish';
 import TimeLine from '../ai-training/assembly/TimeLine';
-import MapCameraIp from './MapCameraIp';
-import CameraConfig from './CameraConfig';
+import MapCameraIp from './steps/MapCameraIp';
+import CameraConfig from './steps/CameraConfig';
 import { useParams } from 'react-router-dom';
 import axiosInstance from '@/core/request/aixosinstance';
 import toast from 'react-hot-toast';
 
-const CreateInstanceDrawer = ({step}) => {
+const CreateInstanceDrawer = ({step, childRefs}) => {
   const params = useParams();
   const [project, setProject] = React.useState(null);
-
+  
+  const childRef = childRefs[step-1];
+  
   const fetchProject = async () => {
     try {
       const res = await axiosInstance.get('/project', {
@@ -31,8 +33,8 @@ const CreateInstanceDrawer = ({step}) => {
   }, [])
 
   const stepObj = {
-    1: <BasicInformation project={project} />,
-    2: <MapCameraIp />,
+    1: <BasicInformation project={project} formRef = {childRef} />,
+    2: <MapCameraIp formRef = {childRef} />,
     3: <CameraConfig />,
     4: <ModelSelection />,
     5: <Finish />,
