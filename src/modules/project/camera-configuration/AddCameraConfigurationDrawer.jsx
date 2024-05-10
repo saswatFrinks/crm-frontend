@@ -18,7 +18,6 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
   const inputRef = React.useRef(null);
   const params = useParams();
   const {closeDrawer, fetchAllCameraConfigs, editConfig} = props
-  console.log({editConfig: editConfig?.name})
 
   const objectivesMap = {
     assemblyInspection: 0,

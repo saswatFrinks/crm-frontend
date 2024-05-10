@@ -15,7 +15,6 @@ import toast, { Toaster } from 'react-hot-toast';
 
 const CreateProjectDrawer = React.forwardRef((props, ref) => {
   const { closeDrawer, setShowLoader, fetchAllProjects, projectToEdit } = props;
-  console.log(projectToEdit)
   const [plants, setPlants] = React.useState([]);
   const [teams, setTeams] = React.useState([]);
   const [variants, setVariants] = React.useState([]);
