@@ -45,7 +45,11 @@ export default function AIAssembly() {
     });
   };
 
-  const trainingStatus = ['In progress', 'Failed', 'Successful'];
+  const trainingStatus = {
+    0: { label: 'In progress', color: 'text-yellow-500' },
+    [-1]: { label: 'Failed', color: 'text-red-500' },
+    1: { label: 'Successful', color: 'text-green-500' },
+  };
 
   const columns = [
     'Model Name',
@@ -54,12 +58,6 @@ export default function AIAssembly() {
     'Training Status',
     'Classes',
   ];
-
-  const statusObj = {
-    success: 'text-green-500',
-    failed: 'text-red-500',
-    'in-progress': 'text-yellow-500',
-  };
 
   const closeDrawer = () => {
     setOpenDrawer(false);
@@ -184,13 +182,15 @@ export default function AIAssembly() {
                       <td className="px-6 py-4">
                         {new Date(Number(model.createdAt)).toLocaleString()}
                       </td>
-                      <td className="px-6 py-4">-</td>
-                      <td className={`px-6 py-4 ${statusObj['success']}`}>
-                        {trainingStatus[model.status]}
+                      <td className="px-6 py-4">{model.totalImages}</td>
+                      <td
+                        className={`px-6 py-4 ${trainingStatus[model.status].color}`}
+                      >
+                        {trainingStatus[model.status].label}
                       </td>
                       <td className="flex flex-wrap gap-2 px-6 py-4">
                         {model?.classes?.length > 0 &&
-                          model.classes.map((item) => (
+                          model.classes.map((item, index) => (
                             <Chip key={item.id}>{item.name}</Chip>
                           ))}
                       </td>
