@@ -128,9 +128,11 @@ export default function AIAssembly() {
       const resp = await axiosInstance.post('/model/detection', data);
       console.log('started training:', resp);
       setLoading(false);
+      fetchModelsList();
       closeDrawer();
     } catch (error) {
       console.error('Got error:', error);
+      fetchModelsList();
       setLoading(false);
       toast.error(JSON.stringify(error));
     }
