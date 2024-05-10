@@ -45,9 +45,7 @@ export default function AIAssembly() {
     });
   };
 
-  const status=[
-    "In progress","","Successful"
-  ]
+  const status = ['In progress', '', 'Successful'];
 
   const columns = [
     'Model Name',
@@ -189,9 +187,10 @@ export default function AIAssembly() {
                       <td className="px-6 py-4">-</td>
                       <td className={`px-6 py-4 ${statusObj['success']}`}>-</td>
                       <td className="flex flex-wrap gap-2 px-6 py-4">
-                        {model?.classes?.length>0 && model?.classes.map((class)=>{
-                          return <Chip>{class}</Chip>
-                        })}
+                        {model?.classes?.length > 0 &&
+                          model.classes.map((item) => (
+                            <Chip key={item.id}>{item.name}</Chip>
+                          ))}
                       </td>
                     </tr>
                   );
