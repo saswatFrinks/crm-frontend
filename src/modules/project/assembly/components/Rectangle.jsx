@@ -1,13 +1,12 @@
 import React from 'react';
-import { Rect, Transformer } from 'react-konva';
-import PropTypes from 'prop-types';
+import { Rect, Text, Transformer } from 'react-konva';
 
 const Rectangle = ({
-  selectedReactangleId,
   shapeProps,
   isSelected,
-  // onSelect,
   onChange,
+  scale,
+  offset,
   ...rest
 }) => {
   const shapeRef = React.useRef();
@@ -20,41 +19,77 @@ const Rectangle = ({
     }
   }, [isSelected]);
 
+  const effectiveScale = scale || 1;
+
+  React.useEffect(()=>{
+    if(shapeRef?.current){
+      shapeRef.current.x((offset?.x || 0) + shapeProps.x * effectiveScale);
+      shapeRef.current.y((offset?.y || 0) + shapeProps.y * effectiveScale);
+      shapeRef.current.width(shapeProps.width * effectiveScale);
+      shapeRef.current.height(shapeProps.height * effectiveScale);
+    }
+  }, [shapeProps, shapeRef])
+
+  console.log(offset, shapeProps)
+
   return (
     <React.Fragment>
+        {shapeProps?.title && <Text
+            x={(offset?.x || 0) + shapeProps.x * effectiveScale}
+            y={(offset?.y || 0) + shapeProps.y * effectiveScale - 17}
+            text={`${shapeProps.id}. ${shapeProps?.title}`}
+            fontSize={15}
+            fill={shapeProps.fill}
+        />}
+
       <Rect
-        // onClick={onSelect}
-        // onTap={onSelect}
         ref={shapeRef}
         {...shapeProps}
-        draggable={Boolean(selectedReactangleId)}
+        x={(offset?.x || 0) + shapeProps.x * effectiveScale}
+        y={(offset?.y || 0) + shapeProps.y * effectiveScale}
+        width={shapeProps.width * effectiveScale}
+        height={shapeProps.height * effectiveScale}
+        draggable={Boolean(isSelected)}
+        onDragMove={(e)=>{
+          if(isSelected) e.cancelBubble=true;
+        }}
+        onDragStart={e=>{
+          if(isSelected) e.cancelBubble=true;
+        }}
+        
         onDragEnd={(e) => {
+            console.log('drag end');
           onChange({
             ...shapeProps,
+            width: e.target.width(),
+            height: e.target.height(),
             x: e.target.x(),
             y: e.target.y(),
           });
         }}
+        onMouseDown={e=>{
+            e.evt.stopPropagation()
+            if(isSelected) e.cancelBubble=true;
+            console.log("starting dragging of rectangle here:",e.clientX)
+        }}
         onTransformEnd={() => {
-          // transformer is changing scale of the node
-          // and NOT its width or height
-          // but in the store we have only width and height
-          // to match the data better we will reset scale on transform end
           const node = shapeRef.current;
           const scaleX = node.scaleX();
           const scaleY = node.scaleY();
 
-          // we will reset it back
+        //   // we will reset it back
           node.scaleX(1);
           node.scaleY(1);
+        console.log('transform end')
+        console.log(scaleX, scaleY, effectiveScale);
+        console.log(node.width(), node.height(), shapeProps.width, shapeProps.height)
 
           onChange({
             ...shapeProps,
             x: node.x(),
             y: node.y(),
-            // set minimal value
-            width: Math.max(5, node.width() * scaleX),
-            height: Math.max(node.height() * scaleY),
+            width: node.width() * scaleX,
+            height: node.height() *  scaleY,
           });
         }}
         {...rest}
@@ -62,6 +97,9 @@ const Rectangle = ({
       {isSelected && (
         <Transformer
           ref={trRef}
+          onMouseDown={e=>e.cancelBubble=true}
+          onMouseMove={e=>e.cancelBubble=true}
+          onMouseUp={e=>e.cancelBubble=true}
           boundBoxFunc={(oldBox, newBox) => {
             // limit resize
             if (newBox.width < 5 || newBox.height < 5) {
@@ -69,18 +107,11 @@ const Rectangle = ({
             }
             return newBox;
           }}
+          keepRatio={false}
         />
       )}
     </React.Fragment>
   );
-};
-
-Rectangle.propTypes = {
-  shapeProps: PropTypes.object.isRequired,
-  isSelected: PropTypes.bool,
-  onSelect: PropTypes.func,
-  onChange: PropTypes.func.isRequired,
-  selectedReactangleId: PropTypes.string,
 };
 
 export default Rectangle;

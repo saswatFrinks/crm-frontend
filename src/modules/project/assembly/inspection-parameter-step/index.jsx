@@ -21,7 +21,7 @@ import {
   STATUS,
 } from '@/core/constants';
 
-import { assemblyAtom, currentRoiIdAtom, editingAtom } from '../../state';
+import { assemblyAtom, currentRoiIdAtom, editingAtom, selectedFileAtom } from '../../state';
 import ArrowUp from '@/shared/icons/ArrowUp';
 import DeleteObjectModal from './DeleteObjectModal';
 import DeleteRoiModal from './DeleteRoiModal';

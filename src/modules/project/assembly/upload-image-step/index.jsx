@@ -57,9 +57,13 @@ export default function UploadImageStep() {
         id: img.imageId,
         fileName: `${img.imageId}.png`,
         checked: false,
-        number: img.index
+        number: img.index,
+        url: `${import.meta.env.VITE_BASE_API_URL}/configurationImage/view?imageId=${img.imageId}`
       };
     })
+    if(tempImages[0]){
+      onChange(tempImages[0])
+    }
     console.log("images:",tempImages)
     setImages([...tempImages])
   }

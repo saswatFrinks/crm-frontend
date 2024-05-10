@@ -23,6 +23,8 @@ export const IMAGE_STATUS = {
   drawing: false,
   dragging: false,
   drag: false,
+  oneToOne: false,
+  fitToCenter: false,
 };
 
 export const POSITION = {

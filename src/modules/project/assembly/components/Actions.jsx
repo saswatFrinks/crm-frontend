@@ -8,7 +8,7 @@ import Button from '@/shared/ui/Button';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 
 import { IMAGE_STATUS, STATUS } from '@/core/constants';
-import { currentRoiIdAtom, editingAtom, imageStatusAtom, rectanglesAtom, selectedRoiSelector, stageAtom } from '../../state';
+import { assemblyAtom, currentRoiIdAtom, editingAtom, imageStatusAtom, rectanglesAtom, selectedRoiSelector, stageAtom } from '../../state';
 // import { editingRectAtom } from '../state';
 
 export default function Actions({ cancel, submit }) {
@@ -18,7 +18,10 @@ export default function Actions({ cancel, submit }) {
 
   const [isEditing, setIsEditing] = useRecoilState(editingAtom);
   const currentRoiId = useRecoilValue(currentRoiIdAtom);
-  const rectangles = useRecoilValue(rectanglesAtom)
+  const rectangles = useRecoilValue(rectanglesAtom);
+  const configuration = useRecoilValue(assemblyAtom);
+
+  const roiIndex = configuration.rois.findIndex(ele=>ele.id == currentRoiId)
 
   //   const [isEditingRect, setEditingRect] = useRecoilState(editingRectAtom);
 
@@ -70,48 +73,56 @@ export default function Actions({ cancel, submit }) {
     }));
   };
 
+  const handleOneToOne = () => {
+    setImageStatus((p)=>({...p, oneToOne: true}));
+  }
+
+  const handleFitToCenter = () => {
+    setImageStatus((p)=>({...p, fitToCenter: true}));
+  }
+
   const actions = [
-    {
-      title: 'zoom in',
-      icon: ZoomIn,
-      action: handleZoomIn,
-      active: false,
-      canAction: true,
-    },
-    {
-      title: 'zoom out',
-      icon: ZoomOut,
-      action: handleZoomOut,
-      active: false,
-      canAction: true,
-    },
-    {
-      title: 'pan',
-      icon: Pan,
-      action: handlePan,
-      active: imageStatus.drag,
-      canAction: true,
-    },
+    // {
+    //   title: 'zoom in',
+    //   icon: ZoomIn,
+    //   action: handleZoomIn,
+    //   active: false,
+    //   canAction: true,
+    // },
+    // {
+    //   title: 'zoom out',
+    //   icon: ZoomOut,
+    //   action: handleZoomOut,
+    //   active: false,
+    //   canAction: true,
+    // },
+    // {
+    //   title: 'pan',
+    //   icon: Pan,
+    //   action: handlePan,
+    //   active: imageStatus.drag,
+    //   canAction: true,
+    // },
     {
       title: 'Fit To Center',
       icon: FitToCenter,
-      action: handleDrawBox,
-      active: imageStatus.draw,
-      canAction: isEditing,
+      action: handleFitToCenter,
+      active: false,
+      canAction: true,
     },
     {
       title: 'Fit 1:1',
       icon: OneIsToOne,
-      action: handleDrawBox,
-      active: imageStatus.draw,
-      canAction: isEditing,
+      action: handleOneToOne,
+      active: false,
+      canAction: true,
     },
     {
       title: 'box',
       icon: Box,
       action: handleDrawBox,
       active: imageStatus.draw,
-      canAction: isEditing,
+      canAction: isEditing && roiIndex >= 0 && !rectangles.some(rec=>rec.roiId == configuration.rois[roiIndex].id),
     },
   ];
 

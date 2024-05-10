@@ -22,50 +22,51 @@ export default function PreTrainingStep() {
     temp.rois = temp.rois.map((roi, index)=>{
       const tempParts = roi.parts.map((part)=>{
         return {
-          classify: part.classify,
+          classify: part.classify=='on',
           class: part.class,
           name: part.objectName,
           count: part.qty,
           operator: part.operation
         }
       })
-      let x1, x2, y1, y2
+      let x, width, y, height
+      console.log(roi.id, rois.map(ele=>ele.roiId))
       rois.forEach((roiRect)=>{
         if(roi.id==roiRect.roiId){
-          x1 = parseFloat((roiRect.x/size.width).toFixed(4))
-          x2 = parseFloat(((roiRect.x+roiRect.width)/size.width).toFixed(4))
-          y1 = parseFloat((roiRect.y/size.height).toFixed(4))
-          y2 = parseFloat(((roiRect.y+roiRect.height)/size.height).toFixed(4))
+          x = parseFloat((roiRect.x).toFixed(4))
+          width = parseFloat((roiRect.width).toFixed(4))
+          y = parseFloat((roiRect.y).toFixed(4))
+          height = parseFloat((roiRect.height).toFixed(4))
         }
       })
       return {
         name: `ROI ${index}`,
-        x1,
-        x2,
-        y1,
-        y2,
+        x,
+        width,
+        y,
+        height,
         parts: tempParts
       }
     })
     if(temp.direction!=0){
-      temp.rois[0].x1 = 0
-      temp.rois[0].x2 = 1
-      temp.rois[0].y1 = 0
-      temp.rois[0].y2 = 1
+      // temp.rois[0].x = 0
+      // temp.rois[0].width = 1
+      // temp.rois[0].y = 0
+      // temp.rois[0].height = 1
       temp.rois[0].primaryObject = {
         name: temp.primaryObject,
         class: temp.primaryObjectClass,
       }
-      delete temp.primaryObject
-      delete temp.primaryObjectClass
     }
+    delete temp.primaryObject
+    delete temp.primaryObjectClass
     const formData = new FormData();
     annotationRects.forEach((rect)=>{
       const classNo = annotationMap[rect.id]
-      const height = (rect.height/size.height).toFixed(4)
-      const width = (rect.width/size.width).toFixed(4)
-      const x = ((rect.x+rect.width/2)/size.width).toFixed(4)
-      const y = ((rect.y+rect.height/2)/size.height).toFixed(4)
+      const height = (rect.height).toFixed(4)
+      const width = (rect.width).toFixed(4)
+      const x = (rect.x).toFixed(4)
+      const y = (rect.y).toFixed(4)
       if(imgMap[rect.imageId]){
         imgMap[rect.imageId]+= `${classNo} ${x} ${y} ${width} ${height}\n`
       }else{
@@ -82,7 +83,7 @@ export default function PreTrainingStep() {
     }))
     formData.append('data', JSON.stringify(temp))
     formData.append('configurationId', temp.id)
-    formData.append('isGood', JSON.stringify([true, true, false, false, false, true, false, true, true, false]))
+    formData.append('isGood', JSON.stringify([true, true, true, true, true, false, false, false, false, false]))
     console.log(formData.get('data'))
     const data = await axiosInstance.post("/configuration/assembly", formData)
     console.log(data)

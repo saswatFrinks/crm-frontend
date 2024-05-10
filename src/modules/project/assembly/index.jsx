@@ -140,7 +140,7 @@ export default function Assembly() {
         </div>
 
         <div className="col-span-7 grid grid-rows-12">
-          <div className="row-span-11 flex flex-col items-center justify-center gap-4 bg-[#EAEDF1]">
+          <div className="row-span-11 flex flex-col items-center justify-center gap-4 bg-[#EAEDF1]" style={{overflow: 'hidden'}}>
             <UploadImage />
           </div>
 
