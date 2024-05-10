@@ -45,7 +45,7 @@ export default function AIAssembly() {
     });
   };
 
-  const status = ['In progress', '', 'Successful'];
+  const trainingStatus = ['In progress', 'Failed', 'Successful'];
 
   const columns = [
     'Model Name',
@@ -185,7 +185,9 @@ export default function AIAssembly() {
                         {new Date(Number(model.createdAt)).toLocaleString()}
                       </td>
                       <td className="px-6 py-4">-</td>
-                      <td className={`px-6 py-4 ${statusObj['success']}`}>-</td>
+                      <td className={`px-6 py-4 ${statusObj['success']}`}>
+                        {trainingStatus[model.status]}
+                      </td>
                       <td className="flex flex-wrap gap-2 px-6 py-4">
                         {model?.classes?.length > 0 &&
                           model.classes.map((item) => (
