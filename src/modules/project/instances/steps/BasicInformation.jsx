@@ -6,9 +6,12 @@ import { getOrganizationId } from '@/util/util';
 import React, { useEffect, useState } from 'react'
 import { useRecoilState } from 'recoil';
 import { addInstanceAtom } from '../state';
+import { useParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 const BasicInformation = ({project, formRef}) => {
   const [plants, setPlants] = useState([]);
+  const params = useParams();
   const [addInstance, setAddInstance] = useRecoilState(addInstanceAtom);
   const [formData, setFormData] = React.useState({
     instanceName: addInstance?.basic?.instanceName || '',
@@ -42,14 +45,27 @@ const BasicInformation = ({project, formRef}) => {
     }
   }, [project])
 
-  const handleSubmit = () => {
-    if(!formData.instanceName || !formData.plantId || formData.cameraIps.some(ip => ip.trim().length === 0)){
-      throw new Error('All fields are required')
+  const handleSubmit = async () => {
+    try {
+      if(!formData.instanceName || !formData.plantId || formData.cameraIps.some(ip => ip.trim().length === 0)){
+        throw new Error('All fields are required')
+      }
+      const data = {
+        name: formData.instanceName,
+        projectId: params.projectId,
+        plantId: formData.plantId,
+        cameraIps: formData.cameraIps,
+        teamId: "f395068b-8890-4099-ae4e-16b7d5acd964"
+      }
+      const response = await axiosInstance.post('/instance', data);
+      console.log(response)
+      setAddInstance({
+        ...addInstance,
+        basic: formData
+      })
+    } catch (error) {
+      throw new Error(error?.response ? error?.response?.data?.data?.message : error?.message)
     }
-    setAddInstance({
-      ...addInstance,
-      basic: formData
-    })
   }
 
   formRef.current = {

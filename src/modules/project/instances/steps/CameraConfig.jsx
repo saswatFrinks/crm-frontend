@@ -2,8 +2,9 @@ import React from 'react'
 import { useRecoilState } from 'recoil'
 import { addInstanceAtom } from '../state'
 import axiosInstance from '@/core/request/aixosinstance';
+import Upload from '@/shared/icons/Upload';
 
-const CameraConfig = () => {
+const CameraConfig = ({formRef}) => {
   const [addInstance, setAddInstance] = useRecoilState(addInstanceAtom);
   const [data, setData] = React.useState([]);
 
@@ -46,6 +47,14 @@ const CameraConfig = () => {
     fetchData()
   }, [])
 
+  const handleSubmit = () => {
+    
+  }
+
+  formRef.current = {
+    handleSubmit
+  }
+
   const columns = ['Variant', 'Camera Position', 'Camera Config', 'Upload Camera Config File']
 
   return (
@@ -74,16 +83,17 @@ const CameraConfig = () => {
                   <td className="px-6 py-4">{dataItem?.variant?.name}</td>
                   <td className="px-6 py-4">{dataItem?.cameraPosition?.name}</td>
                   <td className="px-6 py-4">{dataItem?.config?.name}</td>
-                  {/* <td className="px-6 py-4">
-                  <Select
-                    options={cameraIps}
-                    value = {cameraIp[index] !== null ? cameraIp[index] : ''}
-                    placeholder='Select Camera'
-                    onChange = {(e) => {
-                      onChangeCameraIp(e, index);
-                    }}
-                  />
-                  </td> */}
+                  <td className="px-6 py-4">
+                    <label 
+                      className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-f-primary px-20 py-2 text-white duration-100 hover:bg-f-secondary"
+                      onClick={() => {
+                        
+                      }}
+                    >
+                      <input type="file" accept='.png' hidden onChange={() => {}}/>
+                      <Upload /> Upload
+                    </label>
+                  </td>
                 </tr>
               );
             })}

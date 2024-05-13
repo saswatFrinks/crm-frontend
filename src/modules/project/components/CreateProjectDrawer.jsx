@@ -243,9 +243,9 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
           await axiosInstance.post('/project/create', projectJson);
         }
         closeDrawer();
-        fetchAllProjects();
+        await fetchAllProjects();
       } catch(error) {
-        toast.error(error.response.data.data.details)
+        toast.error(error.response.data.data.message)
       } finally {
         setShowLoader(false);
       }

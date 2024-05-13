@@ -79,6 +79,7 @@ const MapCameraIp = ({formRef}) => {
   })
 
   const handleSubmit = () => {
+    if(cameraIp.some(ip => (ip == null)))throw new Error('Please Select All Camera IP')
     setAddInstance({
       ...addInstance,
       mapCameraIp: {

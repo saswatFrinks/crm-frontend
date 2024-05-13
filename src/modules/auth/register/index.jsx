@@ -193,7 +193,7 @@ export default function Register() {
 
           <Link
             to={'/login'}
-            className=" block min-w-[180px]  place-self-end   "
+            className=" block min-w-[180px]  place-self-end"
           >
             <Button color="flat">Cancel</Button>
           </Link>

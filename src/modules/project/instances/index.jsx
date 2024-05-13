@@ -18,10 +18,10 @@ const Instances = () => {
   
   const childRefs = Array.from({length: 5}, () => React.useRef({}));
   
-  const handleNext = () => {
+  const handleNext = async () => {
     try {
       if(childRefs[step-1].current){
-        childRefs[step-1].current.handleSubmit();
+        await childRefs[step-1].current.handleSubmit();
       }
       setStep((t) => {
         if (t == 5) return t;
