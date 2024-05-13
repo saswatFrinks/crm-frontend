@@ -95,3 +95,21 @@ export const RECTANGLE_TYPE = {
   ANNOTATION_LABEL: 'ANNOTATION_LABEL',
   ROI: 'ROI',
 };
+
+export const imageTypes = [
+  {
+    key: 'master',
+    label: 'One Master Image:',
+    count: 1,
+  },
+  {
+    key: 'good',
+    label: 'Four Good Images:',
+    count: 4,
+  },
+  {
+    key: 'bad',
+    label: 'Five Bad Images:',
+    count: 5
+  }
+]

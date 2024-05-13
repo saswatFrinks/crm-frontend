@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 import toast, { Toaster } from 'react-hot-toast';
 import axiosInstance from '@/core/request/aixosinstance';
 import { useParams } from 'react-router-dom';
+import { imageTypes } from '@/core/constants';
 
 export default function UploadImageStep() {
   const [images, setImages] = useRecoilState(uploadedFileListAtom);
@@ -29,21 +30,6 @@ export default function UploadImageStep() {
   );
 
   const setSelectedFile = useSetRecoilState(selectedFileAtom);
-
-  const imageTypes = [
-    {
-      key: 'master',
-      label: 'One Master Image:',
-    },
-    {
-      key: 'good',
-      label: 'Four Good Images:',
-    },
-    {
-      key: 'bad',
-      label: 'Five Bad Images:',
-    }
-  ]
 
   const fetchAllImages = async () => {
     const response = await axiosInstance.get('/configurationImage/images', {

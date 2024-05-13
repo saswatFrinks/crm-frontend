@@ -30,8 +30,6 @@ const Rectangle = ({
     }
   }, [shapeProps, shapeRef])
 
-  console.log(offset, shapeProps)
-
   return (
     <React.Fragment>
         {shapeProps?.title && <Text
@@ -67,6 +65,7 @@ const Rectangle = ({
             y: e.target.y(),
           });
         }}
+        onMouseUp={e=>isSelected && (e.cancelBubble=true)}
         onMouseDown={e=>{
             e.evt.stopPropagation()
             if(isSelected) e.cancelBubble=true;

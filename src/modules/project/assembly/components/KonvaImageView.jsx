@@ -5,9 +5,10 @@ import Crosshair from "./Crosshair";
 import { BASE_RECT, RECTANGLE_TYPE } from "@/core/constants";
 import { getRandomHexColor } from "@/util/util";
 import { useRecoilState, useRecoilValue } from "recoil";
-import { currentRoiIdAtom, editingAtom, imageStatusAtom } from "../../state";
+import { currentRectangleIdAtom, currentRoiIdAtom, editingAtom, imageStatusAtom, labelClassAtom, rectanglesTypeAtom } from "../../state";
+import { stepAtom } from "../state";
 
-const KonvaImageView = ({image, onDrawStop, rectangles, title=null}) => {
+const KonvaImageView = ({image, onDrawStop, rectangles, title=null, imageId}) => {
     const coverRef = React.useRef(null);
     const canvasRef = React.useRef(null);
     const stageRef = React.useRef(null);
@@ -23,9 +24,13 @@ const KonvaImageView = ({image, onDrawStop, rectangles, title=null}) => {
     const [action, setAction] = React.useState({isDragging: false, drawing: false, drawMode: false});
     const [rectStart, setRectStart] = React.useState({x: 0, y: 0});
     const [dragStart, setDragStart] = React.useState({x: 0, y: 0});
-    const [selectedPolyId, setSelectedPloyId] = React.useState(null);
+    const [selectedPolyId, setSelectedPloyId] = useRecoilState(currentRectangleIdAtom)
     const [currentPoly, setCurrentPoly] = React.useState(null)  ;
     const roiId = useRecoilValue(currentRoiIdAtom)  
+    const rectangleType = useRecoilValue(rectanglesTypeAtom)
+    const step = useRecoilValue(stepAtom);
+
+    const [lastPolyId, setLastPolyId] = React.useState(null);
 
     const handleScroll = (evt)=>{
         const e = evt.evt
@@ -75,8 +80,8 @@ const KonvaImageView = ({image, onDrawStop, rectangles, title=null}) => {
                 id: (rectangles?.length || 0)+ 1,
                 fill: color,
                 stroke: color,
-                imageId: image.id,
-                rectType: RECTANGLE_TYPE.ROI,
+                imageId: imageId,
+                rectType: rectangleType,
                 roiId,
                 title
             })
@@ -159,10 +164,14 @@ const KonvaImageView = ({image, onDrawStop, rectangles, title=null}) => {
     }
 
     const handleClickRectangle = (e, id) => {
-        if (isEditing && id == e.target.attrs.id) {
+        const rect = rectangles.find(ele=>ele.id==id)
+        if ( rect
+            && (step==1)
+            && id == e.target.attrs.id 
+            && rect.rectType==RECTANGLE_TYPE.ROI
+        ){
         //   setEditingRect(true);
           setSelectedPloyId(id);
-          const rect = rectangles.find(ele=>ele.id==id)
           if(rect){
               onDrawStop([...rectangles.filter(ele=>ele.id!==id), rect]);
           }
@@ -241,15 +250,16 @@ const KonvaImageView = ({image, onDrawStop, rectangles, title=null}) => {
 
     React.useEffect(()=>{
         const deleteCallback = (evt)=>{
-            if(evt.key=='Delete' && isEditing){
+            if(evt.key=='Delete' && step==1){
+                let spId = null;
                 setSelectedPloyId(selectedPolyId=>{
                     if(selectedPolyId){
-                        console.log('updated', rectangles.filter(rect=>rect.id!==selectedPolyId))
-                        onDrawStop(rectangles.filter(rect=>rect.id!==selectedPolyId))
+                        spId = selectedPolyId
                     }
                     return null;
                 })
-
+                if(spId)
+                    onDrawStop(rectangles.filter(rect=>rect.id!==spId))
                 handleMouseUp();
             }
         };
@@ -272,10 +282,10 @@ const KonvaImageView = ({image, onDrawStop, rectangles, title=null}) => {
             >
                 <Layer ref={canvasRef}>
                     <Image image={image} width={image.width * origin.scale} height={image.height * origin.scale} x={origin.x} y={origin.y}/>
-                    {rectangles?.map((rect, i)=>{
+                    {rectangles.filter(e=>e.rectType==RECTANGLE_TYPE.ROI || e.imageId==imageId)?.map((rect, i)=>{
                         // console.log('rendering', i, origin)
                         return <Rectangle 
-                            key={`rect_${rect.id}`} 
+                            key={`rect_${rect.rectType}_${rect.id}`} 
                             shapeProps={rect}
                             offset={origin} 
                             scale={origin.scale}
@@ -298,10 +308,13 @@ const KonvaImageView = ({image, onDrawStop, rectangles, title=null}) => {
                                     : `transparent`
                                 }
                             strokeWidth={origin.scale > 3 ? 0.25 : rect.strokeWidth}
-                            onClick={(e) => handleClickRectangle(e, rect.id)}
+                            onClick={(e) =>{
+                                if(rect.id==selectedPolyId) e.cancelBubble=true;
+                                handleClickRectangle(e, rect.id);
+                            }}
                             />
                     })}
-                    {currentPoly && <Rectangle key={`rect_${currentPoly.id}`} shapeProps={currentPoly} isSelected={false} onChange={(e)=>{
+                    {currentPoly && <Rectangle key={`rect_drawing_${currentPoly.id}`} shapeProps={currentPoly} isSelected={false} onChange={(e)=>{
                             setCurrentPoly(prev=>({...prev, ...e}))
                         }}
                         fill={`${currentPoly.fill}4D`}

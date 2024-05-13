@@ -7,8 +7,8 @@ import OneIsToOne from '@/shared/icons/OneIsToOne';
 import Button from '@/shared/ui/Button';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 
-import { IMAGE_STATUS, STATUS } from '@/core/constants';
-import { assemblyAtom, currentRoiIdAtom, editingAtom, imageStatusAtom, rectanglesAtom, selectedRoiSelector, stageAtom } from '../../state';
+import { IMAGE_STATUS, RECTANGLE_TYPE, STATUS } from '@/core/constants';
+import { assemblyAtom, currentRectangleIdAtom, currentRoiIdAtom, editingAtom, imageStatusAtom, rectanglesAtom, rectanglesTypeAtom, selectedRoiSelector, stageAtom } from '../../state';
 // import { editingRectAtom } from '../state';
 
 export default function Actions({ cancel, submit }) {
@@ -22,6 +22,8 @@ export default function Actions({ cancel, submit }) {
   const configuration = useRecoilValue(assemblyAtom);
 
   const roiIndex = configuration.rois.findIndex(ele=>ele.id == currentRoiId)
+  const currentRectType = useRecoilValue(rectanglesTypeAtom)
+  const selectedRectId = useRecoilValue(currentRectangleIdAtom)
 
   //   const [isEditingRect, setEditingRect] = useRecoilState(editingRectAtom);
 
@@ -122,7 +124,15 @@ export default function Actions({ cancel, submit }) {
       icon: Box,
       action: handleDrawBox,
       active: imageStatus.draw,
-      canAction: isEditing && roiIndex >= 0 && !rectangles.some(rec=>rec.roiId == configuration.rois[roiIndex].id),
+      canAction: isEditing && 
+        (
+          (
+            currentRectType == RECTANGLE_TYPE.ROI &&
+            roiIndex >= 0 && 
+            !rectangles.some(rec=>rec.roiId == configuration.rois[roiIndex].id)
+          ) || 
+          RECTANGLE_TYPE.ANNOTATION_LABEL === currentRectType
+        ),
     },
   ];
 

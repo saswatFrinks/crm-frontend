@@ -13,6 +13,7 @@ import {
   dragAtom,
   editingAtom,
   imageStatusAtom,
+  labelClassAtom,
   mousePositionAtom,
   rectanglesAtom,
   rectanglesTypeAtom,
@@ -44,9 +45,14 @@ export default function UploadImage() {
 
   const [configuration, setConfiguration] = useRecoilState(assemblyAtom);
   const selectedRoiId = useRecoilValue(currentRoiIdAtom);
+  const seletectedLabel = useRecoilValue(labelClassAtom)
+  const setRectType = useSetRecoilState(rectanglesTypeAtom)
 
   const roiIndex = configuration.rois.findIndex(v=>v.id==selectedRoiId)
-  const roiName = roiIndex>=0? `Roi_${roiIndex}`: undefined;
+  const roiName = roiIndex>=0? 
+    `Roi_${roiIndex}`: 
+    seletectedLabel? `${seletectedLabel.name} ${1+rectangles.reduce((p,c)=>{return c.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL && c.imageId==selectedFile.id ? p+1: p}, 0)}`
+    : undefined
 
   React.useEffect(() => {
     if (selectedFile?.url) {
@@ -59,12 +65,16 @@ export default function UploadImage() {
     setRectangles(rects)
   }
 
+  React.useEffect(()=>{
+    setRectType(RECTANGLE_TYPE.ROI)
+  },[])
+
   return (
     <div
       className="flex h-full w-full flex-col items-center justify-center gap-4"
       style={{
         width: ((window.innerWidth - 16 * 4) * 7) / 12,
-        maxHeight: '100vh'
+        maxHeight: '91.65vh'
       }}
     >
       {step == 0 ? (
@@ -79,7 +89,7 @@ export default function UploadImage() {
       {file &&
       [1, 2, 3].includes(step) &&
       image?.width ?
-      <KonvaImageView image={image} onDrawStop={updateRectangles} rectangles={rectangles} title={roiName}/> 
+      <KonvaImageView image={image} onDrawStop={updateRectangles} rectangles={rectangles} title={roiName} imageId={selectedFile.id}/> 
       : null}
     </div>
   );

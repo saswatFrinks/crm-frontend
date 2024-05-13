@@ -89,7 +89,7 @@ export default function InspectionParameterStep(props) {
         ...t.rois,
         {
           ...DEFAULT_ROI,
-          id: Date.now(),
+          id: t.rois.length,
         },
       ],
     }));

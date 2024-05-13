@@ -16,8 +16,10 @@ import {useParams} from 'react-router-dom'
 import { editingRectAtom, stepAtom } from './state';
 import { useEffect, useState } from 'react';
 import axiosInstance from '@/core/request/aixosinstance';
-import { assemblyAtom, currentRoiIdAtom, editingAtom, rectanglesTypeAtom, uploadedFileListAtom } from '../state';
+import { annotationMapAtom, assemblyAtom, currentRectangleIdAtom, currentRoiIdAtom, editingAtom, rectanglesAtom, rectanglesTypeAtom, uploadedFileListAtom } from '../state';
 import { useNavigate } from 'react-router-dom';
+import { cloneDeep } from "lodash";
+import toast from 'react-hot-toast';
 
 export default function Assembly() {
   const [isEditing, setIsEditing] = useRecoilState(editingAtom);
@@ -34,6 +36,10 @@ export default function Assembly() {
   const [isEditingRect, setEditingRect] = useRecoilState(editingRectAtom);
 
   const [step, setStep] = useRecoilState(stepAtom);
+  const rois = useRecoilValue(rectanglesAtom).filter((t)=>t.rectType==RECTANGLE_TYPE.ROI)
+  const annotationRects = useRecoilValue(rectanglesAtom).filter((t)=>t.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL)
+  const [annotationMap, setAnnotationMap] = useRecoilState(annotationMapAtom)
+  const [selectedRectId, setSelectedRectId] = useRecoilState(currentRectangleIdAtom)
 
   const getProject = async () => {
     try {
@@ -52,12 +58,15 @@ export default function Assembly() {
   const canGoNext = !(images.length !== 10 || (step == 0 && images.some(img => !img)));
   const navigate = useNavigate();
 
-  const handleNext = () => {
-    setStep((t) => {
-      if(!canGoNext)return 0;
-      if (t == 3) return t;
-      return t + 1;
-    });
+  const handleNext = async () => {
+    let t = step;
+    if(!canGoNext) t = 0;
+    // else if(t==1){
+    //   t = await prepareApiData() ? t+1: t;
+    // }
+    else if (t != 3) t +=1;
+    console.log(step);
+    setStep(t);
   };
 
   const handlePrev = () => {
@@ -82,6 +91,7 @@ export default function Assembly() {
     setEditingRect(false);
     setIsEditing(false);
     setCurrentRoiId(null)
+    setSelectedRectId(null);
     setConfiguration((t) => ({
       ...t,
       rois: t.rois.map((k) => ({
@@ -103,11 +113,89 @@ export default function Assembly() {
     getProject()
   },[])
 
+
+  const prepareApiData = async()=>{
+    const imgMap = {}
+    const temp = cloneDeep(configuration)
+    temp.direction = parseInt(temp.productFlow)
+    delete temp.productFlow
+    temp.rois = temp.rois.map((roi, index)=>{
+      const tempParts = roi.parts.map((part)=>{
+        return {
+          classify: part.classify=='on',
+          class: part.class,
+          name: part.objectName,
+          count: part.qty,
+          operator: part.operation
+        }
+      })
+      let x, width, y, height
+      console.log(roi.id, rois.map(ele=>ele.roiId))
+      rois.forEach((roiRect)=>{
+        if(roi.id==roiRect.roiId){
+          x = parseFloat((roiRect.x).toFixed(4))
+          width = parseFloat((roiRect.width).toFixed(4))
+          y = parseFloat((roiRect.y).toFixed(4))
+          height = parseFloat((roiRect.height).toFixed(4))
+        }
+      })
+      return {
+        name: `ROI ${index}`,
+        x,
+        width,
+        y,
+        height,
+        parts: tempParts
+      }
+    })
+    if(temp.direction!=0){
+      temp.rois[0].primaryObject = {
+        name: temp.primaryObject,
+        class: temp.primaryObjectClass,
+      }
+    }
+    delete temp.primaryObject
+    delete temp.primaryObjectClass
+    const formData = new FormData();
+    annotationRects.forEach((rect)=>{
+      const classNo = annotationMap[rect.id]
+      const height = (rect.height).toFixed(4)
+      const width = (rect.width).toFixed(4)
+      const x = (rect.x).toFixed(4)
+      const y = (rect.y).toFixed(4)
+      if(imgMap[rect.imageId]){
+        imgMap[rect.imageId]+= `${classNo} ${x} ${y} ${width} ${height}\n`
+      }else{
+        imgMap[rect.imageId] = `${classNo} ${x} ${y} ${width} ${height}\n`
+      }
+    })
+    await Promise.all(images.map(async(img, index)=>{
+      const resp = await fetch(img.url)
+      const blob = await resp.blob()
+      const fileContents = imgMap[img.id] || ""
+      const fileBlob = new Blob([fileContents], { type: 'text/plain' })
+      formData.append('images', blob, img.name)
+      formData.append('files', fileBlob, img.id)
+    }))
+    formData.append('data', JSON.stringify(temp))
+    formData.append('configurationId', temp.id)
+    formData.append('isGood', JSON.stringify([true, true, true, true, true, false, false, false, false, false]))
+    console.log(formData.get('data'))
+    try{
+      const data = await axiosInstance.post("/configuration/assembly", formData)
+      toast.success("ROIs uploaded")
+      return data.data?.success
+    }
+    catch(e){
+      toast.error(e?.response?.data?.data?.message ? `${e?.response?.data?.data?.message}. All fields are required`: 'Failed')
+    }
+  }
+
   return (
     <>
       <div className="grid h-screen grid-cols-12 ">
-        <div className="col-span-5 grid grid-rows-12 border-r-[1px] border-gray-400">
-          <div className="row-span-11 bg-white">
+        <div className="col-span-5 grid grid-rows-12 border-r-[1px] border-gray-400" style={{maxHeight: '100vh', overflow: 'hidden'}}>
+          <div className="row-span-11 bg-white flex flex-col" style={{maxHeight: '91.65vh', overflowY: 'auto'}}>
             <h1 className="mb-4 px-6 pt-6 text-3xl font-bold">
               Assembly Configuration
             </h1>
@@ -115,9 +203,9 @@ export default function Assembly() {
             <Steps />
 
             <div
-              className="overflow-y-auto p-6"
+              className="overflow-y-auto p-6 pb-0 grow flex flex-col"
               style={{
-                height: calcHeight(),
+                // height: calcHeight(),
               }}
             >
               {stepObj[step]}
