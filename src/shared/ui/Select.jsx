@@ -14,7 +14,8 @@ export default function Select({ size, placeholder, ...props }) {
     defaultVariants: {
       size: 'sm',
     },
-  });
+  })
+  
   return (
     <>
       {formik ? <select

@@ -5,18 +5,31 @@ import Drawer from '@/shared/ui/Drawer'
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import CreateInstanceDrawer from './CreateInstanceDrawer'
+import { useRecoilState } from 'recoil'
+import { addInstanceAtom } from './state'
+import toast from 'react-hot-toast'
 
 const Instances = () => {
   const params = useParams();
   const [instances, setInstances] = useState([]);
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(1);
-
-  const handleNext = () => {
-    setStep((t) => {
-      if (t == 5) return t;
-      return t + 1;
-    });
+  const addInstance = useRecoilState(addInstanceAtom);
+  
+  const childRefs = Array.from({length: 5}, () => React.useRef({}));
+  
+  const handleNext = async () => {
+    try {
+      if(childRefs[step-1].current){
+        await childRefs[step-1].current.handleSubmit();
+      }
+      setStep((t) => {
+        if (t == 5) return t;
+        return t + 1;
+      });
+    } catch (error) {
+      toast.error(error.message)
+    }
   };
 
   const handleBack = () => {
@@ -33,7 +46,6 @@ const Instances = () => {
   const openDrawer = () => {
     setOpen(true);
   }
-
   const fetchAllInstances = async () => {
     const res = await axiosInstance.get('/instance/list', {
       params: {
@@ -148,7 +160,7 @@ const Instances = () => {
           </div>
         }
       >
-        <CreateInstanceDrawer step={step} />
+        <CreateInstanceDrawer childRefs = {childRefs} step={step} />
       </Drawer>
     </div>
   )
