@@ -4,12 +4,13 @@ import Drawer from '@/shared/ui/Drawer';
 import React, { useEffect } from 'react';
 import { FaPlus } from 'react-icons/fa';
 import BuildNTrainDrawer from './BuildNTrainDrawer';
-import { useRecoilState } from 'recoil';
+import { useRecoilState, useSetRecoilState } from 'recoil';
 import {
   augmentationsAtom,
   classAtom,
   configurationAtom,
   datasetAtom,
+  // modelIdAtom,
   modelInfoAtom,
   stepAtom,
 } from './state';
@@ -18,12 +19,20 @@ import axiosInstance from '@/core/request/aixosinstance';
 import toast, { Toaster } from 'react-hot-toast';
 import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader';
 
+export const augmentationsMap = {
+  horizontal: 'Horizontal Flip',
+  vertical: 'Vertical Flip',
+  rotation: 'Rotation',
+  noise: 'Noise',
+};
+
 export default function AIAssembly() {
   const params = useParams();
   const [open, setOpenDrawer] = React.useState(false);
   const [modelsList, setModelsList] = React.useState({});
   const [loading, setLoading] = React.useState(false);
   const [step, setStep] = useRecoilState(stepAtom);
+  // const setModelId = useSetRecoilState(modelIdAtom);
   const configuration = useRecoilState(configurationAtom);
   // const classes = useRecoilState(classAtom);
   // const rois = useRecoilState();
@@ -177,12 +186,22 @@ export default function AIAssembly() {
                         scope="row"
                         className="whitespace-nowrap px-6 py-4 font-medium text-gray-900 hover:underline "
                       >
-                        <Link to={`${123}#result`}>{model.name}</Link>
+                        <Link
+                          to={`${model.id}#detail`}
+                          // onClick={() => {
+                          //   setModelId(model.id);
+                          // }}
+                        >
+                          {model.name}
+                        </Link>
                       </th>
                       <td className="px-6 py-4">
                         {new Date(Number(model.createdAt)).toLocaleString()}
                       </td>
-                      <td className="px-6 py-4">{model.totalImages}</td>
+                      <td className="px-6 py-4">
+                        {model.totalImages} image
+                        {model.totalImages != 1 && 's'}
+                      </td>
                       <td
                         className={`px-6 py-4 ${trainingStatus[model.status].color}`}
                       >
@@ -191,7 +210,9 @@ export default function AIAssembly() {
                       <td className="flex flex-wrap gap-2 px-6 py-4">
                         {model?.classes?.length > 0 &&
                           model.classes.map((item, index) => (
-                            <Chip key={item.id}>{item.name}</Chip>
+                            <Chip key={item.id} color={`color-${index + 1}`}>
+                              {item.name}
+                            </Chip>
                           ))}
                       </td>
                     </tr>

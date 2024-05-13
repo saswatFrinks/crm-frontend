@@ -9,6 +9,7 @@ import {
   modelInfoAtom,
   // modelSizeAtom,
 } from './state';
+import { augmentationsMap } from '.';
 
 // const getModelName = (model) => {
 //   if (model['large']) {
@@ -91,8 +92,8 @@ export default function Finish() {
           Classes:
         </label>
         <div className="flex gap-2">
-          {classes.map((className) => (
-            <Chip key={className} color={'color-3'}>
+          {classes.map((className, index) => (
+            <Chip key={className} color={`color-${index + 1}`}>
               {className}
             </Chip>
           ))}
@@ -114,8 +115,8 @@ export default function Finish() {
                     <div className="flex-1">{obj.cameraConfig.name}</div>
                     <div className="flex-1">{obj.roi.name}</div>
                     <div className="flex flex-1 gap-2">
-                      {obj.classes.map((className) => (
-                        <Chip key={className} color={'color-3'}>
+                      {obj.classes.map((className, index) => (
+                        <Chip key={className} color={`color-${index + 1}`}>
                           {className}
                         </Chip>
                       ))}
@@ -177,7 +178,7 @@ export default function Finish() {
         </label>
         {/* <span> Horizontal Flip, Vertical Flip, Rotations, Noise </span> */}
         {getAllAugmentations(augmentations).map((name) => (
-          <span key={name}> {name} </span>
+          <span key={name}> {augmentationsMap[name]} </span>
         ))}
       </div>
     </div>
