@@ -8,12 +8,6 @@ import {
   //  modelSizeAtom
 } from './state';
 
-// const defaultModel = {
-//   small: false,
-//   medium: false,
-//   large: false,
-// };
-
 export default function ModelConfiguration() {
   const [augmentations, setAugmentations] = useRecoilState(augmentationsAtom);
   // const [modelSize, setModelSize] = useRecoilState(modelSizeAtom);

@@ -4,12 +4,13 @@ import Drawer from '@/shared/ui/Drawer';
 import React, { useEffect } from 'react';
 import { FaPlus } from 'react-icons/fa';
 import BuildNTrainDrawer from './BuildNTrainDrawer';
-import { useRecoilState } from 'recoil';
+import { useRecoilState, useSetRecoilState } from 'recoil';
 import {
   augmentationsAtom,
   classAtom,
   configurationAtom,
   datasetAtom,
+  // modelIdAtom,
   modelInfoAtom,
   stepAtom,
 } from './state';
@@ -18,12 +19,20 @@ import axiosInstance from '@/core/request/aixosinstance';
 import toast, { Toaster } from 'react-hot-toast';
 import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader';
 
+export const augmentationsMap = {
+  horizontal: 'Horizontal Flip',
+  vertical: 'Vertical Flip',
+  rotation: 'Rotation',
+  noise: 'Noise',
+};
+
 export default function AIAssembly() {
   const params = useParams();
   const [open, setOpenDrawer] = React.useState(false);
   const [modelsList, setModelsList] = React.useState({});
   const [loading, setLoading] = React.useState(false);
   const [step, setStep] = useRecoilState(stepAtom);
+  // const setModelId = useSetRecoilState(modelIdAtom);
   const configuration = useRecoilState(configurationAtom);
   // const classes = useRecoilState(classAtom);
   // const rois = useRecoilState();
@@ -45,6 +54,12 @@ export default function AIAssembly() {
     });
   };
 
+  const trainingStatus = {
+    0: { label: 'In progress', color: 'text-yellow-500' },
+    [-1]: { label: 'Failed', color: 'text-red-500' },
+    1: { label: 'Successful', color: 'text-green-500' },
+  };
+
   const columns = [
     'Model Name',
     'Date Created',
@@ -52,12 +67,6 @@ export default function AIAssembly() {
     'Training Status',
     'Classes',
   ];
-
-  const statusObj = {
-    success: 'text-green-500',
-    failed: 'text-red-500',
-    'in-progress': 'text-yellow-500',
-  };
 
   const closeDrawer = () => {
     setOpenDrawer(false);
@@ -128,9 +137,11 @@ export default function AIAssembly() {
       const resp = await axiosInstance.post('/model/detection', data);
       console.log('started training:', resp);
       setLoading(false);
+      fetchModelsList();
       closeDrawer();
     } catch (error) {
       console.error('Got error:', error);
+      fetchModelsList();
       setLoading(false);
       toast.error(JSON.stringify(error));
     }
@@ -175,14 +186,34 @@ export default function AIAssembly() {
                         scope="row"
                         className="whitespace-nowrap px-6 py-4 font-medium text-gray-900 hover:underline "
                       >
-                        <Link to={`${123}#result`}>Model 1234</Link>
+                        <Link
+                          to={`${model.id}#detail`}
+                          // onClick={() => {
+                          //   setModelId(model.id);
+                          // }}
+                        >
+                          {model.name}
+                        </Link>
                       </th>
-                      <td className="px-6 py-4">-</td>
-                      <td className="px-6 py-4">-</td>
-                      <td className={`px-6 py-4 ${statusObj['success']}`}>-</td>
+                      <td className="px-6 py-4">
+                        {new Date(Number(model.createdAt)).toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4">
+                        {model.totalImages} image
+                        {model.totalImages != 1 && 's'}
+                      </td>
+                      <td
+                        className={`px-6 py-4 ${trainingStatus[model.status].color}`}
+                      >
+                        {trainingStatus[model.status].label}
+                      </td>
                       <td className="flex flex-wrap gap-2 px-6 py-4">
-                        <Chip>Class 1</Chip>
-                        <Chip>Class 2</Chip>
+                        {model?.classes?.length > 0 &&
+                          model.classes.map((item, index) => (
+                            <Chip key={item.id} color={`color-${index + 1}`}>
+                              {item.name}
+                            </Chip>
+                          ))}
                       </td>
                     </tr>
                   );

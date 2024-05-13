@@ -101,7 +101,7 @@ export const projectRouter = {
           path: '',
           element: <Instances />,
         },
-      ]
-    }
+      ],
+    },
   ],
 };

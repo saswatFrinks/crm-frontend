@@ -10,6 +10,11 @@ export const modelInfoAtom = atom({
   default: { modelName: '', modelDescription: '', modelKey: 0 },
 });
 
+// export const modelIdAtom = atom({
+//   key: 'modelIdAtom',
+//   default: '',
+// });
+
 // export const modelSizeAtom = atom({
 //   key: 'modelSizeAtom',
 //   default: {
@@ -33,6 +38,11 @@ export const configurationAtom = atom({
   key: 'configuration',
   default: [],
 });
+
+// export const modelIdAtom = atom({
+//   key: 'details',
+//   default: null,
+// });
 
 export const classAtom = atom({
   key: 'classes',
