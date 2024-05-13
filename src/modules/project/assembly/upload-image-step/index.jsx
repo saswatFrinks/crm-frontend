@@ -55,7 +55,7 @@ export default function UploadImageStep() {
       onChange(tempImages[0])
     }
     console.log("images:",tempImages)
-    setImages([...tempImages])
+    setImages([...tempImages]);
   }
 
   useEffect(() => {

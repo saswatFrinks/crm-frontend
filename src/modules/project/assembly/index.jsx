@@ -3,7 +3,7 @@ import Button from '@/shared/ui/Button';
 import UploadImage from './components/UploadImage';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 
-import { ASSEMBLY_CONFIG, RECTANGLE_TYPE, STATUS } from '@/core/constants';
+import { ACTION_NAMES, ASSEMBLY_CONFIG, DEFAULT_ROI, RECTANGLE_TYPE, STATUS } from '@/core/constants';
 import Steps from './components/Steps';
 import UploadImageStep from './upload-image-step';
 import InspectionParameterStep from './inspection-parameter-step';
@@ -16,16 +16,17 @@ import {useParams} from 'react-router-dom'
 import { editingRectAtom, stepAtom } from './state';
 import { useEffect, useState } from 'react';
 import axiosInstance from '@/core/request/aixosinstance';
-import { annotationMapAtom, assemblyAtom, currentRectangleIdAtom, currentRoiIdAtom, editingAtom, rectanglesAtom, rectanglesTypeAtom, uploadedFileListAtom } from '../state';
+import { annotationMapAtom, assemblyAtom, currentRectangleIdAtom, currentRoiIdAtom, editingAtom, lastActionNameAtom, rectanglesAtom, rectanglesTypeAtom, uploadedFileListAtom } from '../state';
 import { useNavigate } from 'react-router-dom';
 import { cloneDeep } from "lodash";
 import toast from 'react-hot-toast';
+import { getRandomHexColor } from '@/util/util';
 
 export default function Assembly() {
   const [isEditing, setIsEditing] = useRecoilState(editingAtom);
   const setRectangleType = useSetRecoilState(rectanglesTypeAtom)
   
-  const {projectId} = useParams()
+  const {projectId, configurationId} = useParams()
 
   const [type, setType] = useState(ASSEMBLY_CONFIG.STATIONARY)
   const [configuration, setConfiguration] = useRecoilState(assemblyAtom);
@@ -40,6 +41,8 @@ export default function Assembly() {
   const annotationRects = useRecoilValue(rectanglesAtom).filter((t)=>t.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL)
   const [annotationMap, setAnnotationMap] = useRecoilState(annotationMapAtom)
   const [selectedRectId, setSelectedRectId] = useRecoilState(currentRectangleIdAtom)
+  const setLastAction = useSetRecoilState(lastActionNameAtom);
+  const setRectangles = useSetRecoilState(rectanglesAtom);
 
   const getProject = async () => {
     try {
@@ -61,9 +64,17 @@ export default function Assembly() {
   const handleNext = async () => {
     let t = step;
     if(!canGoNext) t = 0;
-    // else if(t==1){
-    //   t = await prepareApiData() ? t+1: t;
-    // }
+    else if (t==0){
+      await getRois();
+      t++;
+    }
+    else if(t==1){
+      // t = await prepareApiData() ? t+1: t;
+      t = t+1
+    }
+    else if(t==2){
+      t = await preUpdate() ? t+1: t;
+    }
     else if (t != 3) t +=1;
     console.log(step);
     setStep(t);
@@ -85,13 +96,22 @@ export default function Assembly() {
     setIsEditing(false);
     setCurrentRoiId(null)
     setRectangleType(RECTANGLE_TYPE.ROI)
+    setLastAction(ACTION_NAMES.CANCEL);
+    setConfiguration((t) => ({
+      ...t,
+      rois: t.rois.map((k) => ({
+        ...k,
+        status: k.id == currentRoiId ? STATUS.DEFAULT : k.status,
+      })),
+    }));
   };
 
   const submit = () => {
     setEditingRect(false);
     setIsEditing(false);
-    setCurrentRoiId(null)
+    setCurrentRoiId(null);
     setSelectedRectId(null);
+    setLastAction(ACTION_NAMES.SUBMIT);
     setConfiguration((t) => ({
       ...t,
       rois: t.rois.map((k) => ({
@@ -109,12 +129,70 @@ export default function Assembly() {
     3: <PreTrainingStep />,
   };
 
+  const getRois = async () => {
+    try{
+      const rois = await axiosInstance.get('/roi/rois', {
+        params: {
+          configurationId
+        }
+      })
+      if(rois.data.data.length){
+        const toUpdate = [];
+        const rects = []
+        rois.data.data?.forEach((roi, i)=>{
+          const obj = {...DEFAULT_ROI};
+          // obj.x  configure actual rois here, it should be multiplied by image widht or height, also x and y will differ
+          toUpdate.push({...DEFAULT_ROI, ...roi, id: i})
+          const {width, height} = roi;
+          const rectobj = {
+              ...BASE_RECT, 
+              id: i,
+              fill: color,
+              stroke: color,
+              imageId: images[0].id,
+              rectType: RECTANGLE_TYPE.ROI,
+              roiId: roi.id,
+              title: 'ROI',
+              x: roi.x-width/2,
+              y: roi.y - height/2,
+              width,
+              height
+          }
+        })
+        setConfiguration((t) => ({
+          ...t,
+          rois: toUpdate
+        }));
+        const color = getRandomHexColor();
+        setRectangles()
+      }
+      return true
+    }
+    catch(e){
+      return false;
+    }
+  }
+
   useEffect(()=>{
     getProject()
   },[])
 
+  const preUpdate = () => {
+    console.log('pre update')
+    return new Promise((res, rej)=>{
+      const image = new Image();
+      image.src = images[0].url
+      console.log('inside proimse')
+      image.onload = ()=>updateAnnotation(image).then(success=>{
+        if(success) res(true);
+        else res(false);
+      }).catch(()=>res(false));
+    })
+  }
+
 
   const prepareApiData = async()=>{
+    console.log("contorl here")
     const imgMap = {}
     const temp = cloneDeep(configuration)
     temp.direction = parseInt(temp.productFlow)
@@ -133,9 +211,9 @@ export default function Assembly() {
       console.log(roi.id, rois.map(ele=>ele.roiId))
       rois.forEach((roiRect)=>{
         if(roi.id==roiRect.roiId){
-          x = parseFloat((roiRect.x).toFixed(4))
+          x = parseFloat((roiRect.x + roiRect.width/2).toFixed(4))
           width = parseFloat((roiRect.width).toFixed(4))
-          y = parseFloat((roiRect.y).toFixed(4))
+          y = parseFloat((roiRect.y+roiRect.height/2).toFixed(4))
           height = parseFloat((roiRect.height).toFixed(4))
         }
       })
@@ -157,33 +235,51 @@ export default function Assembly() {
     delete temp.primaryObject
     delete temp.primaryObjectClass
     const formData = new FormData();
+    await Promise.all(images.map(async(img, index)=>{
+      const resp = await fetch(img.url)
+      const blob = await resp.blob()
+      formData.append('images', blob, img.name)
+    }))
+    formData.append('data', JSON.stringify(temp))
+    formData.append('configurationId', temp.id)
+    formData.append('isGood', JSON.stringify([true, true, true, true, true, false, false, false, false, false]))
+    try{
+      const data = await axiosInstance.post("/configuration/assembly", formData)
+      toast.success("ROIs uploaded")
+      return data.data?.success
+    }
+    catch(e){
+      toast.error(e?.response?.data?.data?.message ? `${e?.response?.data?.data?.message}. All fields are required`: 'Failed')
+    }
+  }
+
+  const updateAnnotation = async (image) => {
+    const imgMap = {};
     annotationRects.forEach((rect)=>{
       const classNo = annotationMap[rect.id]
-      const height = (rect.height).toFixed(4)
-      const width = (rect.width).toFixed(4)
-      const x = (rect.x).toFixed(4)
-      const y = (rect.y).toFixed(4)
+      const height = (rect.height/image.height).toFixed(4)
+      const width = (rect.width/image.width).toFixed(4)
+      const x = ((rect.x+rect.width/2)/image.width).toFixed(4)
+      const y = ((rect.y+rect.height/2)/image.height).toFixed(4)
       if(imgMap[rect.imageId]){
         imgMap[rect.imageId]+= `${classNo} ${x} ${y} ${width} ${height}\n`
       }else{
         imgMap[rect.imageId] = `${classNo} ${x} ${y} ${width} ${height}\n`
       }
     })
+    const formData = new FormData();
+    const imageIds = []
     await Promise.all(images.map(async(img, index)=>{
-      const resp = await fetch(img.url)
-      const blob = await resp.blob()
       const fileContents = imgMap[img.id] || ""
       const fileBlob = new Blob([fileContents], { type: 'text/plain' })
-      formData.append('images', blob, img.name)
       formData.append('files', fileBlob, img.id)
+      imageIds.push(img.id || '');
     }))
-    formData.append('data', JSON.stringify(temp))
-    formData.append('configurationId', temp.id)
-    formData.append('isGood', JSON.stringify([true, true, true, true, true, false, false, false, false, false]))
-    console.log(formData.get('data'))
+    formData.append('configurationId', configurationId);
+    formData.append('imageIds', imageIds);
     try{
-      const data = await axiosInstance.post("/configuration/assembly", formData)
-      toast.success("ROIs uploaded")
+      const data = await axiosInstance.post("/configuration/upload-label-files", formData)
+      toast.success("Labels uploaded")
       return data.data?.success
     }
     catch(e){

@@ -2,10 +2,10 @@ import React from "react";
 import { Stage, Rect, Layer, Transformer, Image } from "react-konva";
 import Rectangle from "./Rectangle";
 import Crosshair from "./Crosshair";
-import { BASE_RECT, RECTANGLE_TYPE } from "@/core/constants";
+import { ACTION_NAMES, BASE_RECT, RECTANGLE_TYPE } from "@/core/constants";
 import { getRandomHexColor } from "@/util/util";
 import { useRecoilState, useRecoilValue } from "recoil";
-import { currentRectangleIdAtom, currentRoiIdAtom, editingAtom, imageStatusAtom, labelClassAtom, rectanglesTypeAtom } from "../../state";
+import { currentRectangleIdAtom, currentRoiIdAtom, editingAtom, imageStatusAtom, labelClassAtom, lastActionNameAtom, rectanglesTypeAtom } from "../../state";
 import { stepAtom } from "../state";
 
 const KonvaImageView = ({image, onDrawStop, rectangles, title=null, imageId}) => {
@@ -31,6 +31,7 @@ const KonvaImageView = ({image, onDrawStop, rectangles, title=null, imageId}) =>
     const step = useRecoilValue(stepAtom);
 
     const [lastPolyId, setLastPolyId] = React.useState(null);
+    const [lastAction, setLastAction] = useRecoilState(lastActionNameAtom)
 
     const handleScroll = (evt)=>{
         const e = evt.evt
@@ -65,19 +66,20 @@ const KonvaImageView = ({image, onDrawStop, rectangles, title=null, imageId}) =>
         const stage = coverRef.current
 
         if (action.drawMode) {
-          setAction(a=>({...a, drawing: true}))
-          const poly = {
-                x: pointerPosition.x, 
-                y: pointerPosition.y
-            }
-          console.log({...poly})
-          setRectStart(poly)
-          const color = getRandomHexColor()
-          setCurrentPoly(
+            setAction(a=>({...a, drawing: true}))
+            const poly = {
+                    x: pointerPosition.x, 
+                    y: pointerPosition.y
+                }
+            console.log({...poly})
+            setRectStart(poly)
+            const color = getRandomHexColor()
+            const id =  (rectangles?.length || 0)+ 1;
+            setCurrentPoly(
             {
                 ...BASE_RECT, 
                 ...poly, 
-                id: (rectangles?.length || 0)+ 1,
+                id,
                 fill: color,
                 stroke: color,
                 imageId: imageId,
@@ -85,6 +87,7 @@ const KonvaImageView = ({image, onDrawStop, rectangles, title=null, imageId}) =>
                 roiId,
                 title
             })
+            setLastPolyId(id);
         } else {
             console.log("starting dragging here:",e.clientX)
           setAction(a=>({...a, isDragging: true}))
@@ -266,6 +269,18 @@ const KonvaImageView = ({image, onDrawStop, rectangles, title=null, imageId}) =>
         window.addEventListener('keyup', deleteCallback);
         return ()=>window.removeEventListener('keyup', deleteCallback);
     }, [rectangles])
+
+    React.useEffect(()=>{
+        if(lastAction && lastAction !== ACTION_NAMES.SELECTED){
+
+          if(lastAction == ACTION_NAMES.CANCEL){
+            onDrawStop(rectangles.filter(r=>r.id!==lastPolyId))
+          }
+          
+          setLastPolyId(null);
+          setLastAction(null);
+        }
+    }, [lastAction]);
 
     return (
         <div

@@ -96,6 +96,12 @@ export const RECTANGLE_TYPE = {
   ROI: 'ROI',
 };
 
+export const ACTION_NAMES = {
+  SUBMIT: 'SUBMIT',
+  CANCEL: 'CANCEL',
+  SELECTED: 'SELECTED'
+}
+
 export const imageTypes = [
   {
     key: 'master',

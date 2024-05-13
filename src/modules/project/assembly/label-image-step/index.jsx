@@ -15,8 +15,11 @@ import {
   selectedRoiSelector,
   uploadedFileListAtom,
 } from '../../state';
-import { RECTANGLE_TYPE } from "@/core/constants";
+import { BASE_RECT, RECTANGLE_TYPE } from "@/core/constants";
 import Button from '@/shared/ui/Button';
+import axiosInstance from '@/core/request/aixosinstance';
+import { useParams } from 'react-router-dom';
+import { getRandomHexColor } from '@/util/util';
 
 export default function LabelImage() {
   const configuration = useRecoilValue(assemblyAtom)
@@ -43,10 +46,12 @@ export default function LabelImage() {
   const images = useRecoilValue(uploadedFileListAtom);
   const [selectedFile, setSelectedFile] = useRecoilState(selectedFileAtom)
   const [selectedPolyId, setSelectedPloyId] = useRecoilState(currentRectangleIdAtom)
+  const [loadedLabelData, setLoadedLabelData] = useState(Array.from({length: images.length}, ()=>false))
+  const params = useParams();
 
   const removeRectangle = (id) => {
     setRectangle((t) => t.filter((k) => k.id !== id));
-    const temp = annotationMap
+    const temp = {...annotationMap}
     delete temp[id]
     setAnnotationMap(temp)
   };
@@ -93,7 +98,14 @@ export default function LabelImage() {
   }
 
   React.useEffect(() => {
-    const annotations = selectedRois.filter(e=>e.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL && !annotationMap[e.id]);
+    let updatedMap = {};
+    setAnnotationMap(prev=>{
+      updatedMap = prev;
+      return prev;
+    })
+    console.log('Updated map', updatedMap);
+    
+    const annotations = selectedRois.filter(e=>e.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL && !updatedMap[e.id]);
     if(annotations.length){
       setSelectedPloyId(annotations[0].id)
       const updates = {}
@@ -103,6 +115,68 @@ export default function LabelImage() {
       setAnnotationMap(p=>({...p, ...updates}))
     }
   }, [selectedRois])
+
+  React.useEffect(()=>{
+    const ind = images.findIndex(im=> im.id === selectedFile.id);
+    if(ind >=0 && !loadedLabelData[ind]){
+      const getData = async () => {
+        const data = await axiosInstance.get('/configuration/label-file', {
+          params: {
+            configurationId: params.configurationId,
+            imageId: selectedFile.id
+          }
+        })
+        const prevData = data?.data;
+        if(prevData.length && typeof prevData == 'string'){
+          const image = new Image();
+          image.src = selectedFile.url;
+          image.onload = () => {
+            const configuredData = []
+            const annotUpdates = {}
+            prevData.split('\n').forEach((entry, i)=>{
+              const line = entry.split(' ');
+              if(line.length>=5){
+                let [cls, x, y, width, height] = line;
+                x *= image.width;
+                y *= image.height;
+                width *= image.width;
+                height *= image.height;
+
+                const color = getRandomHexColor();
+                const id = selectedFile.id;
+                configuredData.push({
+                  ...BASE_RECT, 
+                  id: selectedRois.length + i,
+                  fill: color,
+                  stroke: color,
+                  imageId: id,
+                  rectType: RECTANGLE_TYPE.ANNOTATION_LABEL,
+                  // roiId: roi.id,
+                  title: cls,
+                  x: x - width/2,
+                  y: y - height/2,
+                  width,
+                  height
+                })
+                annotUpdates[selectedRois.length + i] = cls;
+              }
+            })
+            console.log('UPdate from txt', annotUpdates, configuredData)
+            setAnnotationMap(prev=>({...prev, annotUpdates}));
+            setTimeout(()=>setRectangle(prev=>[...prev, ...configuredData]), 500);
+          }
+
+        }
+
+        setLoadedLabelData(prev=>{
+          const d = [...prev];
+          d[ind] = true;
+          return d;
+        })
+      }
+      getData();
+    }
+  }, [selectedFile])
 
   return (
     <div className="flex flex-col gap-4 grow">

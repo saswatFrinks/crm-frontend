@@ -117,3 +117,8 @@ export const selectedRoiSelector = selectorFamily({
       return get(rectanglesAtom).filter((k) => k.imageId == imageId);
     },
 });
+
+export const lastActionNameAtom = atom({
+  key: 'lastActionNameAtom',
+  default: null,
+})
