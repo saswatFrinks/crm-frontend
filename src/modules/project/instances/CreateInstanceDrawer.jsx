@@ -2,14 +2,36 @@ import React from 'react'
 import BasicInformation from './BasicInformation';
 import ModelSelection from './ModelSelection';
 import Finish from './Finish';
-import TimeLine from '../assembly/TimeLine';
+import TimeLine from '../ai-training/assembly/TimeLine';
 import MapCameraIp from './MapCameraIp';
 import CameraConfig from './CameraConfig';
+import { useParams } from 'react-router-dom';
+import axiosInstance from '@/core/request/aixosinstance';
+import toast from 'react-hot-toast';
 
 const CreateInstanceDrawer = ({step}) => {
+  const params = useParams();
+  const [project, setProject] = React.useState(null);
+
+  const fetchProject = async () => {
+    try {
+      const res = await axiosInstance.get('/project', {
+        params: {
+          projectId: params.projectId,
+        },
+      })
+      setProject(res?.data?.data);
+    } catch (error) {
+      toast.error(error?.response?.data?.data?.message || 'Cannot fetch project details');
+    }
+  };
+
+  React.useEffect(() => {
+    fetchProject()
+  }, [])
 
   const stepObj = {
-    1: <BasicInformation />,
+    1: <BasicInformation project={project} />,
     2: <MapCameraIp />,
     3: <CameraConfig />,
     4: <ModelSelection />,

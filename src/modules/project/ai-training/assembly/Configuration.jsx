@@ -8,8 +8,9 @@ import React from 'react';
 import { useRecoilState, useSetRecoilState } from 'recoil';
 import { classAtom, configurationAtom } from './state';
 import { getRoisAndClasses } from '@/algo/algo';
+import toast from 'react-hot-toast';
 
-export default function Configuration() {
+export default function Configuration({ setLoading }) {
   const columns = [
     'Variant',
     'Camera Position',
@@ -25,15 +26,22 @@ export default function Configuration() {
   const setClassAtom = useSetRecoilState(classAtom);
 
   const fetchAllRois = async () => {
-    const res = await axiosInstance.get('/model/required', {
-      params: {
-        projectId: params.projectId,
-      },
-    });
-    const roiArr = res.data.data.detection.map((obj) => {
-      return { ...obj, check: false };
-    });
-    setRois(roiArr);
+    setLoading(true);
+    try {
+      const res = await axiosInstance.get('/model/required', {
+        params: {
+          projectId: params.projectId,
+        },
+      });
+      const roiArr = res.data.data.detection.map((obj) => {
+        return { ...obj, check: false };
+      });
+      setRois(roiArr);
+      setLoading(false);
+    } catch (e) {
+      setLoading(false);
+      toast.error(JSON.stringify(e));
+    }
   };
 
   const fetchAllClasses = async () => {
@@ -103,9 +111,20 @@ export default function Configuration() {
     setConfiguration([...newRois]);
   };
 
+  const helper = async () => {
+    setLoading(true);
+    try {
+      await Promise.all[(fetchAllClasses(), fetchAllRois())];
+      console.log('here');
+      setLoading(false);
+    } catch (e) {
+      toast.error(e);
+      setLoading(false);
+    }
+  };
+
   React.useEffect(() => {
-    fetchAllClasses();
-    fetchAllRois();
+    helper();
   }, []);
 
   return (

@@ -6,8 +6,9 @@ import { ChevronUp } from 'react-feather';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { configurationAtom, datasetAtom } from './state';
 import axiosInstance from '@/core/request/aixosinstance';
+import toast from 'react-hot-toast';
 
-export default function DataSet() {
+export default function DataSet({ setLoading }) {
   const configuration = useRecoilValue(configurationAtom).filter(
     (obj) => obj.check
   );
@@ -16,43 +17,50 @@ export default function DataSet() {
   const setDataSet = useSetRecoilState(datasetAtom);
 
   const fetchAllFolders = async () => {
-    console.log('configuration:', configuration);
-    const newFolders = await Promise.all(
-      configuration.map(async (config) => {
-        const res = await axiosInstance.get('/dataset/folders', {
-          params: {
-            cameraConfigId: config.cameraConfig.id,
-          },
-        });
+    setLoading(true);
+    try {
+      console.log('configuration:', configuration);
+      const newFolders = await Promise.all(
+        configuration.map(async (config) => {
+          const res = await axiosInstance.get('/dataset/folders', {
+            params: {
+              cameraConfigId: config.cameraConfig.id,
+            },
+          });
 
-        const folders = await Promise.all(
-          res.data.data.map(async (data) => {
-            const res = await axiosInstance.get('/dataset/allImages', {
-              params: {
-                folderId: data.id,
-              },
-            });
-            let flag = true;
-            res.data.data.map((image) => {
-              if (!image.annotated) {
-                flag = false;
-              }
-            });
-            return {
-              id: data.id,
-              folderName: data.name,
-              totalImages: res.data.data.length,
-              annotated: flag,
-              check: false,
-            };
-          })
-        );
+          const folders = await Promise.all(
+            res.data.data.map(async (data) => {
+              const res = await axiosInstance.get('/dataset/allImages', {
+                params: {
+                  folderId: data.id,
+                },
+              });
+              let flag = true;
+              res.data.data.map((image) => {
+                if (!image.annotated) {
+                  flag = false;
+                }
+              });
+              return {
+                id: data.id,
+                folderName: data.name,
+                totalImages: res.data.data.length,
+                annotated: flag,
+                check: false,
+              };
+            })
+          );
 
-        return { ...config, folders, open: true };
-      })
-    );
-    setFolders(newFolders);
-    setDataSet(newFolders);
+          return { ...config, folders, open: true };
+        })
+      );
+      setFolders(newFolders);
+      setDataSet(newFolders);
+      setLoading(false);
+    } catch (e) {
+      toast.error(JSON.stringify(e));
+      setLoading(false);
+    }
   };
 
   React.useEffect(() => {
