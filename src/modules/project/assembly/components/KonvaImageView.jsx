@@ -146,10 +146,13 @@ const KonvaImageView = ({image, onDrawStop, rectangles, title=null, imageId}) =>
             setCurrentPoly(null);
             updateObj['drawMode'] = false;
             updateObj['drawing'] = false;
+            setSelectedPloyId(normalizedValue.id);
+        }
+        else{
+            setSelectedPloyId(null);
         }
         setAction(a=>({...a, ...updateObj}))
         setImageStatus(prev=>({...prev, draw: false, dragging: false, drawing: false}))
-        setSelectedPloyId(null)
     }
 
     const resetGraph = (newScale=1)=> {
@@ -166,20 +169,20 @@ const KonvaImageView = ({image, onDrawStop, rectangles, title=null, imageId}) =>
         }
     }
 
-    const handleClickRectangle = (e, id) => {
-        const rect = rectangles.find(ele=>ele.id==id)
-        if ( rect
-            && (step==1)
-            && id == e.target.attrs.id 
-            && rect.rectType==RECTANGLE_TYPE.ROI
-        ){
-        //   setEditingRect(true);
-          setSelectedPloyId(id);
-          if(rect){
-              onDrawStop([...rectangles.filter(ele=>ele.id!==id), rect]);
-          }
-        }
-    };
+    // const handleClickRectangle = (e, id) => {
+    //     const rect = rectangles.find(ele=>ele.id==id)
+    //     if ( rect
+    //         && (step==1)
+    //         && id == e.target.attrs.id 
+    //         && rect.rectType==RECTANGLE_TYPE.ROI
+    //     ){
+    //     //   setEditingRect(true);
+    //       setSelectedPloyId(id);
+    //       if(rect){
+    //           onDrawStop([...rectangles.filter(ele=>ele.id!==id), rect]);
+    //       }
+    //     }
+    // };
 
     const handleValueReset = (rectObj) =>{
         const imageBoundaryX = image.width
@@ -297,7 +300,7 @@ const KonvaImageView = ({image, onDrawStop, rectangles, title=null, imageId}) =>
             >
                 <Layer ref={canvasRef}>
                     <Image image={image} width={image.width * origin.scale} height={image.height * origin.scale} x={origin.x} y={origin.y}/>
-                    {rectangles.filter(e=>e.rectType==RECTANGLE_TYPE.ROI || e.imageId==imageId)?.map((rect, i)=>{
+                    {rectangles.filter(e=>e.rectType==RECTANGLE_TYPE.ROI || ([2,3].includes(step) && e.imageId==imageId))?.map((rect, i)=>{
                         // console.log('rendering', i, origin)
                         return <Rectangle 
                             key={`rect_${rect.rectType}_${rect.id}`} 
@@ -325,7 +328,7 @@ const KonvaImageView = ({image, onDrawStop, rectangles, title=null, imageId}) =>
                             strokeWidth={origin.scale > 3 ? 0.25 : rect.strokeWidth}
                             onClick={(e) =>{
                                 if(rect.id==selectedPolyId) e.cancelBubble=true;
-                                handleClickRectangle(e, rect.id);
+                                // handleClickRectangle(e, rect.id);
                             }}
                             />
                     })}

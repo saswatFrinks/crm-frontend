@@ -18,10 +18,11 @@ import {
   DEFAULT_OBJECT,
   DEFAULT_ROI,
   OPERATIONS,
+  RECTANGLE_TYPE,
   STATUS,
 } from '@/core/constants';
 
-import { assemblyAtom, currentRoiIdAtom, editingAtom, selectedFileAtom } from '../../state';
+import { assemblyAtom, currentRectangleIdAtom, currentRoiIdAtom, editingAtom, rectanglesAtom, selectedFileAtom } from '../../state';
 import ArrowUp from '@/shared/icons/ArrowUp';
 import DeleteObjectModal from './DeleteObjectModal';
 import DeleteRoiModal from './DeleteRoiModal';
@@ -48,6 +49,8 @@ export default function InspectionParameterStep(props) {
   const [classOptions, setClassOptions] = useState([])
 
   const setCurrentRoiId = useSetRecoilState(currentRoiIdAtom);
+  const setSelectedRectId = useSetRecoilState(currentRectangleIdAtom);
+  const rectangles = useRecoilValue(rectanglesAtom);
 
   const getClasses = async() => {
     try {
@@ -153,9 +156,15 @@ export default function InspectionParameterStep(props) {
     return `obj-${id}`;
   };
 
+  console.log(rectangles)
+
   const handleClickLabel = (id) => {
     setIsEditing(true);
     setCurrentRoiId(id);
+    let idx = rectangles.findIndex(rect=>rect.roiId == id && rect.rectType==RECTANGLE_TYPE.ROI);
+    if(idx>=0){
+      setSelectedRectId(rectangles[idx].id)
+    }
     setConfiguration((t) => ({
       ...t,
       rois: t.rois.map((k) => ({

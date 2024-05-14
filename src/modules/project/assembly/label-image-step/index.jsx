@@ -20,8 +20,9 @@ import Button from '@/shared/ui/Button';
 import axiosInstance from '@/core/request/aixosinstance';
 import { useParams } from 'react-router-dom';
 import { getRandomHexColor } from '@/util/util';
+import { loadedLabelsAtom } from '../state';
 
-export default function LabelImage() {
+export default function LabelImage({save}) {
   const configuration = useRecoilValue(assemblyAtom)
   const colors = [
     '#C6C4FF',
@@ -46,7 +47,7 @@ export default function LabelImage() {
   const images = useRecoilValue(uploadedFileListAtom);
   const [selectedFile, setSelectedFile] = useRecoilState(selectedFileAtom)
   const [selectedPolyId, setSelectedPloyId] = useRecoilState(currentRectangleIdAtom)
-  const [loadedLabelData, setLoadedLabelData] = useState(Array.from({length: images.length}, ()=>false))
+  const [loadedLabelData, setLoadedLabelData] = useRecoilState(loadedLabelsAtom)
   const params = useParams();
 
   const removeRectangle = (id) => {
@@ -162,8 +163,8 @@ export default function LabelImage() {
               }
             })
             console.log('UPdate from txt', annotUpdates, configuredData)
-            setAnnotationMap(prev=>({...prev, annotUpdates}));
-            setTimeout(()=>setRectangle(prev=>[...prev, ...configuredData]), 500);
+            setAnnotationMap(prev=>({...prev, ...annotUpdates}));
+            setRectangle(prev=>[...prev, ...configuredData]);
           }
 
         }
@@ -261,7 +262,7 @@ export default function LabelImage() {
           </div>
         </div>
         <div className='absolute right-0 top-0 pt-1'>
-          <Button size='sm' variant='flat'>
+          <Button size='sm' variant='flat' onClick={save}>
             Save
           </Button>
         </div>
