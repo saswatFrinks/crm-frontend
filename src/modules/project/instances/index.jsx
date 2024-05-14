@@ -141,7 +141,7 @@ const Instances = () => {
                     Next
                   </Button>
                 ) : (
-                  <Button size="xs" fullWidth={false} className="min-w-[150px]">
+                  <Button onClick={handleNext} size="xs" fullWidth={false} className="min-w-[150px]">
                     Finish
                   </Button>
                 )}
@@ -160,7 +160,7 @@ const Instances = () => {
           </div>
         }
       >
-        <CreateInstanceDrawer childRefs = {childRefs} step={step} />
+        <CreateInstanceDrawer handleClose = {closeDrawer} childRefs = {childRefs} step={step} />
       </Drawer>
     </div>
   )

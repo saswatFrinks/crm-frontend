@@ -9,10 +9,15 @@ export const addInstanceAtom = atom({
       instanceName: '',
       plantId: '',
       cameraIps: [],
+      plantName: ''
     },
     mapCameraIp: {
       data: {},
       cameraIps: []
-    }
+    },
+    modelSelection: {
+      modelRoiMap: null
+    },
+    colorClasses: null
   }
 });

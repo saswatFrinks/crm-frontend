@@ -9,7 +9,7 @@ import { useParams } from 'react-router-dom';
 import axiosInstance from '@/core/request/aixosinstance';
 import toast from 'react-hot-toast';
 
-const CreateInstanceDrawer = ({step, childRefs}) => {
+const CreateInstanceDrawer = ({step, childRefs, handleClose}) => {
   const params = useParams();
   const [project, setProject] = React.useState(null);
   
@@ -36,8 +36,8 @@ const CreateInstanceDrawer = ({step, childRefs}) => {
     1: <BasicInformation project={project} formRef = {childRef} />,
     2: <MapCameraIp formRef = {childRef} />,
     3: <CameraConfig formRef = {childRef} />,
-    4: <ModelSelection />,
-    5: <Finish />,
+    4: <ModelSelection formRef = {childRef} />,
+    5: <Finish formRef = {childRef} handleClose = {handleClose} />,
   };
 
   return (
