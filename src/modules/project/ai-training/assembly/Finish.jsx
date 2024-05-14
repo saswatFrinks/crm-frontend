@@ -174,12 +174,12 @@ export default function Finish() {
 
       <div>
         <label htmlFor="" className="font-semibold">
-          Augmentations:
+          Augmentations:{' '}
         </label>
         {/* <span> Horizontal Flip, Vertical Flip, Rotations, Noise </span> */}
-        {getAllAugmentations(augmentations).map((name) => (
-          <span key={name}> {augmentationsMap[name]} </span>
-        ))}
+        {getAllAugmentations(augmentations)
+          .map((name) => augmentationsMap[name])
+          .join(', ')}
       </div>
     </div>
   );

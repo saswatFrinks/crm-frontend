@@ -3,7 +3,7 @@ import Checkbox from '@/shared/ui/Checkbox';
 import Label from '@/shared/ui/Label';
 import React, { useState } from 'react';
 import { ChevronUp } from 'react-feather';
-import { useRecoilValue, useSetRecoilState } from 'recoil';
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import { configurationAtom, datasetAtom } from './state';
 import axiosInstance from '@/core/request/aixosinstance';
 import toast from 'react-hot-toast';
@@ -14,7 +14,7 @@ export default function DataSet({ setLoading }) {
   );
 
   const [folders, setFolders] = useState([]);
-  const setDataSet = useSetRecoilState(datasetAtom);
+  const [dataset, setDataSet] = useRecoilState(datasetAtom);
 
   const fetchAllFolders = async () => {
     setLoading(true);
@@ -54,8 +54,12 @@ export default function DataSet({ setLoading }) {
           return { ...config, folders, open: true };
         })
       );
-      setFolders(newFolders);
-      setDataSet(newFolders);
+      if (dataset.length != 0) {
+        setFolders(dataset);
+      } else {
+        setFolders(newFolders);
+        setDataSet(newFolders);
+      }
       setLoading(false);
     } catch (e) {
       toast.error(JSON.stringify(e));
