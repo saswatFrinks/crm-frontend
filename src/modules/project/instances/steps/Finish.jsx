@@ -1,15 +1,15 @@
 import React from 'react'
 import { useRecoilState } from 'recoil'
-import { addInstanceAtom } from '../state'
+import { addInstanceAtom, defaultAddInstanceValue } from '../state'
 import Chip from '@/shared/ui/Chip';
 
-const Finish = ({formRef, handleClose}) => {
+const Finish = ({formRef}) => {
   const [addInstance, setAddInstance] = useRecoilState(addInstanceAtom);
 
   const keys = ['variantName', 'capturePositionName', 'cameraConfigName', 'roiName'];
 
   const handleSubmit = () => {
-    handleClose();
+    setAddInstance(defaultAddInstanceValue);
   }
 
   formRef.current = {

@@ -9,7 +9,7 @@ import toast from 'react-hot-toast';
 const CameraConfig = ({formRef}) => {
   const [addInstance, setAddInstance] = useRecoilState(addInstanceAtom);
   const [data, setData] = React.useState([]);
-  const [files, setFiles] = React.useState([]);
+  const [files, setFiles] = React.useState(addInstance?.cameraConfig?.files || []);
 
   React.useEffect(() => {
     const cameraConfigData = addInstance?.mappingData?.map(d => ({
@@ -22,17 +22,24 @@ const CameraConfig = ({formRef}) => {
     }));
 
     const uniqueData = removeDuplicates(cameraConfigData);
-    console.log({uniqueData})
     setData(uniqueData);
   }, [])
 
+  console.log({addInstance})
+
   React.useEffect(() => {
-    setFiles(Array.from({length: data?.length}, () => null));
+    if(files?.length === 0)setFiles(Array.from({length: data?.length}, () => false));
   }, [data])
 
   const handleSubmit = () => {
     try {
-      if(files.some(file => file == null))throw new Error('Please Upload all the files');
+      if(files.some(file => file == false))throw new Error('Please Upload all the files');
+      setAddInstance({
+        ...addInstance,
+        cameraConfig: {
+          files
+        }
+      });
     } catch (error){
       throw new Error(error?.response ? error?.response?.data?.data?.message : error?.message)
     }
@@ -48,11 +55,10 @@ const CameraConfig = ({formRef}) => {
       formData.append('instanceId', addInstance?.instanceId);
       formData.append('cameraConfigId', cameraConfigId);
       formData.append('file', file);
-      const response = await axiosInstance.post('/instance/upload-config', formData);
-      console.log({response});
+      await axiosInstance.post('/instance/upload-config', formData);
       setFiles(prev => {
         const newFiles = [...prev];
-        newFiles[index] = file;
+        newFiles[index] = true;
         return newFiles
       });
     } catch (error) {
