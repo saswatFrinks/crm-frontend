@@ -4,11 +4,21 @@ import Button from '@/shared/ui/Button';
 import Pagination from '@/shared/ui/Pagination';
 import AnnotationImage from './AnnotationImage';
 import AnnotationLabels from './AnnotationLabels';
-import Actions from './Actions';
+import Actions from '../assembly/components/Actions';
+import { useRecoilState } from 'recoil';
+import { stepAtom } from '../assembly/state';
+import React, { useState } from 'react'
+import KonvaImageView from '../assembly/components/KonvaImageView';
 
 export default function AnnotationJob() {
+  const [step, setStep] = useRecoilState(stepAtom);
+  const [rectangles, setRectangles] = useState([]);
+
   const cancel = () => {};
   const submit = () => {};
+  React.useEffect(()=>{
+    setStep(2);
+  }, [])
   return (
     <div className="grid h-screen grid-cols-12">
       <div className="col-span-3 grid grid-rows-12 border-r-[1px] border-black">
@@ -34,7 +44,12 @@ export default function AnnotationJob() {
       </div>
       <div className="col-span-9 grid grid-rows-12">
         <div className="row-span-11 flex flex-col items-center justify-center gap-4 bg-[#EAEDF1]">
-          <AnnotationImage />
+          <KonvaImageView 
+            onDrawStop={setRectangles}
+            rectangles={rectangles}
+            title={'Hello'}
+            
+          />
         </div>
 
         <div className="flex items-center justify-between border-t-[1px] border-gray-400 bg-white">

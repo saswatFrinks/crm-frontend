@@ -1,33 +1,31 @@
+import axiosInstance from '@/core/request/aixosinstance';
 import Box from '@/shared/icons/Box';
+import { getRandomHexColor } from '@/util/util';
 import React from 'react';
+import { useParams } from 'react-router-dom';
 
 export default function AnnotationClass() {
-  const [labelClass, setLabelClass] = React.useState([
-    {
-      name: 'Class 1',
-      color: '#C6C4FF',
-    },
-    {
-      name: 'Class 2',
-      color: '#7DDE86',
-    },
-    {
-      name: 'Class 3',
-      color: '#FF9898',
-    },
-    {
-      name: 'Class 4',
-      color: '#9BDCFD',
-    },
-    {
-      name: 'Class 5',
-      color: '#FFD188',
-    },
-    {
-      name: 'Class 6',
-      color: '#E3E5E5',
-    },
-  ]);
+  const {projectId} = useParams();
+  const [labelClass, setLabelClass] = React.useState([]);
+  const getClasses = async() => {
+    try {
+      const classes = await axiosInstance.get("/class/list", {
+        params: {
+          projectId
+        }
+      })
+      setLabelClass(classes.data.data.map(cls=>({...cls, color: getRandomHexColor()})))
+    } catch (error) {
+      
+    }
+  }
+
+  React.useEffect(()=>{
+    getClasses();
+  }, [])
+
+  console.log(labelClass)
+
   return (
     <div className="">
       <p className="mb-4">Click the class below to label it</p>
@@ -36,6 +34,7 @@ export default function AnnotationClass() {
           <li
             key={t.color}
             className={`bg-[${t.color}] flex cursor-pointer items-center gap-1 rounded-md px-3 py-1.5`}
+            style={{backgroundColor: t.color}}
           >
             <Box size="xs" />
             {t.name}
