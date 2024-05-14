@@ -84,6 +84,7 @@ export default function LabelImage({save}) {
     setLabel({
       name: labelClasses[i].name,
       count: labelClasses[i].count,
+      id: labelClasses[i].id
     })
   } 
 
@@ -111,7 +112,7 @@ export default function LabelImage({save}) {
       setSelectedPloyId(annotations[0].id)
       const updates = {}
       annotations.forEach(annot=>{
-        updates[annot.id] = selectedLabel.name
+        updates[annot.id] = selectedLabel.id
       })
       setAnnotationMap(p=>({...p, ...updates}))
     }
