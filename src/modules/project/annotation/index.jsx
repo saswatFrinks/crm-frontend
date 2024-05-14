@@ -1,3 +1,4 @@
+import axiosInstance from '@/core/request/aixosinstance';
 import ArrowRight from '@/shared/icons/ArrowRight';
 import Setting from '@/shared/icons/Setting';
 import Heading from '@/shared/layouts/main/heading';
@@ -5,6 +6,9 @@ import Button from '@/shared/ui/Button';
 import Radio from '@/shared/ui/Radio';
 import React from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { useRecoilState } from 'recoil';
+import { assemblyAtom } from '../state';
+import { selectedConfigurationAtom } from '../project-configuration/state';
 
 const columns = [
   '',
@@ -18,11 +22,30 @@ const columns = [
 
 export default function Annotation() {
   const params = useParams();
+  const [selectedConfiguration, setSelectedConfiguration] = useRecoilState(selectedConfigurationAtom)
+  const [configurations, setConfigurations] = React.useState([]);
 
-  const [configurations, setConfigurations] = React.useState([
-    { id: 1, status: 'Pending' },
-    { id: 2, status: 'Complete' },
-  ]);
+  // const [configurations, setConfigurations] = React.useState([
+  //   { id: 1, status: 'Pending' },
+  //   { id: 2, status: 'Complete' },
+  // ]);
+
+  const getConfigurations = async () => {
+    try {
+      const res = await axiosInstance.get('/configuration/list', {
+        params: {
+          projectId: params.projectId,
+        },
+      });
+      setConfigurations(res.data.data)
+    } catch (error) {
+      
+    }
+  }
+
+  React.useEffect(() => {
+    getConfigurations();
+  }, [])
   return (
     <>
       <Heading
@@ -43,7 +66,7 @@ export default function Annotation() {
 
       <div className="p-10">
         <div className="mb-8 flex items-center justify-between">
-          <h1 className=" text-2xl font-semibold">Project Configuration</h1>
+          <h1 className=" text-2xl font-semibold">Annotation</h1>
           <Button fullWidth={false} size="xs">
             <Link className="flex items-center gap-2" to={`annotation-job`}>
               <Setting />
@@ -64,11 +87,11 @@ export default function Annotation() {
               </tr>
             </thead>
             <tbody>
-              {configurations.map((plant, index) => {
+              {configurations.map((config, index) => {
                 return (
                   <tr
                     className="border-b odd:bg-white even:bg-[#C6C4FF]/10"
-                    key={plant.id}
+                    key={config.id}
                   >
                     <th
                       scope="row"
@@ -78,20 +101,25 @@ export default function Annotation() {
                         value="stationary"
                         name="isItemFixed"
                         id="stationary"
-                        checked={false}
-                        onChange={(e) => console.log(e.target.checked)}
+                        checked={selectedConfiguration.id===config.id}
+                        onClick={(e) => {
+                          setSelectedConfiguration({
+                            id: config.id,
+                            objective: config.objective
+                          })
+                        }}
                       />
                     </th>
-                    <td className="px-6 py-4">Name</td>
-                    <td className="px-6 py-4">Position</td>
-                    <td className="px-6 py-4">Configuration</td>
-                    <td className="px-6 py-4">Objective</td>
+                    <td className="px-6 py-4">{config.variant}</td>
+                    <td className="px-6 py-4">{config.cameraPosition}</td>
+                    <td className="px-6 py-4">{config.cameraConfig}</td>
+                    <td className="px-6 py-4">{config.objective}</td>
                     <td className="px-6 py-4">Folder 3</td>
                     <td className="px-6 py-4">
                       <span
-                        className={`${plant.status == 'Pending' ? 'text-red-500' : 'text-green-500'}`}
+                        className={`${config.status == 'Pending' ? 'text-red-500' : 'text-green-500'}`}
                       >
-                        {plant.status} - 0/100
+                        {config.status} - 0/100
                       </span>
                     </td>
                   </tr>

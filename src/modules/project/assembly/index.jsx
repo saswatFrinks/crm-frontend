@@ -344,7 +344,7 @@ export default function Assembly() {
     <>
       <div className="grid h-screen grid-cols-12 ">
         <div className="col-span-5 grid grid-rows-12 border-r-[1px] border-gray-400" style={{maxHeight: '100vh', overflow: 'hidden'}}>
-          <div className="row-span-11 bg-white flex flex-col" style={{maxHeight: '91.65vh', overflowY: 'auto'}}>
+          <div className="row-span-11 bg-white" style={{maxHeight: '91.65vh', overflowY: 'auto'}}>
             <h1 className="mb-4 px-6 pt-6 text-3xl font-bold">
               Assembly Configuration
             </h1>
@@ -352,7 +352,7 @@ export default function Assembly() {
             <Steps />
 
             <div
-              className="p-6 pb-0 grow flex flex-col"
+              className="p-6 pb-0 flex flex-col"
               style={{
                 // height: calcHeight(),
               }}
