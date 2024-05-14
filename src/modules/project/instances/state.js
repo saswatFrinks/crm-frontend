@@ -3,11 +3,12 @@ import { atom } from 'recoil';
 export const addInstanceAtom = atom({
   key: 'addInstanceBasicAtom',
   default: {
+    instanceId: null,
+    mappingData: null,
     basic: {
       instanceName: '',
       plantId: '',
       cameraIps: [],
-      formikRef: null
     },
     mapCameraIp: {
       data: {},

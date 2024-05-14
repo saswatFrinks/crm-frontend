@@ -3,48 +3,25 @@ import { useRecoilState } from 'recoil'
 import { addInstanceAtom } from '../state'
 import axiosInstance from '@/core/request/aixosinstance';
 import Upload from '@/shared/icons/Upload';
+import { removeDuplicates } from '@/util/util';
 
 const CameraConfig = ({formRef}) => {
   const [addInstance, setAddInstance] = useRecoilState(addInstanceAtom);
   const [data, setData] = React.useState([]);
 
-  const fetchData = async () => {
-    await Promise.all([
-      addInstance?.mapCameraIp?.data.map(d => {
-        return fetchAllCameraConfigs(d)
-      })
-    ])
-  }
-
-  const fetchAllCameraConfigs = async (cameraPosition) => {
-    try {
-      const res = await axiosInstance.get('/cameraConfig/fetch', {
-        params: {
-          capturePositionId: cameraPosition.cameraPosition.id,
-        },
-      });
-      
-      const cameraConfigs = await res?.data?.data;
-      const tableData = await cameraConfigs.map(config => {
-        return {
-          ...cameraPosition,
-          config
-        }
-      });
-
-      setData(prev => {
-        return [
-          ...prev,
-          ...tableData
-        ]
-      })
-    } catch (error) {
-      toast.error(error.response.data.data.message)
-    }
-  };
-
   React.useEffect(() => {
-    fetchData()
+    const cameraConfigData = addInstance?.mappingData?.map(d => ({
+      variantName: d.variantName,
+      variantId: d.variantId,
+      cameraPositionName: d.capturePositionName,
+      cameraPositionId: d.capturePositionId,
+      cameraConfigName: d.cameraConfigName,
+      cameraConfigId: d.cameraConfigId
+    }));
+
+    const uniqueData = removeDuplicates(cameraConfigData);
+    console.log({uniqueData})
+    setData(uniqueData);
   }, [])
 
   const handleSubmit = () => {
@@ -78,11 +55,11 @@ const CameraConfig = ({formRef}) => {
               return (
                 <tr
                   className="border-b odd:bg-white even:bg-[#C6C4FF]/10"
-                  key={`${dataItem?.variant?.id}/${dataItem?.cameraPosition?.id}/${dataItem?.config?.id}`}
+                  key={`${dataItem?.variantId}/${dataItem?.cameraPositionId}/${dataItem?.cameraConfigId}`}
                 >
-                  <td className="px-6 py-4">{dataItem?.variant?.name}</td>
-                  <td className="px-6 py-4">{dataItem?.cameraPosition?.name}</td>
-                  <td className="px-6 py-4">{dataItem?.config?.name}</td>
+                  <td className="px-6 py-4">{dataItem?.variantName}</td>
+                  <td className="px-6 py-4">{dataItem?.cameraPositionName}</td>
+                  <td className="px-6 py-4">{dataItem?.cameraConfigName}</td>
                   <td className="px-6 py-4">
                     <label 
                       className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-f-primary px-20 py-2 text-white duration-100 hover:bg-f-secondary"

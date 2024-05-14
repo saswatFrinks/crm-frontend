@@ -29,6 +29,20 @@ const BasicInformation = ({project, formRef}) => {
     setPlants(res.data.data);
   };
 
+  const fetchCamera = async (instanceId) => {
+    try {
+      const response = await axiosInstance('/camera/list', {
+        params: {
+          instanceId: instanceId || addInstance?.instanceId
+        }
+      });
+      
+      return await response?.data?.data;
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+
   useEffect(() => {
     fetchAllPlants();
   }, [])
@@ -36,7 +50,7 @@ const BasicInformation = ({project, formRef}) => {
   useEffect(() => {
     if(addInstance?.basic?.cameraIps?.length === 0){
       setFormData(prev => {
-        const ips = Array.from({length: project?.cameraCount}, () => '');
+        const ips = Array.from({length: project?.cameraCount}, () => ({cameraIp: ''}));
         return {
           ...prev,
           cameraIps: ips
@@ -47,22 +61,28 @@ const BasicInformation = ({project, formRef}) => {
 
   const handleSubmit = async () => {
     try {
-      if(!formData.instanceName || !formData.plantId || formData.cameraIps.some(ip => ip.trim().length === 0)){
+      if(!formData.instanceName || !formData.plantId || formData.cameraIps.some(ip => ip.cameraIp.trim().length === 0)){
         throw new Error('All fields are required')
       }
       const data = {
         name: formData.instanceName,
         projectId: params.projectId,
         plantId: formData.plantId,
-        cameraIps: formData.cameraIps,
+        cameraIps: formData.cameraIps?.map(ip => ip.cameraIp),
         teamId: "f395068b-8890-4099-ae4e-16b7d5acd964"
       }
       const response = await axiosInstance.post('/instance', data);
-      console.log(response)
+      const instanceId = await response?.data?.data?.id;
+      const selectedIps = await fetchCamera(instanceId);
+
       setAddInstance({
         ...addInstance,
-        basic: formData
-      })
+        basic: {
+          ...formData,
+          cameraIps: selectedIps
+        },
+        instanceId
+      });
     } catch (error) {
       throw new Error(error?.response ? error?.response?.data?.data?.message : error?.message)
     }
@@ -118,14 +138,14 @@ const BasicInformation = ({project, formRef}) => {
               onChange={(e) => {
                 setFormData(prev => {
                   const newIps = [...prev.cameraIps];
-                  newIps[index] = e.target.value
+                  newIps[index].cameraIp = e.target.value
                   return {
                     ...prev,
                     cameraIps: newIps
                   }
                 })
               }}
-              value={formData.cameraIps[index] || ''}
+              value={formData.cameraIps[index]?.cameraIp || ''}
               pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
             />
           </div>

@@ -15,3 +15,11 @@ export function getRandomHexColor() {
   }
   return color;
 }
+
+export function removeDuplicates(array) {
+  const seen = {};
+  return array.filter(item => {
+      const key = JSON.stringify(item);
+      return seen.hasOwnProperty(key) ? false : (seen[key] = true);
+  });
+}
