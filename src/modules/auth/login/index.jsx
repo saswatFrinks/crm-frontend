@@ -45,7 +45,10 @@ export default function Login() {
         const res = await authService.login(values);
         const user =  await getUserByEmail(values.email)
         storageService.set('user', user)
-        storageService.set(TOKEN, res.data.data.token);
+        const expires = new Date();
+        expires.setTime(expires.getTime() + (10000));
+        const cookie = `${TOKEN}=${res.data.data.token};path=/`;
+        document.cookie = cookie;
         updateAuthenHeader(res.data.data.token);
         navigate('/');
         toast.success('Login successfully!');
