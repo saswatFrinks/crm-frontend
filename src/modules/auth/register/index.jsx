@@ -26,38 +26,49 @@ export default function Register() {
       password: '',
       organization: '',
       rePassword: '',
+      phone: '',
     },
     validate: (values) => {
       const errors = {};
 
-      if (!values.name) {
-        errors.name = 'Name is required';
-      } else if (!/^[a-zA-Z\s]*$/.test(values.name)) {
-        errors.name = 'Enter name without numeric or special characters.';
+      if(formik.touched.name){
+        if (!values.name) {
+          errors.name = 'Name is required';
+        } else if (!/^[a-zA-Z\s]*$/.test(values.name)) {
+          errors.name = 'Enter name without numeric or special characters.';
+        }
       }
 
-      if (!values.password) {
-        errors.password = 'Password is required';
-      } else if (values.password.length < 6) {
-        errors.password = 'Password must be at least 6 characters';
+      if(formik.touched.password){
+        if (!values.password) {
+          errors.password = 'Password is required';
+        } else if (values.password.length < 6) {
+          errors.password = 'Password must be at least 6 characters';
+        }
       }
 
-      if (!values.email) {
-        errors.email = 'Email is required';
-      } else if (
-        !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(values.email)
-      ) {
-        errors.email = 'Enter a valid email id';
+      if(formik.touched.email){
+        if (!values.email) {
+          errors.email = 'Email is required';
+        } else if (
+          !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(values.email)
+        ) {
+          errors.email = 'Enter a valid email id';
+        }
       }
 
-      if (!values.rePassword) {
-        errors.rePassword = 'Enter your password again';
-      } else if (values.password !== values.rePassword) {
-        errors.rePassword = 'Your password not match';
+      if(formik.touched.rePassword){
+        if (!values.rePassword) {
+          errors.rePassword = 'Enter your password again';
+        } else if (values.password !== values.rePassword) {
+          errors.rePassword = 'Your password not match';
+        }
       }
 
-      if (!values.organization) {
-        errors.organization = 'Organization is required';
+      if(formik.touched.organization){
+        if (!values.organization) {
+          errors.organization = 'Organization is required';
+        }
       }
 
       return errors;
@@ -82,9 +93,8 @@ export default function Register() {
   });
 
   const getPhoneErrorMessage = () => {
-    const shouldCheck = (formik.dirty || Object.values(formik.touched).some(value => value));
-    if (shouldCheck && !phone) {
-      return 'Phone number is required';
+    if (formik.touched.phone && !phone) {
+      return 'Contact number is required';
     }
     let number = formatPhoneNumber(phone).replace(/\s/g, '');
 
@@ -92,7 +102,7 @@ export default function Register() {
       number = number.slice(1);
     }
 
-    if (shouldCheck && phone && number.length !== 10) {
+    if (formik.touched.phone && phone && number.length !== 10) {
       return 'Contact  number should be 10 digit number';
     }
     return null;
@@ -156,10 +166,11 @@ export default function Register() {
             <div className="md:min-w-8">
               <Label>Contact number</Label>
               <FPhoneInput
-                defaultCountry="US"
+                defaultCountry="IN"
                 placeholder="Enter your contact number"
                 name="phone"
                 onChange={setPhone}
+                onBlur={formik.handleBlur}
                 value={phone}
                 errorMessage={getPhoneErrorMessage()}
               />
