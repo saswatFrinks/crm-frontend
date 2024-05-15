@@ -108,7 +108,7 @@ export default function Sidebar() {
       ),
     },
     {
-      to: '',
+      to: `instances/${params.projectId}`,
       icon: (active) => (
         <svg
           width="20"

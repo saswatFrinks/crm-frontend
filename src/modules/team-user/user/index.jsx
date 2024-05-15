@@ -13,7 +13,7 @@ import axiosInstance from '@/core/request/aixosinstance';
 import { getOrganizationId } from '@/util/util';
 
 export default function User() {
-  const columns = ['User name', 'Email id', 'Phone Number', 'Plant', 'Team'];
+  const columns = ['User name', 'Email id', 'Phone Number', 'Plant', 'Team', 'Status'];
   const setModalState = useSetRecoilState(modalAtom);
 
   const ref = React.useRef(null);
@@ -126,6 +126,7 @@ export default function User() {
                     <td className="px-6 py-4">{user.phone}</td>
                     <td className="px-6 py-4">{user.plantName}</td>
                     <td className="px-6 py-4">{user.teamName}</td>
+                    <td className="px-6 py-4">{user.status}</td>
 
                     <td className="px-6 py-4">
                       <Action

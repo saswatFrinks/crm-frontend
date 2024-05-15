@@ -8,7 +8,7 @@ export default function Label({
   ...props
 }) {
   const label = tv({
-    base: 'mb-2 inline-block text-black select-none cursor-pointer',
+    base: 'inline-block text-black select-none cursor-pointer mb-1',
     variants: {
       main: {
         true: 'font-semibold',

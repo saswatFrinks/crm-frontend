@@ -13,13 +13,14 @@ import TimeLine from './TimeLine';
 
 export default function BuildNTrainDrawer() {
   const [step, setStep] = useRecoilState(stepAtom);
+  const [loading, setLoading] = React.useState(false);
 
   const stepObj = {
-    1: <BasicInformation />,
-    2: <Configuration />,
-    3: <DataSet />,
-    4: <ModelConfiguration />,
-    5: <Finish />,
+    1: <BasicInformation setLoading={setLoading} />,
+    2: <Configuration setLoading={setLoading} />,
+    3: <DataSet setLoading={setLoading} />,
+    4: <ModelConfiguration setLoading={setLoading} />,
+    5: <Finish setLoading={setLoading} />,
   };
 
   const handleNext = () => {
@@ -39,7 +40,7 @@ export default function BuildNTrainDrawer() {
   return (
     <div className="grid h-full grid-cols-12 gap-4">
       <div className="col-span-4 border-r-[1px] border-gray-300 p-6">
-        <TimeLine />
+        <TimeLine loading={loading} setLoading={setLoading} />
       </div>
       <div className="col-span-8 p-6">{stepObj[step]}</div>
     </div>

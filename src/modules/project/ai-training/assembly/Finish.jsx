@@ -7,18 +7,19 @@ import {
   configurationAtom,
   datasetAtom,
   modelInfoAtom,
-  modelSizeAtom,
+  // modelSizeAtom,
 } from './state';
+import { augmentationsMap } from '.';
 
-const getModelName = (model) => {
-  if (model['large']) {
-    return 'L';
-  } else if (model['medium']) {
-    return 'M';
-  } else {
-    return 'S';
-  }
-};
+// const getModelName = (model) => {
+//   if (model['large']) {
+//     return 'L';
+//   } else if (model['medium']) {
+//     return 'M';
+//   } else {
+//     return 'S';
+//   }
+// };
 
 const getAllAugmentations = (obj) => {
   return Object.keys(obj).filter((key) => obj[key] === true);
@@ -47,10 +48,13 @@ const filterDataSet = (data) => {
 export default function Finish() {
   const modelInfo = useRecoilValue(modelInfoAtom);
   const configuration = useRecoilValue(configurationAtom);
-  const modelSize = useRecoilValue(modelSizeAtom);
+  // const modelSize = useRecoilValue(modelSizeAtom);
   const augmentations = useRecoilValue(augmentationsAtom);
   const classes = useRecoilValue(classAtom)
-    .filter((classObj) => classObj.check)
+    .filter((classObj) => {
+      console.log(classObj);
+      return classObj.check;
+    })
     .map((classObj) => classObj.name);
   const dataset = filterDataSet(useRecoilValue(datasetAtom));
   console.log(dataset);
@@ -70,7 +74,12 @@ export default function Finish() {
         </label>
         <span> {modelInfo.modelName} </span>
       </div>
-
+      <div>
+        <label htmlFor="" className="font-semibold">
+          Model Key:
+        </label>
+        <span> {modelInfo.modelKey} </span>
+      </div>
       <div>
         <label htmlFor="" className="font-semibold">
           Model Description:
@@ -80,11 +89,13 @@ export default function Finish() {
 
       <div className="flex items-center gap-2">
         <label htmlFor="" className="font-semibold">
-          Classes
+          Classes:
         </label>
         <div className="flex gap-2">
-          {classes.map((className) => (
-            <Chip color={'color-3'}>{className}</Chip>
+          {classes.map((className, index) => (
+            <Chip key={className} color={`color-${index + 1}`}>
+              {className}
+            </Chip>
           ))}
         </div>
       </div>
@@ -94,22 +105,28 @@ export default function Finish() {
           Following configurations will run this AI model:
         </p>
         <div className="p-4">
-          {configuration.map((obj, i) => (
-            <div key={obj.id}>
-              <div className="flex justify-between gap-2 border-b-[1px] py-2">
-                <div>{obj.variantName}</div>
-                <div>{obj.capturePositionName}</div>
-                <div>{obj.cameraConfig}</div>
-                <div>{obj.roi}</div>
-                <div className="flex gap-2">
-                  {obj.classNames.map((className) => (
-                    <Chip color={'color-3'}>{className}</Chip>
-                  ))}
+          {configuration.map((obj, i) => {
+            return (
+              obj.check && (
+                <div key={obj.roi.id}>
+                  <div className="flex justify-between gap-2 border-b-[1px] py-2">
+                    <div className="flex-1">{obj.variant.name}</div>
+                    <div className="flex-1">{obj.capturePosition.name}</div>
+                    <div className="flex-1">{obj.cameraConfig.name}</div>
+                    <div className="flex-1">{obj.roi.name}</div>
+                    <div className="flex flex-1 gap-2">
+                      {obj.classes.map((className, index) => (
+                        <Chip key={className} color={`color-${index + 1}`}>
+                          {className}
+                        </Chip>
+                      ))}
+                    </div>
+                  </div>
+                  <div></div>
                 </div>
-              </div>
-              <div></div>
-            </div>
-          ))}
+              )
+            );
+          })}
         </div>
       </div>
 
@@ -119,19 +136,26 @@ export default function Finish() {
         </p>
         <div className="p-4">
           {dataset.map((obj, i) => (
-            <div key={obj.id}>
+            <div key={obj.roi.id}>
               <div className="flex justify-between gap-2 border-b-[1px] py-2">
-                <div>{obj.variantName}</div>
-                <div>{obj.capturePositionName}</div>
-                <div className="flex gap-2">{obj.cameraConfig}</div>
+                <div className="flex-1">{obj.variant.name}</div>
+                <div className="flex-1">{obj.capturePosition.name}</div>
+                <div className="flex flex-1 gap-2">{obj.cameraConfig.name}</div>
               </div>
               {obj.folders.map((folder) => {
                 return (
-                  <div className="flex justify-between gap-2 py-2 ps-12">
-                    <div>{folder.folderName}</div>
-                    <div>{folder.totalImages}</div>
-                    <div>
-                      <p className="text-green-500">Annotations complete</p>
+                  <div
+                    key={folder.folderName}
+                    className="flex flex-1 justify-between gap-2 py-2 ps-5"
+                  >
+                    <div className="flex-1">{folder.folderName}</div>
+                    <div className="flex-1">{`${folder.totalImages} image${folder?.totalImages == 1 ? '' : 's'}`}</div>
+                    <div className="flex-1">
+                      <p
+                        className={`text-${folder.annotated ? 'green' : 'red'}-500`}
+                      >
+                        Annotations {folder.annotated ? '' : 'in'}complete
+                      </p>
                     </div>
                   </div>
                 );
@@ -141,21 +165,21 @@ export default function Finish() {
         </div>
       </div>
 
-      <div>
+      {/* <div>
         <label htmlFor="" className="font-semibold">
           Model Size:
         </label>
         <span> {getModelName(modelSize)} </span>
-      </div>
+      </div> */}
 
       <div>
         <label htmlFor="" className="font-semibold">
-          Augmentations:
+          Augmentations:{' '}
         </label>
         {/* <span> Horizontal Flip, Vertical Flip, Rotations, Noise </span> */}
-        {getAllAugmentations(augmentations).map((name) => (
-          <span> {name} </span>
-        ))}
+        {getAllAugmentations(augmentations)
+          .map((name) => augmentationsMap[name])
+          .join(', ')}
       </div>
     </div>
   );

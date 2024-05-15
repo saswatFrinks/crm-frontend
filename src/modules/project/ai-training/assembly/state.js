@@ -7,17 +7,22 @@ export const stepAtom = atom({
 
 export const modelInfoAtom = atom({
   key: 'modelInfoAtom',
-  default: {},
+  default: { modelName: '', modelDescription: '', modelKey: 0 },
 });
 
-export const modelSizeAtom = atom({
-  key: 'modelSizeAtom',
-  default: {
-    small: false,
-    medium: false,
-    large: false,
-  },
-});
+// export const modelIdAtom = atom({
+//   key: 'modelIdAtom',
+//   default: '',
+// });
+
+// export const modelSizeAtom = atom({
+//   key: 'modelSizeAtom',
+//   default: {
+//     small: false,
+//     medium: false,
+//     large: false,
+//   },
+// });
 
 export const augmentationsAtom = atom({
   key: 'augmentations',
@@ -31,15 +36,20 @@ export const augmentationsAtom = atom({
 
 export const configurationAtom = atom({
   key: 'configuration',
-  default: []
-})
+  default: [],
+});
+
+// export const modelIdAtom = atom({
+//   key: 'details',
+//   default: null,
+// });
 
 export const classAtom = atom({
   key: 'classes',
-  default: []
-})
+  default: [],
+});
 
 export const datasetAtom = atom({
   key: 'dataset',
-  default: []
-})
+  default: [],
+});

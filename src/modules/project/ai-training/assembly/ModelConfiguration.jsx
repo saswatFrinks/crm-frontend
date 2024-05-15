@@ -3,21 +3,18 @@ import Label from '@/shared/ui/Label';
 import Radio from '@/shared/ui/Radio';
 import React, { useState } from 'react';
 import { useRecoilState } from 'recoil';
-import { augmentationsAtom, modelSizeAtom } from './state';
-
-const defaultModel = {
-  small: false,
-  medium: false,
-  large: false,
-};
+import {
+  augmentationsAtom,
+  //  modelSizeAtom
+} from './state';
 
 export default function ModelConfiguration() {
   const [augmentations, setAugmentations] = useRecoilState(augmentationsAtom);
-  const [modelSize, setModelSize] = useRecoilState(modelSizeAtom);
+  // const [modelSize, setModelSize] = useRecoilState(modelSizeAtom);
 
-  const handleModelChange = (key) => {
-    setModelSize({ ...defaultModel, [key]: true });
-  };
+  // const handleModelChange = (key) => {
+  //   setModelSize({ ...defaultModel, [key]: true });
+  // };
 
   const handleAugmentationsChange = (key) => {
     setAugmentations({ ...augmentations, [key]: !augmentations[key] });
@@ -32,7 +29,7 @@ export default function ModelConfiguration() {
         AI technical team if you need support.
       </p>
 
-      <div className="flex flex-col gap-2">
+      {/* <div className="flex flex-col gap-2">
         <p>Model size:</p>
         <div className="flex gap-2">
           <Radio
@@ -72,7 +69,7 @@ export default function ModelConfiguration() {
             Large
           </Label>
         </div>
-      </div>
+      </div> */}
 
       <div className="flex flex-col gap-2">
         <p>Augmentations:</p>

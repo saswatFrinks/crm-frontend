@@ -91,3 +91,8 @@ export const stepAtom = atom({
 //       return get(rectanglesAtom).filter((k) => k.imageId == imageId);
 //     },
 // });
+
+export const loadedLabelsAtom = atom({
+  key: 'loadedLabelsAtom',
+  default: Array.from({length: 10}, ()=>false),
+});

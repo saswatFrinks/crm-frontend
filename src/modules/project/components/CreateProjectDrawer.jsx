@@ -15,7 +15,6 @@ import toast, { Toaster } from 'react-hot-toast';
 
 const CreateProjectDrawer = React.forwardRef((props, ref) => {
   const { closeDrawer, setShowLoader, fetchAllProjects, projectToEdit } = props;
-  console.log(projectToEdit)
   const [plants, setPlants] = React.useState([]);
   const [teams, setTeams] = React.useState([]);
   const [variants, setVariants] = React.useState([]);
@@ -244,15 +243,14 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
           await axiosInstance.post('/project/create', projectJson);
         }
         closeDrawer();
-        fetchAllProjects();
+        await fetchAllProjects();
       } catch(error) {
-        toast.error(error.response.data.data.details)
+        toast.error(error.response.data.data.message)
       } finally {
         setShowLoader(false);
       }
     },
   });
-  console.log('formik', formik.values.inspectionType)
 
   const createProjectJSON = (values) => {
     const json = {
@@ -335,7 +333,6 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
 
   return (
     <form onSubmit={formik.handleSubmit} className="flex flex-col gap-4">
-      <Toaster position='top-center'/>
       <div>
         <Label>Project name</Label>
         <Input

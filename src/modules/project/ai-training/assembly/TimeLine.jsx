@@ -1,17 +1,21 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import React from 'react';
 import { useRecoilValue } from 'recoil';
 import { stepAtom } from './state';
+import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader';
 
-export default function TimeLine() {
-  const [timelines, setTimelines] = React.useState([
-    'Basic',
-    'Configuration & Classes',
-    'Datasets',
-    'Model Configuration',
-    'Finish',
-  ]);
+export default function TimeLine(props) {
+  const [timelines, setTimelines] = React.useState(
+    props?.timelines || [
+      'Basic',
+      'Configuration & Classes',
+      'Datasets',
+      'Model Configuration',
+      'Finish',
+    ]
+  );
 
-  const step = useRecoilValue(stepAtom);
+  const step = props?.step || useRecoilValue(stepAtom);
 
   return (
     <div className="relative flex flex-col gap-20">
@@ -26,7 +30,11 @@ export default function TimeLine() {
           <div
             className={`h-6 w-6 rounded-full duration-75  ${step >= i + 1 ? 'bg-f-primary' : 'border-[1px] bg-white'}`}
           ></div>
-          <span>{t}</span>
+          {props?.loading ? (
+            <ProjectCreateLoader title="Loading..." />
+          ) : (
+            <span>{t}</span>
+          )}
         </div>
       ))}
     </div>

@@ -4,7 +4,9 @@ import ArrowRight from '@/shared/icons/ArrowRight';
 import Upload from '@/shared/icons/Upload';
 import Heading from '@/shared/layouts/main/heading';
 import { modalAtom } from '@/shared/states/modal.state';
+import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader';
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { useSetRecoilState } from 'recoil';
 
@@ -15,18 +17,52 @@ export default function Folder() {
   const [datasetImages, setDatasetImages] = useState([]);
   const [id, setId] = useState('');
   const location = useLocation();
+  const [loader, setLoader] = useState(false);
+  const [loaderTitle, setLoaderTitle] = useState('');
 
   async function handleFileUpload(event) {
-    const files = event.target.files;
-    const formData = new FormData();
+    try {
+      const files = event.target.files;
+      const totalFiles = files.length;
+      const batchSize = 10;
+      let start = 0;
 
-    for (let i = 0; i < files.length; i++) {
-      formData.append('files', files[i]);
+      const checkFiles = Array.from(files);
+      const allFilesArePNG = checkFiles.every((file) => file.type === 'image/png');
+    
+      if (!allFilesArePNG) {
+        toast.error('Please select only PNG images');
+        return;
+      }
+
+      setLoader(true);
+
+      while (start < totalFiles) {
+          const end = Math.min(start + batchSize, totalFiles);
+          const batch = [];
+
+          for (let i = start; i < end; i++) {
+              batch.push(files[i]);
+          }
+
+          const formData = new FormData();
+          batch.forEach(file => {
+              formData.append('files', file);
+          });
+          formData.append('folderId', params.folderId);
+
+          setLoaderTitle(`Uploading (${end}/${totalFiles})`)
+
+          await axiosInstance.post('/dataset/upload', formData);
+          await fetchAllImages();
+
+          start += batchSize;
+      }
+    } catch (error) {
+        toast.error(error.response.data.data.message);
+    } finally {
+        setLoader(false);
     }
-    formData.append('folderId', params.folderId);
-
-    await axiosInstance.post('/dataset/upload', formData);
-    fetchAllImages();
   }
 
   const fetchAllImages = async () => {
@@ -125,6 +161,7 @@ export default function Folder() {
               multiple
               hidden
               id="file"
+              accept='.png'
               onChange={handleFileUpload}
             />
           </label>
@@ -179,6 +216,9 @@ export default function Folder() {
                 );
               })}
             </tbody>
+            {loader && (
+              <ProjectCreateLoader title={loaderTitle}/>
+            )}
           </table>
         </div>
       </div>

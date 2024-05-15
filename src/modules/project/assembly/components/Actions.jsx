@@ -7,8 +7,8 @@ import OneIsToOne from '@/shared/icons/OneIsToOne';
 import Button from '@/shared/ui/Button';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 
-import { IMAGE_STATUS, STATUS } from '@/core/constants';
-import { currentRoiIdAtom, editingAtom, imageStatusAtom, rectanglesAtom, selectedRoiSelector, stageAtom } from '../../state';
+import { ACTION_NAMES, IMAGE_STATUS, RECTANGLE_TYPE, STATUS } from '@/core/constants';
+import { assemblyAtom, currentRectangleIdAtom, currentRoiIdAtom, editingAtom, imageStatusAtom, lastActionNameAtom, rectanglesAtom, rectanglesTypeAtom, selectedRoiSelector, stageAtom } from '../../state';
 // import { editingRectAtom } from '../state';
 
 export default function Actions({ cancel, submit }) {
@@ -18,7 +18,13 @@ export default function Actions({ cancel, submit }) {
 
   const [isEditing, setIsEditing] = useRecoilState(editingAtom);
   const currentRoiId = useRecoilValue(currentRoiIdAtom);
-  const rectangles = useRecoilValue(rectanglesAtom)
+  const rectangles = useRecoilValue(rectanglesAtom);
+  const configuration = useRecoilValue(assemblyAtom);
+
+  const roiIndex = configuration.rois.findIndex(ele=>ele.id == currentRoiId)
+  const currentRectType = useRecoilValue(rectanglesTypeAtom)
+  const selectedRectId = useRecoilValue(currentRectangleIdAtom)
+  const [actionName, setActionName] = useRecoilState(lastActionNameAtom)
 
   //   const [isEditingRect, setEditingRect] = useRecoilState(editingRectAtom);
 
@@ -68,50 +74,70 @@ export default function Actions({ cancel, submit }) {
       draw: !t.draw,
       drawing: !t.drawing,
     }));
+    setActionName(ACTION_NAMES.SELECTED);
   };
 
+  const handleOneToOne = () => {
+    setImageStatus((p)=>({...p, oneToOne: true}));
+  }
+
+  const handleFitToCenter = () => {
+    setImageStatus((p)=>({...p, fitToCenter: true}));
+  }
+
   const actions = [
-    {
-      title: 'zoom in',
-      icon: ZoomIn,
-      action: handleZoomIn,
-      active: false,
-      canAction: true,
-    },
-    {
-      title: 'zoom out',
-      icon: ZoomOut,
-      action: handleZoomOut,
-      active: false,
-      canAction: true,
-    },
-    {
-      title: 'pan',
-      icon: Pan,
-      action: handlePan,
-      active: imageStatus.drag,
-      canAction: true,
-    },
+    // {
+    //   title: 'zoom in',
+    //   icon: ZoomIn,
+    //   action: handleZoomIn,
+    //   active: false,
+    //   canAction: true,
+    // },
+    // {
+    //   title: 'zoom out',
+    //   icon: ZoomOut,
+    //   action: handleZoomOut,
+    //   active: false,
+    //   canAction: true,
+    // },
+    // {
+    //   title: 'pan',
+    //   icon: Pan,
+    //   action: handlePan,
+    //   active: imageStatus.drag,
+    //   canAction: true,
+    // },
     {
       title: 'Fit To Center',
       icon: FitToCenter,
-      action: handleDrawBox,
-      active: imageStatus.draw,
-      canAction: isEditing,
+      action: handleFitToCenter,
+      active: false,
+      canAction: true,
     },
     {
       title: 'Fit 1:1',
       icon: OneIsToOne,
-      action: handleDrawBox,
-      active: imageStatus.draw,
-      canAction: isEditing,
+      action: handleOneToOne,
+      active: false,
+      canAction: true,
     },
     {
       title: 'box',
       icon: Box,
       action: handleDrawBox,
       active: imageStatus.draw,
-      canAction: isEditing,
+      canAction: isEditing && 
+        (
+          (
+            currentRectType == RECTANGLE_TYPE.ROI &&
+            roiIndex >= 0 && 
+            !rectangles.some(rec=>rec.roiId == configuration.rois[roiIndex].id)
+          ) || 
+          (
+            RECTANGLE_TYPE.ANNOTATION_LABEL === currentRectType &&
+            ACTION_NAMES.SELECTED!==actionName
+          )
+        ),
     },
   ];
 

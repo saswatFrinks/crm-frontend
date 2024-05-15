@@ -3,6 +3,7 @@ import AIAssembly from './ai-training/assembly';
 import AIDetail from './ai-training/assembly/ai-detail';
 import Cosmetic from './ai-training/cosmetic';
 import Dimensioning from './ai-training/dimensioning';
+import Instances from './instances';
 import Annotation from './annotation';
 import AnnotationJob from './anotation-job';
 import Assembly from './assembly';
@@ -13,6 +14,7 @@ import Folder from './folder';
 import ProjectConfiguration from './project-configuration';
 import Variants from './variants';
 import ProjectLayout from '@/shared/layouts/project';
+import InstanceLayout from './instances/InstanceLayout';
 
 export const projectRouter = {
   path: '',
@@ -88,6 +90,16 @@ export const projectRouter = {
         {
           path: 'cosmetic',
           element: <Cosmetic />,
+        },
+      ],
+    },
+    {
+      path: 'instances/:projectId',
+      element: <InstanceLayout />,
+      children: [
+        {
+          path: '',
+          element: <Instances />,
         },
       ],
     },

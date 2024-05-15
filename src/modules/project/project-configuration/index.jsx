@@ -6,8 +6,10 @@ import Button from '@/shared/ui/Button';
 import Radio from '@/shared/ui/Radio';
 import React, { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { useRecoilState } from 'recoil';
+import { useRecoilState, useSetRecoilState } from 'recoil';
 import { selectedConfigurationAtom } from './state';
+import { rectanglesAtom } from '../state';
+import { stepAtom } from '../assembly/state';
 
 const columns = [
   '',
@@ -23,6 +25,8 @@ export default function ProjectConfiguration() {
 
   const [configurations, setConfigurations] = React.useState([
   ]);
+  const setRectangles = useSetRecoilState(rectanglesAtom)
+  const setSteps = useSetRecoilState(stepAtom)
 
   const [selectedConfiguration, setSelectedConfiguration] = useRecoilState(selectedConfigurationAtom)
 
@@ -41,6 +45,8 @@ export default function ProjectConfiguration() {
 
   useEffect(()=>{
     getConfigurations()
+    setRectangles([]);
+    setSteps(0);
   }, [])
 
   return (

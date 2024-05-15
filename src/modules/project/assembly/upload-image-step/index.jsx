@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRecoilState, useSetRecoilState } from 'recoil';
 import { selectedFileAtom, uploadedFileListAtom } from '../../state';
 import X from '@/shared/icons/X';
@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 import toast, { Toaster } from 'react-hot-toast';
 import axiosInstance from '@/core/request/aixosinstance';
 import { useParams } from 'react-router-dom';
+import { imageTypes } from '@/core/constants';
 
 export default function UploadImageStep() {
   const [images, setImages] = useRecoilState(uploadedFileListAtom);
@@ -20,26 +21,15 @@ export default function UploadImageStep() {
   const [imageLoader, setImageLoader] = React.useState(
     Array.from({length: 10}, () => false)
   );
+  const [imageRemoveLoader, setImageRemoveLoader] = useState(
+    Array.from({length: 10}, () => false)
+  );
+
   const [selectedFiles, setSelectedFiles] = React.useState(
     Array.from({length: 10}, () => (null))
   );
 
   const setSelectedFile = useSetRecoilState(selectedFileAtom);
-
-  const imageTypes = [
-    {
-      key: 'master',
-      label: 'One Master Image:',
-    },
-    {
-      key: 'good',
-      label: 'Four Good Images:',
-    },
-    {
-      key: 'bad',
-      label: 'Five Bad Images:',
-    }
-  ]
 
   const fetchAllImages = async () => {
     const response = await axiosInstance.get('/configurationImage/images', {
@@ -57,11 +47,15 @@ export default function UploadImageStep() {
         id: img.imageId,
         fileName: `${img.imageId}.png`,
         checked: false,
-        number: img.index
+        number: img.index,
+        url: `${import.meta.env.VITE_BASE_API_URL}/configurationImage/view?imageId=${img.imageId}`
       };
     })
+    if(tempImages[0]){
+      onChange(tempImages[0])
+    }
     console.log("images:",tempImages)
-    setImages([...tempImages])
+    setImages([...tempImages]);
   }
 
   useEffect(() => {
@@ -70,12 +64,12 @@ export default function UploadImageStep() {
 
   const removeImage = async (index) => {
     try{
-      if(imageLoader[index])return;
+      if(imageLoader[index] || imageRemoveLoader[index])return;
       const data = {
         id: images[index].id,
         configurationId
       }
-      setLoading(index, true);
+      setDeleteLoading(index, true);
       await axiosInstance.delete('/configuration/', {
         params: data
       });
@@ -89,7 +83,7 @@ export default function UploadImageStep() {
       console.log(error)
       toast.error(error?.response?.data?.data?.message)
     } finally {
-      setLoading(index, false);
+      setDeleteLoading(index, false);
     }
   };
 
@@ -111,6 +105,14 @@ export default function UploadImageStep() {
 
   const setLoading = (index, flag) => {
     setImageLoader(loaders => {
+      const newLoaders = [...loaders];
+      newLoaders[index] = flag;
+      return newLoaders;
+    })
+  }
+
+  const setDeleteLoading = (index, flag) => {
+    setImageRemoveLoader(loaders => {
       const newLoaders = [...loaders];
       newLoaders[index] = flag;
       return newLoaders;
@@ -140,7 +142,7 @@ export default function UploadImageStep() {
   const uploadImage = async (type, index, typeIndex) => {
     try {
       const imageNum = getImageNumber(index, typeIndex, type);
-      if(!selectedFiles[imageNum] || imageLoader[imageNum])return;
+      if(!selectedFiles[imageNum] || imageLoader[imageNum] || imageRemoveLoader[imageNum])return;
       const formData = new FormData();
       formData.append('file', selectedFiles[imageNum]);
       formData.append('configurationId', configurationId);
@@ -186,7 +188,7 @@ export default function UploadImageStep() {
                           {images[imageNum]?.fileName}
                         </a>
                         {
-                          imageLoader[imageNum] ? (
+                          imageRemoveLoader[imageNum] ? (
                             <div>Deleting...</div>
                           ) : (
                             <label onClick={() => {removeImage(imageNum)}}>

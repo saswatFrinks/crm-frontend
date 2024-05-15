@@ -12,17 +12,16 @@ import {
 } from 'react-router-dom';
 
 export default function AiTrainingLayout() {
-  
-const params = useParams();
+  const params = useParams();
 
-  const makeApiCall = async() => {
-   const data =  await axiosInstance.get(`magic/${params.id}`)
-   console.log(data.data)
-  }
+  const makeApiCall = async () => {
+    const data = await axiosInstance.get(`magic/${params.id}`);
+    console.log(data.data);
+  };
 
-  useEffect(()=>{
-    makeApiCall()
-  }, [])
+  useEffect(() => {
+    makeApiCall();
+  }, []);
 
   const location = useLocation();
 
