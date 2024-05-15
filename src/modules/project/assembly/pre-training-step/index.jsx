@@ -5,14 +5,21 @@
 // import { RECTANGLE_TYPE } from "@/core/constants";
 // import axiosInstance from "@/core/request/aixosinstance";
 
+import axiosInstance from '@/core/request/aixosinstance';
+import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
+import { useParams } from 'react-router-dom';
+
 export default function PreTrainingStep() {
   const columns = ['', 'Positive', 'Negative'];
+  const [loader, setLoader] = useState(false);
+  const params = useParams();
   // const configuration = useRecoilValue(assemblyAtom)
   // const rois = useRecoilValue(rectanglesAtom).filter((t)=>t.rectType==RECTANGLE_TYPE.ROI)
   // const annotationRects = useRecoilValue(rectanglesAtom).filter((t)=>t.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL)
   // const images = useRecoilValue(uploadedFileListAtom)
   // const annotationMap = useRecoilValue(annotationMapAtom)
-  
+
   // const prepareApiData = async()=>{
   //   const imgMap = {}
   //   const temp = cloneDeep(configuration)
@@ -87,6 +94,27 @@ export default function PreTrainingStep() {
   // useState(()=>{
   //   prepareApiData()
   // }, [])
+
+  const helper = async () => {
+    setLoader(true);
+    try {
+      console.log('params:', params);
+      await axiosInstance.get('/recommender/start', {
+        params: {
+          configId: params.configurationId,
+        },
+      });
+    } catch (e) {
+      console.error('Error in pre training helper:', e);
+      toast.error(e);
+    } finally {
+      setLoader(false);
+    }
+  };
+
+  useEffect(() => {
+    helper();
+  }, []);
 
   return (
     <div className="flex flex-col gap-4">
