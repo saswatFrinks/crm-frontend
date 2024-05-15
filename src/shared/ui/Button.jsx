@@ -19,6 +19,7 @@ export default function Button({
           danger: 'bg-red-500 text-white hover:bg-red-400',
           warn: 'bg-yellow-500 text-white hover:bg-yellow-400',
           success: 'bg-green-500 text-white hover:bg-green-400',
+          light: 'bg-[#F6F6FF] text-[#6B4EFF]'
         },
         size: {
           tiny: 'text-sm py-1',

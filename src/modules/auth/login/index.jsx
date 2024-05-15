@@ -134,7 +134,7 @@ export default function Login() {
         </p>
 
         <Link to={'/register'} className="mx-auto block w-full">
-          <Button color="flat">Sign up</Button>
+          <Button color="light">Sign up</Button>
         </Link>
       </form>
     </div>

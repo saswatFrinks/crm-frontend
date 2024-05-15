@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import logo from '@/assets/logo.svg';
 import Label from '@/shared/ui/Label';
 import Input from '@/shared/ui/Input';
@@ -63,7 +63,7 @@ export default function Register() {
       return errors;
     },
     onSubmit: async (values) => {
-      if (!phone) return;
+      if(!phone) return;
       const { rePassword, ...value } = values;
       try {
         let number = formatPhoneNumber(phone).replace(/\s/g, '');
@@ -82,7 +82,7 @@ export default function Register() {
   });
 
   const getPhoneErrorMessage = () => {
-    if (formik.dirty && !phone) {
+    if ((formik.dirty || Object.values(formik.touched).some(value => value)) && !phone) {
       return 'Phone number is required';
     }
     let number = formatPhoneNumber(phone).replace(/\s/g, '');
@@ -107,7 +107,7 @@ export default function Register() {
 
       <div className="flex  flex-col gap-6 rounded-lg border-[1px] border-gray-500  bg-white p-6 shadow ">
         <h1 className=" text-center text-4xl font-bold">
-          Welcome to Frinks AI
+          Welcome to Frinks AI!
         </h1>
 
         <p className="text-center text-2xl font-semibold">Sign up</p>
@@ -165,7 +165,7 @@ export default function Register() {
             </div>
 
             <div className="md:min-w-8">
-              <Label>Password</Label>
+              <Label>Enter Password</Label>
               <Input
                 placeholder="Enter password"
                 type="password"
@@ -195,7 +195,7 @@ export default function Register() {
             to={'/login'}
             className=" block min-w-[180px]  place-self-end"
           >
-            <Button color="flat">Cancel</Button>
+            <Button color='light'>Cancel</Button>
           </Link>
 
           <div className=" min-w-[180px] place-self-start ">
