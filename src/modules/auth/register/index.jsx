@@ -82,7 +82,8 @@ export default function Register() {
   });
 
   const getPhoneErrorMessage = () => {
-    if ((formik.dirty || Object.values(formik.touched).some(value => value)) && !phone) {
+    const shouldCheck = (formik.dirty || Object.values(formik.touched).some(value => value));
+    if (shouldCheck && !phone) {
       return 'Phone number is required';
     }
     let number = formatPhoneNumber(phone).replace(/\s/g, '');
@@ -91,7 +92,7 @@ export default function Register() {
       number = number.slice(1);
     }
 
-    if (formik.dirty && phone && number.length !== 10) {
+    if (shouldCheck && phone && number.length !== 10) {
       return 'Contact  number should be 10 digit number';
     }
     return null;
