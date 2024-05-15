@@ -18,7 +18,7 @@ const withAuth = (WrappedComponent) => {
   };
 };
 
-const getCookie = () => {
+export const getCookie = () => {
   const cookieName = `${TOKEN}=`;
   const decodedCookie = decodeURIComponent(document.cookie);
   const cookieArray = decodedCookie.split(';');

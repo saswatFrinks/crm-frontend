@@ -3,7 +3,7 @@ import logo from '@/assets/logo.svg';
 import Label from '@/shared/ui/Label';
 import Input from '@/shared/ui/Input';
 import Button from '@/shared/ui/Button';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import FPhoneInput from '@/shared/ui/PhoneInput';
 import authService from '../auth.service';
 import toast, { Toaster } from 'react-hot-toast';
@@ -13,11 +13,18 @@ import Modal from '@/shared/ui/Modal';
 import SignUpSuccess from './SignUpSuccess';
 import { useSetRecoilState } from 'recoil';
 import { modalAtom } from '@/shared/states/modal.state';
+import { getCookie } from '@/shared/hocs/withAuthenticated';
 
 export default function Register() {
-
+  const navigate = useNavigate();
   const [phone, setPhone] = React.useState(undefined);
   const setOpen = useSetRecoilState(modalAtom);
+
+  useEffect(() => {
+    if(getCookie()){
+      navigate('/')
+    }
+  }, [])
 
   const formik = useFormik({
     initialValues: {

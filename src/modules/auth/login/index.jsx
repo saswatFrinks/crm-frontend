@@ -1,3 +1,4 @@
+import React from 'react';
 import logo from '@/assets/logo.svg';
 import Input from '@/shared/ui/Input';
 import Label from '@/shared/ui/Label';
@@ -10,9 +11,16 @@ import storageService from '@/core/storage';
 import { TOKEN } from '@/core/constants';
 import { updateAuthenHeader } from '@/core/request/updateAuth';
 import axiosInstance from '@/core/request/aixosinstance';
+import { getCookie } from '@/shared/hocs/withAuthenticated';
 
 export default function Login() {
   const navigate = useNavigate();
+
+  React.useEffect(() => {
+    if(getCookie()){
+      navigate('/')
+    }
+  }, [])
   
   const formik = useFormik({
     initialValues: {
