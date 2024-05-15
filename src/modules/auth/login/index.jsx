@@ -54,8 +54,8 @@ export default function Login() {
         const user =  await getUserByEmail(values.email)
         storageService.set('user', user)
         const expires = new Date();
-        expires.setTime(expires.getTime() + (10000));
-        const cookie = `${TOKEN}=${res.data.data.token};path=/`;
+        expires.setTime(expires.getTime() + (2 * 24 * 60 * 60 * 1000)); //2 days
+        const cookie = `${TOKEN}=${res.data.data.token};expires=${expires.toUTCString()};path=/`;
         document.cookie = cookie;
         updateAuthenHeader(res.data.data.token);
         navigate('/');
