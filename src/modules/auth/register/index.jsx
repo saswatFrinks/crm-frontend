@@ -91,6 +91,10 @@ export default function Register() {
       }
     },
   });
+  
+  useEffect(() => {
+    formik.validateForm()
+  }, [formik.touched])
 
   const getPhoneErrorMessage = () => {
     if (formik.touched.phone && !phone) {
