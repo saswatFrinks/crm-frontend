@@ -105,7 +105,7 @@ export default function Register() {
 
   const getPhoneErrorMessage = () => {
     if (formik.touched.phone && !phone) {
-      return 'Contact number is required';
+      return 'Phone number is required';
     }
     let number = formatPhoneNumber(phone).replace(/\s/g, '');
 
@@ -114,7 +114,7 @@ export default function Register() {
     }
 
     if (formik.touched.phone && phone && number.length !== 10) {
-      return 'Contact  number should be 10 digit number';
+      return 'Phone  number should be 10 digit number';
     }
     return null;
   };
@@ -175,10 +175,10 @@ export default function Register() {
             </div>
 
             <div className="md:min-w-8">
-              <Label>Contact number</Label>
+              <Label>Phone number</Label>
               <FPhoneInput
                 defaultCountry="IN"
-                placeholder="Enter your contact number"
+                placeholder="Enter your phone number"
                 name="phone"
                 onChange={setPhone}
                 onBlur={formik.handleBlur}

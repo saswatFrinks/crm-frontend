@@ -35,7 +35,7 @@ export default function UserDropdown() {
   ]
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col" style={{width: '100%'}}>
       {openDropdown && (
         <div className="flex flex-col items-center justify-center rounded-lg bg-gray-100 m-2 overflow-hidden">
           {dropdownMenu.map(item => (
@@ -50,14 +50,12 @@ export default function UserDropdown() {
           ))}
         </div>
       )}
-      <div className="flex w-full cursor-pointer items-center justify-between gap-4 px-2">
+      <div className="flex w-full cursor-pointer items-center justify-between gap-4 px-2" onClick = {toggleOpen}>
         <div className="flex h-10 w-10 items-center justify-center rounded-md bg-gray-200 font-semibold">
           {name ? name[0].toUpperCase() : ''}
         </div>
         <div className="whitespace-nowrap grow">{name}</div>
-        <Label onClick = {toggleOpen}>
-          {openDropdown ? <ChevronDown /> : <ChevronUp />}
-        </Label>
+        {openDropdown ? <ChevronDown /> : <ChevronUp />}
       </div>
     </div>
   );
