@@ -61,7 +61,7 @@ export const projectRouter = {
           element: <Annotation />,
         },
         {
-          path: 'annotation-job',
+          path: 'annotation-job/:configurationId/:datasetId',
           element: <AnnotationJob />,
         },
       ],

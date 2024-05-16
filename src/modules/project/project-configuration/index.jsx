@@ -10,6 +10,7 @@ import { useRecoilState, useSetRecoilState } from 'recoil';
 import { selectedConfigurationAtom } from './state';
 import { rectanglesAtom } from '../state';
 import { stepAtom } from '../assembly/state';
+import { removeDuplicateFromArray } from '@/util/util';
 import Modal from '@/shared/ui/Modal';
 
 const columns = [

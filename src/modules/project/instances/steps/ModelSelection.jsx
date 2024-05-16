@@ -3,15 +3,22 @@ import React, { useEffect, useState } from 'react'
 import { useRecoilState } from 'recoil';
 import { addInstanceAtom } from '../state';
 import { removeDuplicates } from '@/util/util';
+import Chip from '@/shared/ui/Chip';
+import Radio from '@/shared/ui/Radio';
+import axiosInstance from '@/core/request/aixosinstance';
 
-const ModelSelection = () => {
+const ModelSelection = ({ formRef }) => {
   const [open, setOpen] = useState([]);
   const [addInstance, setAddInstance] = useRecoilState(addInstanceAtom);
   const [classColors, setClassColors] = useState(new Map());
+  const [selectedModels, setSelectedModels] = useState(addInstance?.modelSelection?.modelRoiMap || new Map());
+  const [dataLength, setDataLength] = useState(0);
   const data = addInstance?.mappingData;
 
-  const handleOpen = (num) => {
-    setOpen(open === num ? 0 : num);
+  const handleOpen = (index) => {
+    const newOpen = [...open];
+    newOpen[index] = !newOpen[index];
+    setOpen(newOpen);
   }
 
   const filterClasses = () => {
@@ -23,10 +30,17 @@ const ModelSelection = () => {
 
     const uniqueClasses = removeDuplicates(classesData);
     uniqueClasses.forEach((data, i) => {
-      classes.set(data?.id, `color-${(i%10)+1}`)
+      classes.set(data?.id, {
+        name: data?.name,
+        color: `color-${(i % 10) + 1}`
+      })
     })
 
     setClassColors(classes);
+    setAddInstance({
+      ...addInstance,
+      colorClasses: classes
+    })
   }
 
   useEffect(() => {
@@ -34,8 +48,20 @@ const ModelSelection = () => {
   }, [])
 
   useEffect(() => {
-    setOpen(Array.from({length: data?.length}, () => true));
+    setOpen(Array.from({ length: data?.length }, () => true));
+    let count = 0;
+    data?.forEach(d => {
+      count += d?.models?.length !== 0 ? 1 : 0;
+    })
+    setDataLength(count);
   }, [data])
+
+  const handleChangeModel = (key, value) => {
+    const newModels = new Map(selectedModels);
+    newModels.set(key, value);
+    setSelectedModels(newModels);
+    console.log({ newModels })
+  }
 
   function Icon({ open }) {
     return (
@@ -52,6 +78,41 @@ const ModelSelection = () => {
     );
   }
 
+  const updateAddInstance = (modelRoiMap) => {
+    setAddInstance({
+      ...addInstance,
+      modelSelection: {
+        modelRoiMap
+      }
+    })
+  }
+
+  const handleSubmit = async () => {
+    try {
+      if (selectedModels?.size !== dataLength) throw new Error('Please Select Model of all the ROIs')
+      const instanceIds = Array.from({ length: dataLength }, () => addInstance?.instanceId);
+      const modelIds = [];
+      const roiIds = [];
+      for (let [key, value] of selectedModels) {
+        modelIds.push(value);
+        roiIds.push(key)
+      }
+      const response = await axiosInstance.post('/instance/link-model', {
+        instanceIds,
+        modelIds,
+        roiIds
+      });
+
+      updateAddInstance(selectedModels);
+    } catch (error) {
+      throw new Error(error?.response ? error?.response?.data?.data?.message : error?.message)
+    }
+  }
+
+  formRef.current = {
+    handleSubmit
+  }
+
   const keys = ['variantName', 'capturePositionName', 'cameraConfigName', 'roiName'];
 
   return (
@@ -61,23 +122,60 @@ const ModelSelection = () => {
 
       {data?.map(
         (modelData, index) => (
-          <Accordion open={open[index]} onClick={() => handleOpen(index)}>
-            <AccordionHeader>
+          <Accordion open={open[index]}>
+            <AccordionHeader onClick={() => handleOpen(index)}>
               <div className="mr-2">
                 <Icon open={open[index]} />
               </div>
-              <div className="flex justify-between gap-4" style={{width: '100%'}}>
-                {keys.map(key => (
-                  <div>{modelData[key]}</div>
-                ))}
+              <div className='flex gap-4 justify-between' style={{ width: '100%' }}>
+                <div className="flex justify-between" style={{ width: '70%' }}>
+                  {keys.map(key => (
+                    <div>{modelData[key]}</div>
+                  ))}
+                </div>
+                <div className='flex justify-end gap-2' style={{ width: '30%' }}>
+                  {modelData.classes.map(classData => (
+                    <Chip color={classColors.get(classData?.id)?.color}>
+                      {classData?.name}
+                    </Chip>
+                  )
+                  )}
+                </div>
               </div>
             </AccordionHeader>
-            {open[index] && 
+            {open[index] &&
               (
                 <AccordionBody>
-                  We&apos;re not always in the position that we want to be at. We&apos;re constantly
-                  growing. We&apos;re constantly making mistakes. We&apos;re constantly trying to express
-                  ourselves and actualize our dreams.
+                  {modelData?.models?.map(model => (
+                    <>
+                      <div className='ml-2 flex justify-between py-2' style={{ backgroundColor: '#E7E7FF' }}>
+                        <div className="whitespace-nowrap font-medium text-gray-900 border-b">
+                          <Radio
+                            id={model?.id}
+                            name={modelData?.roiId}
+                            value={model?.id}
+                            checked={selectedModels?.get(modelData?.roiId) === model?.id}
+                            onChange={() => {
+                              handleChangeModel(modelData?.roiId, model?.id);
+                            }}
+                          />{' '}
+                        </div>
+                        <div style={{ textAlign: 'left' }}>{model?.name}</div>
+                        <div>{(new Date(Number(model?.createdAt))).toLocaleDateString()}</div>
+                        <div className='flex justify-end gap-2 mr-4'>
+                          {model?.classes?.map(id => {
+                            return (
+                              <Chip color={classColors.get(id)?.color}>
+                                {classColors.get(id)?.name}
+                              </Chip>
+                            )
+                          }
+                          )}
+                        </div>
+                      </div>
+                      <hr style={{height: '2px'}}/>
+                    </>
+                  ))}
                 </AccordionBody>
               )}
           </Accordion>

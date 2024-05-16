@@ -24,6 +24,7 @@ export default function Annotation() {
   const params = useParams();
   const [selectedConfiguration, setSelectedConfiguration] = useRecoilState(selectedConfigurationAtom)
   const [configurations, setConfigurations] = React.useState([]);
+  const [selectedDataset, setSelectedDataset] = React.useState(null);
 
   // const [configurations, setConfigurations] = React.useState([
   //   { id: 1, status: 'Pending' },
@@ -68,7 +69,7 @@ export default function Annotation() {
         <div className="mb-8 flex items-center justify-between">
           <h1 className=" text-2xl font-semibold">Annotation</h1>
           <Button fullWidth={false} size="xs">
-            <Link className="flex items-center gap-2" to={`annotation-job`}>
+            <Link className="flex items-center gap-2" to={`annotation-job/${selectedConfiguration.id}/${selectedDataset}`}>
               <Setting />
               Start Annotation
             </Link>
@@ -101,8 +102,9 @@ export default function Annotation() {
                         value="stationary"
                         name="isItemFixed"
                         id="stationary"
-                        checked={selectedConfiguration.id===config.id}
+                        checked={selectedConfiguration.id===config.id && config.datasetId==selectedDataset}
                         onClick={(e) => {
+                          setSelectedDataset(config.datasetId);
                           setSelectedConfiguration({
                             id: config.id,
                             objective: config.objective
@@ -114,7 +116,7 @@ export default function Annotation() {
                     <td className="px-6 py-4">{config.cameraPosition}</td>
                     <td className="px-6 py-4">{config.cameraConfig}</td>
                     <td className="px-6 py-4">{config.objective}</td>
-                    <td className="px-6 py-4">Folder 3</td>
+                    <td className="px-6 py-4">{config.datasetName}</td>
                     <td className="px-6 py-4">
                       <span
                         className={`${config.status == 'Pending' ? 'text-red-500' : 'text-green-500'}`}

@@ -79,6 +79,7 @@ const BasicInformation = ({project, formRef}) => {
         ...addInstance,
         basic: {
           ...formData,
+          plantName: plants.find(plant => plant?.id === formData?.plantId)?.name,
           cameraIps: selectedIps
         },
         instanceId
