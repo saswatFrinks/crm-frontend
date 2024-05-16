@@ -40,7 +40,7 @@ export default function UserDropdown() {
         <div className="flex flex-col items-center justify-center rounded-lg bg-gray-100 m-2 overflow-hidden">
           {dropdownMenu.map(item => (
             <div 
-              className="flex items-center justify-evenly py-2 px-4 cursor-pointer hover:bg-gray-200" 
+              className="flex items-center justify-start gap-4 py-2 px-4 cursor-pointer hover:bg-gray-200" 
               style={{width: '100%'}}
               onClick={item.onClick}
             >
