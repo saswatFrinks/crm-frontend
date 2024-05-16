@@ -1,3 +1,4 @@
+import React from 'react';
 import logo from '@/assets/logo.svg';
 import Input from '@/shared/ui/Input';
 import Label from '@/shared/ui/Label';
@@ -10,9 +11,16 @@ import storageService from '@/core/storage';
 import { TOKEN } from '@/core/constants';
 import { updateAuthenHeader } from '@/core/request/updateAuth';
 import axiosInstance from '@/core/request/aixosinstance';
+import { getCookie } from '@/shared/hocs/withAuthenticated';
 
 export default function Login() {
   const navigate = useNavigate();
+
+  React.useEffect(() => {
+    if(getCookie()){
+      navigate('/')
+    }
+  }, [])
   
   const formik = useFormik({
     initialValues: {
@@ -43,10 +51,13 @@ export default function Login() {
       console.log(values);
       try {
         const res = await authService.login(values);
-        const user =  await getUserByEmail(values.email)
-        storageService.set('user', user)
-        storageService.set(TOKEN, res.data.data.token);
+        const expires = new Date();
+        expires.setTime(expires.getTime() + (2 * 24 * 60 * 60 * 1000)); //2 days
+        const cookie = `${TOKEN}=${res.data.data.token};expires=${expires.toUTCString()};path=/`;
+        document.cookie = cookie;
         updateAuthenHeader(res.data.data.token);
+        const user =  await getUserByEmail(values.email, res.data.data.token)
+        storageService.set('user', user)
         navigate('/');
         toast.success('Login successfully!');
       } catch (error) {
@@ -57,7 +68,7 @@ export default function Login() {
     },
   });
 
-  const getUserByEmail = async (email) => {
+  const getUserByEmail = async (email, token) => {
     const res = await axiosInstance.get('/user/getUser', {
       params: {
         email
@@ -134,7 +145,7 @@ export default function Login() {
         </p>
 
         <Link to={'/register'} className="mx-auto block w-full">
-          <Button color="flat">Sign up</Button>
+          <Button color="light">Sign up</Button>
         </Link>
       </form>
     </div>

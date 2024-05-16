@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import logo from '@/assets/logo.svg';
 import Label from '@/shared/ui/Label';
 import Input from '@/shared/ui/Input';
 import Button from '@/shared/ui/Button';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import FPhoneInput from '@/shared/ui/PhoneInput';
 import authService from '../auth.service';
 import toast, { Toaster } from 'react-hot-toast';
@@ -13,11 +13,18 @@ import Modal from '@/shared/ui/Modal';
 import SignUpSuccess from './SignUpSuccess';
 import { useSetRecoilState } from 'recoil';
 import { modalAtom } from '@/shared/states/modal.state';
+import { getCookie } from '@/shared/hocs/withAuthenticated';
 
 export default function Register() {
-
+  const navigate = useNavigate();
   const [phone, setPhone] = React.useState(undefined);
   const setOpen = useSetRecoilState(modalAtom);
+
+  useEffect(() => {
+    if(getCookie()){
+      navigate('/')
+    }
+  }, [])
 
   const formik = useFormik({
     initialValues: {
@@ -26,44 +33,55 @@ export default function Register() {
       password: '',
       organization: '',
       rePassword: '',
+      phone: '',
     },
     validate: (values) => {
       const errors = {};
 
-      if (!values.name) {
-        errors.name = 'Name is required';
-      } else if (!/^[a-zA-Z\s]*$/.test(values.name)) {
-        errors.name = 'Enter name without numeric or special characters.';
+      if(formik.touched.name){
+        if (!values.name) {
+          errors.name = 'Name is required';
+        } else if (!/^[a-zA-Z\s]*$/.test(values.name)) {
+          errors.name = 'Enter name without numeric or special characters.';
+        }
       }
 
-      if (!values.password) {
-        errors.password = 'Password is required';
-      } else if (values.password.length < 6) {
-        errors.password = 'Password must be at least 6 characters';
+      if(formik.touched.password){
+        if (!values.password) {
+          errors.password = 'Password is required';
+        } else if (values.password.length < 6) {
+          errors.password = 'Password must be at least 6 characters';
+        }
       }
 
-      if (!values.email) {
-        errors.email = 'Email is required';
-      } else if (
-        !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(values.email)
-      ) {
-        errors.email = 'Enter a valid email id';
+      if(formik.touched.email){
+        if (!values.email) {
+          errors.email = 'Email is required';
+        } else if (
+          !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(values.email)
+        ) {
+          errors.email = 'Enter a valid email id';
+        }
       }
 
-      if (!values.rePassword) {
-        errors.rePassword = 'Enter your password again';
-      } else if (values.password !== values.rePassword) {
-        errors.rePassword = 'Your password not match';
+      if(formik.touched.rePassword){
+        if (!values.rePassword) {
+          errors.rePassword = 'Enter your password again';
+        } else if (values.password !== values.rePassword) {
+          errors.rePassword = 'Your password not match';
+        }
       }
 
-      if (!values.organization) {
-        errors.organization = 'Organization is required';
+      if(formik.touched.organization){
+        if (!values.organization) {
+          errors.organization = 'Organization is required';
+        }
       }
 
       return errors;
     },
     onSubmit: async (values) => {
-      if (!phone) return;
+      if(!phone) return;
       const { rePassword, ...value } = values;
       try {
         let number = formatPhoneNumber(phone).replace(/\s/g, '');
@@ -76,13 +94,17 @@ export default function Register() {
         setOpen(true);
       } catch (error) {
         console.log(error);
-        toast.error(error.response.data.data.details);
+        toast.error(error.response.data.data.message);
       }
     },
   });
+  
+  useEffect(() => {
+    formik.validateForm()
+  }, [formik.touched])
 
   const getPhoneErrorMessage = () => {
-    if (formik.dirty && !phone) {
+    if (formik.touched.phone && !phone) {
       return 'Phone number is required';
     }
     let number = formatPhoneNumber(phone).replace(/\s/g, '');
@@ -91,8 +113,8 @@ export default function Register() {
       number = number.slice(1);
     }
 
-    if (formik.dirty && phone && number.length !== 10) {
-      return 'Contact  number should be 10 digit number';
+    if (formik.touched.phone && phone && number.length !== 10) {
+      return 'Phone  number should be 10 digit number';
     }
     return null;
   };
@@ -107,7 +129,7 @@ export default function Register() {
 
       <div className="flex  flex-col gap-6 rounded-lg border-[1px] border-gray-500  bg-white p-6 shadow ">
         <h1 className=" text-center text-4xl font-bold">
-          Welcome to Frinks AI
+          Welcome to Frinks AI!
         </h1>
 
         <p className="text-center text-2xl font-semibold">Sign up</p>
@@ -153,19 +175,20 @@ export default function Register() {
             </div>
 
             <div className="md:min-w-8">
-              <Label>Contact number</Label>
+              <Label>Phone number</Label>
               <FPhoneInput
-                defaultCountry="US"
-                placeholder="Enter your contact number"
+                defaultCountry="IN"
+                placeholder="Enter your phone number"
                 name="phone"
                 onChange={setPhone}
+                onBlur={formik.handleBlur}
                 value={phone}
                 errorMessage={getPhoneErrorMessage()}
               />
             </div>
 
             <div className="md:min-w-8">
-              <Label>Password</Label>
+              <Label>Enter Password</Label>
               <Input
                 placeholder="Enter password"
                 type="password"
@@ -195,7 +218,7 @@ export default function Register() {
             to={'/login'}
             className=" block min-w-[180px]  place-self-end"
           >
-            <Button color="flat">Cancel</Button>
+            <Button color='light'>Cancel</Button>
           </Link>
 
           <div className=" min-w-[180px] place-self-start ">

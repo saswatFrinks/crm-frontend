@@ -93,7 +93,7 @@ export default function Teams() {
             <tbody>
               {teamNames.map((teamName) => {
                 return (
-                  <tr className="border-b odd:bg-white even:bg-[#C6C4FF]/10  " key={teamName.id}>
+                  <tr className="border-b bg-white" key={teamName.id}>
                     <th
                       scope="row"
                       className="whitespace-nowrap px-6 py-4 font-medium text-gray-900 "
