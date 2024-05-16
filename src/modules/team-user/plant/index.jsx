@@ -100,7 +100,7 @@ export default function Plants() {
             <tbody>
               {plants.map((plant,i) => {
                 return (
-                  <tr className="border-b odd:bg-white even:bg-[#C6C4FF]/10" key={plant.id}>
+                  <tr className="border-b bg-white" key={plant.id}>
                     <th
                       scope="row"
                       className="whitespace-nowrap px-6 py-4 font-medium text-gray-900 "

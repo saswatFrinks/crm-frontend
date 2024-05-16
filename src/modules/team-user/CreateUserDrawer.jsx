@@ -116,6 +116,7 @@ const CreateUserDrawer = React.forwardRef((props, ref) => {
   };
 
   const getPhoneErrorMessage = () => {
+    if(userToEdit)return null;
     if (formik.dirty && !phone) {
       return 'Phone number is required';
     }
