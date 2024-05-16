@@ -155,8 +155,9 @@ export default function AnnotationJob() {
   React.useEffect(()=>{
     const imageSet = new Set();
     rectangles.forEach(rect=>rect.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL && imageSet.add(rect.imageId))
+    images.forEach(img=>img.annotated && imageSet.add(img.id))
     setAnnotatedCount(imageSet.size);
-  }, [rectangles])
+  }, [rectangles, images]);
 
   //load annotation file and load rectangles
   React.useEffect(()=>{
