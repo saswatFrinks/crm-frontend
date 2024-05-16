@@ -18,7 +18,12 @@ const columns = [
   'Camera Configuration',
   'Objective',
   'Configuration Status',
+  'Pre-training Analysis',
 ];
+
+const preAnalysisStatusMap=[{color:"red",label:"Result Unavailable",}
+  ,"Started Analyzing","In Progress","View Latest Result","Result Unavailable"
+]
 
 export default function ProjectConfiguration() {
   const params = useParams();
@@ -122,6 +127,13 @@ export default function ProjectConfiguration() {
                         className={`${config.status == 'Pending' ? 'text-red-500' : 'text-green-500'}`}
                       >
                         {config.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={`${config.status == 'Pending' ? 'text-red-500' : 'text-green-500'}`}
+                      >
+                        {config.analysisStatus}
                       </span>
                     </td>
                   </tr>

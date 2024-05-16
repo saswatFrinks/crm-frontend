@@ -124,7 +124,9 @@ export default function PreTrainingStep() {
       <p className="text-center text-lg">
         Below are the data recommendations for good training results
       </p>
-
+      <button onClick={()=>{
+        helper();
+      }}>Test</button>
       <table className="w-full text-left text-sm text-gray-500 rtl:text-right ">
         <thead className="bg-white text-sm uppercase text-gray-700 ">
           <tr>
