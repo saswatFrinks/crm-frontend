@@ -14,7 +14,7 @@ axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${getCookie()}`
 axiosInstance.interceptors.response.use(
   (res) => res,
   async (err) => {
-    if (err.response && err.response.status === 403) {
+    if (err.response && err.response.status === 401) {
       toast.error(err.response.data.data.message);
       removeCookie();
       navigate('/login')
