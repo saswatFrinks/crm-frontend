@@ -323,14 +323,20 @@ export default function Assembly() {
     })
     const formData = new FormData();
     const imageIds = []
-    await Promise.all(images.map(async(img, index)=>{
-      const fileContents = imgMap[img.id] || ""
-      const fileBlob = new Blob([fileContents], { type: 'text/plain' })
-      formData.append('files', fileBlob, img.id)
-      imageIds.push(img.id || '');
-    }))
+    images.forEach((img, index)=>{
+      if(imgMap[img.id]?.length){
+        const fileContents = imgMap[img.id] || ""
+        const fileBlob = new Blob([fileContents], { type: 'text/plain' })
+        formData.append('files', fileBlob, img.id)
+        imageIds.push(img.id || '');
+      }
+    })
     formData.append('configurationId', configurationId);
     formData.append('imageIds', imageIds);
+    if(!imageIds.length) {
+      toast.success('No chanegs to update');
+      return;
+    }
     try{
       const data = await axiosInstance.post("/configuration/upload-label-files", formData)
       toast.success("Labels uploaded")
