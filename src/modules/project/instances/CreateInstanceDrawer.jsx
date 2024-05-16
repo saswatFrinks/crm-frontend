@@ -36,8 +36,8 @@ const CreateInstanceDrawer = ({step, childRefs}) => {
     1: <BasicInformation project={project} formRef = {childRef} />,
     2: <MapCameraIp formRef = {childRef} />,
     3: <CameraConfig formRef = {childRef} />,
-    4: <ModelSelection />,
-    5: <Finish />,
+    4: <ModelSelection formRef = {childRef} />,
+    5: <Finish formRef = {childRef}/>,
   };
 
   return (

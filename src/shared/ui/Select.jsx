@@ -1,7 +1,7 @@
 import { tv } from 'tailwind-variants';
 
 export default function Select({ size, placeholder, ...props }) {
-  const { options = [], formik, field, errorMessage, value, onChange } = props;
+  const { options = [], formik, field, errorMessage, value, onChange, disabled = false } = props;
   const selectedId = props?.selectedId
   const select = tv({
     base: 'block w-full  border text-gray-300 border-gray-300 bg-white  text-sm text-gray-900 focus:border-f-primary focus:ring-f-primary focus-visible:border-f-primary focus-visible:outline-f-primary',
@@ -36,6 +36,7 @@ export default function Select({ size, placeholder, ...props }) {
         ))}
       </select>: 
       <select
+      disabled={disabled}
       className={select({ size })}
       value={value}
       onChange={onChange}

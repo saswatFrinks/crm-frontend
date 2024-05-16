@@ -22,8 +22,8 @@ export default function Configuration({ setLoading }) {
   const params = useParams();
   const [classes, setClasses] = useState([]);
   const [rois, setRois] = useState([]);
-  const setConfiguration = useSetRecoilState(configurationAtom);
-  const setClassAtom = useSetRecoilState(classAtom);
+  const [configuration, setConfiguration] = useRecoilState(configurationAtom);
+  const [classAt, setClassAtom] = useRecoilState(classAtom);
 
   const fetchAllRois = async () => {
     setLoading(true);
@@ -36,7 +36,13 @@ export default function Configuration({ setLoading }) {
       const roiArr = res.data.data.detection.map((obj) => {
         return { ...obj, check: false };
       });
-      setRois(roiArr);
+      // setRois(roiArr);
+      if (configuration.length != 0) {
+        setRois(configuration);
+      } else {
+        setRois(roiArr);
+        setClassAtom(roiArr);
+      }
       setLoading(false);
     } catch (e) {
       setLoading(false);
@@ -55,8 +61,14 @@ export default function Configuration({ setLoading }) {
       return { ...obj, check: false };
     });
 
-    setClasses(classArr);
-    setClassAtom(classArr);
+    // setClasses(classArr);
+    if (classAt.length != 0) {
+      setClasses(classAt);
+    } else {
+      setClasses(classArr);
+      setClassAtom(classArr);
+    }
+    // setClassAtom(classArr);
   };
 
   const handleCheckbox = (id) => {

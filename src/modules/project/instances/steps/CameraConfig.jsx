@@ -3,56 +3,67 @@ import { useRecoilState } from 'recoil'
 import { addInstanceAtom } from '../state'
 import axiosInstance from '@/core/request/aixosinstance';
 import Upload from '@/shared/icons/Upload';
+import { removeDuplicates } from '@/util/util';
+import toast from 'react-hot-toast';
 
 const CameraConfig = ({formRef}) => {
   const [addInstance, setAddInstance] = useRecoilState(addInstanceAtom);
   const [data, setData] = React.useState([]);
-
-  const fetchData = async () => {
-    await Promise.all([
-      addInstance?.mapCameraIp?.data.map(d => {
-        return fetchAllCameraConfigs(d)
-      })
-    ])
-  }
-
-  const fetchAllCameraConfigs = async (cameraPosition) => {
-    try {
-      const res = await axiosInstance.get('/cameraConfig/fetch', {
-        params: {
-          capturePositionId: cameraPosition.cameraPosition.id,
-        },
-      });
-      
-      const cameraConfigs = await res?.data?.data;
-      const tableData = await cameraConfigs.map(config => {
-        return {
-          ...cameraPosition,
-          config
-        }
-      });
-
-      setData(prev => {
-        return [
-          ...prev,
-          ...tableData
-        ]
-      })
-    } catch (error) {
-      toast.error(error.response.data.data.message)
-    }
-  };
+  const [files, setFiles] = React.useState(addInstance?.cameraConfig?.files || []);
 
   React.useEffect(() => {
-    fetchData()
+    const cameraConfigData = addInstance?.mappingData?.map(d => ({
+      variantName: d.variantName,
+      variantId: d.variantId,
+      cameraPositionName: d.capturePositionName,
+      cameraPositionId: d.capturePositionId,
+      cameraConfigName: d.cameraConfigName,
+      cameraConfigId: d.cameraConfigId
+    }));
+
+    const uniqueData = removeDuplicates(cameraConfigData);
+    setData(uniqueData);
   }, [])
 
+  console.log({addInstance})
+
+  React.useEffect(() => {
+    if(files?.length === 0)setFiles(Array.from({length: data?.length}, () => false));
+  }, [data])
+
   const handleSubmit = () => {
-    
+    try {
+      if(files.some(file => file == false))throw new Error('Please Upload all the files');
+      setAddInstance({
+        ...addInstance,
+        cameraConfig: {
+          files
+        }
+      });
+    } catch (error){
+      throw new Error(error?.response ? error?.response?.data?.data?.message : error?.message)
+    }
   }
 
   formRef.current = {
     handleSubmit
+  }
+
+  const handleConfigUpload = async (file, index, cameraConfigId) => {
+    try {
+      const formData = new FormData();
+      formData.append('instanceId', addInstance?.instanceId);
+      formData.append('cameraConfigId', cameraConfigId);
+      formData.append('file', file);
+      await axiosInstance.post('/instance/upload-config', formData);
+      setFiles(prev => {
+        const newFiles = [...prev];
+        newFiles[index] = true;
+        return newFiles
+      });
+    } catch (error) {
+      toast.error(error?.response?.data?.data);
+    }
   }
 
   const columns = ['Variant', 'Camera Position', 'Camera Config', 'Upload Camera Config File']
@@ -78,21 +89,23 @@ const CameraConfig = ({formRef}) => {
               return (
                 <tr
                   className="border-b odd:bg-white even:bg-[#C6C4FF]/10"
-                  key={`${dataItem?.variant?.id}/${dataItem?.cameraPosition?.id}/${dataItem?.config?.id}`}
+                  key={`${dataItem?.variantId}/${dataItem?.cameraPositionId}/${dataItem?.cameraConfigId}`}
                 >
-                  <td className="px-6 py-4">{dataItem?.variant?.name}</td>
-                  <td className="px-6 py-4">{dataItem?.cameraPosition?.name}</td>
-                  <td className="px-6 py-4">{dataItem?.config?.name}</td>
+                  <td className="px-6 py-4">{dataItem?.variantName}</td>
+                  <td className="px-6 py-4">{dataItem?.cameraPositionName}</td>
+                  <td className="px-6 py-4">{dataItem?.cameraConfigName}</td>
                   <td className="px-6 py-4">
                     <label 
                       className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-f-primary px-20 py-2 text-white duration-100 hover:bg-f-secondary"
-                      onClick={() => {
-                        
-                      }}
                     >
-                      <input type="file" accept='.png' hidden onChange={() => {}}/>
+                      <input type="file" disabled={files[index]} hidden onChange={async (e) => {
+                        await handleConfigUpload(e.target.files[0], index, dataItem?.cameraConfigId);
+                        e.target.files = null;
+                        e.target.value = null;
+                      }}/>
                       <Upload /> Upload
                     </label>
+                    {files[index] && <div>Uploaded</div>}
                   </td>
                 </tr>
               );

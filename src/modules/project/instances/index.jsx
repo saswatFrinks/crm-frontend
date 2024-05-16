@@ -24,7 +24,10 @@ const Instances = () => {
         await childRefs[step-1].current.handleSubmit();
       }
       setStep((t) => {
-        if (t == 5) return t;
+        if (t == 5) {
+          closeDrawer();
+          return 1;
+        }
         return t + 1;
       });
     } catch (error) {
@@ -141,7 +144,7 @@ const Instances = () => {
                     Next
                   </Button>
                 ) : (
-                  <Button size="xs" fullWidth={false} className="min-w-[150px]">
+                  <Button onClick={handleNext} size="xs" fullWidth={false} className="min-w-[150px]">
                     Finish
                   </Button>
                 )}

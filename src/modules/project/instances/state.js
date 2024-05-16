@@ -1,17 +1,28 @@
 import { atom } from 'recoil';
 
+export const defaultAddInstanceValue = {
+  instanceId: null,
+  mappingData: null,
+  basic: {
+    instanceName: '',
+    plantId: '',
+    cameraIps: [],
+    plantName: ''
+  },
+  mapCameraIp: {
+    data: {},
+    cameraIps: []
+  },
+  cameraConfig: {
+    files: null
+  },
+  modelSelection: {
+    modelRoiMap: null
+  },
+  colorClasses: null
+}
+
 export const addInstanceAtom = atom({
   key: 'addInstanceBasicAtom',
-  default: {
-    basic: {
-      instanceName: '',
-      plantId: '',
-      cameraIps: [],
-      formikRef: null
-    },
-    mapCameraIp: {
-      data: {},
-      cameraIps: []
-    }
-  }
+  default: defaultAddInstanceValue
 });
