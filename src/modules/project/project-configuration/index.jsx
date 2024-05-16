@@ -10,6 +10,7 @@ import { useRecoilState, useSetRecoilState } from 'recoil';
 import { selectedConfigurationAtom } from './state';
 import { rectanglesAtom } from '../state';
 import { stepAtom } from '../assembly/state';
+import Modal from '@/shared/ui/Modal';
 
 const columns = [
   '',
@@ -21,19 +22,48 @@ const columns = [
   'Pre-training Analysis',
 ];
 
-const preAnalysisStatusMap=[{color:"red",label:"Result Unavailable",}
-  ,"Started Analyzing","In Progress","View Latest Result","Result Unavailable"
-]
+const preAnalysisStatusMap = [
+  {
+    color: 'red',
+    label: 'Result Unavailable',
+    disabled: true,
+    tooltip: 'Project configuration is still incomplete',
+  },
+  {
+    color: 'yellow',
+    label: 'Analysis Started',
+    disabled: true,
+    tooltip: 'Project analysis has started',
+  },
+  {
+    color: 'yellow',
+    label: 'In progress',
+    disabled: true,
+    tooltip:
+      'Pre-analysis training is in progress. Please check back in 1 minute.',
+  },
+  { color: 'green', label: 'Analysis Complete', disabled: false, tooltip: '' },
+  {
+    color: 'red',
+    label: 'Result Unavailable',
+    disabled: true,
+    tooltip: 'We encountered some error while running pre analysis',
+  },
+];
 
 export default function ProjectConfiguration() {
   const params = useParams();
 
-  const [configurations, setConfigurations] = React.useState([
-  ]);
-  const setRectangles = useSetRecoilState(rectanglesAtom)
-  const setSteps = useSetRecoilState(stepAtom)
+  const [configurations, setConfigurations] = React.useState([]);
+  const [open, setOpen] = React.useState(null);
+  const [modalAtom,setModalAtom]=useRecoilState(modalAtom)
+  const [preTrainingData, setPreTrainingData] = React.useState(null);
+  const setRectangles = useSetRecoilState(rectanglesAtom);
+  const setSteps = useSetRecoilState(stepAtom);
 
-  const [selectedConfiguration, setSelectedConfiguration] = useRecoilState(selectedConfigurationAtom)
+  const [selectedConfiguration, setSelectedConfiguration] = useRecoilState(
+    selectedConfigurationAtom
+  );
 
   const getConfigurations = async () => {
     try {
@@ -42,20 +72,68 @@ export default function ProjectConfiguration() {
           projectId: params.projectId,
         },
       });
-      setConfigurations(res.data.data)
-    } catch (error) {
+      setConfigurations(res.data.data);
+    } catch (error) {}
+  };
+
+  useEffect(() => {
+    getConfigurations();
+    setRectangles([]);
+    setSteps(0);
+  }, []);
+
+  getValidationForConfiguration=(configId)=>{
+    try{
       
+    }catch(e){
+      toast.error(JSON.stringify(e))
+    }finally{
+      setModalAtom(true);
     }
   }
 
   useEffect(()=>{
-    getConfigurations()
-    setRectangles([]);
-    setSteps(0);
-  }, [])
+    if(open!=null){
+      getValidationForConfiguration(open)
+    }
+  },[open])
+
+  useEffect(()=>{
+    if(!modalAtom){
+      setOpen(null)
+    }
+  },[modalAtom])
 
   return (
     <>
+      {open !== null && (
+        <Modal>
+          <table className="w-full text-left text-sm text-gray-500 rtl:text-right ">
+            <thead className="bg-white text-sm uppercase text-gray-700 ">
+              <tr>
+                {columns.map((t) => (
+                  <th scope="col" className="px-6 py-3" key={t}>
+                    {t}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {info &&
+                info?.length &&
+                info.map((roiRow) => {
+                  return (
+                    <tr className="border-b odd:bg-white even:bg-[#C6C4FF]/10">
+                      {roiRow.map((item) => {
+                        return <td className="px-6 py-4">{item}</td>;
+                      })}
+                    </tr>
+                  );
+                })}
+            </tbody>
+          </table>
+        </Modal>
+      )}
       <Heading
         subcontent={
           <>
@@ -75,8 +153,15 @@ export default function ProjectConfiguration() {
       <div className="p-10">
         <div className="mb-8 flex items-center justify-between">
           <h1 className=" text-2xl font-semibold">Project Configuration</h1>
-          <Button fullWidth={false} size="xs" disabled={selectedConfiguration.id === ""}>
-            <Link className="flex items-center gap-2" to={`${selectedConfiguration.objective.toLowerCase()}/${selectedConfiguration.id}`}>
+          <Button
+            fullWidth={false}
+            size="xs"
+            disabled={selectedConfiguration.id === ''}
+          >
+            <Link
+              className="flex items-center gap-2"
+              to={`${selectedConfiguration.objective.toLowerCase()}/${selectedConfiguration.id}`}
+            >
               <Setting />
               Start Configuration
             </Link>
@@ -109,12 +194,12 @@ export default function ProjectConfiguration() {
                         value="stationary"
                         name="isItemFixed"
                         id="stationary"
-                        checked={selectedConfiguration.id===config.id}
+                        checked={selectedConfiguration.id === config.id}
                         onClick={(e) => {
                           setSelectedConfiguration({
                             id: config.id,
-                            objective: config.objective
-                          })
+                            objective: config.objective,
+                          });
                         }}
                       />
                     </th>
@@ -133,7 +218,24 @@ export default function ProjectConfiguration() {
                       <span
                         className={`${config.status == 'Pending' ? 'text-red-500' : 'text-green-500'}`}
                       >
-                        {config.analysisStatus}
+                        <button
+                          className={`color-${preAnalysisStatusMap[Number(config.analysisStatus)].color}-500 cursor-${preAnalysisStatusMap[Number(config.analysisStatus)].disabled ? 'default' : 'pointer'}`}
+                          onClick={() => {
+                            if (
+                              preAnalysisStatusMap[
+                                Number(config.analysisStatus)
+                              ].disabled
+                            ) {
+                              return;
+                            }
+                            setOpen(config.id);
+                          }}
+                        >
+                          {
+                            preAnalysisStatusMap[Number(config.analysisStatus)]
+                              .label
+                          }
+                        </button>
                       </span>
                     </td>
                   </tr>
