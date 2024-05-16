@@ -9,7 +9,7 @@ import { useFormik } from 'formik';
 import axiosInstance from '@/core/request/aixosinstance';
 import { getOrganizationId } from '@/util/util';
 import storageService from '@/core/storage';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4, validate } from 'uuid';
 import AutofilledDisabledInput from '@/shared/ui/AutofilledDisabledInput';
 import toast, { Toaster } from 'react-hot-toast';
 
@@ -222,7 +222,9 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
       return errors;
     },
     onSubmit: async (values) => {
-      formik.validateForm()
+      const errors = await formik.validateForm();
+      const canContinue = Object.values(errors).every(error => error.length === 0);
+      if(!canContinue)return;
       setShowLoader(true);
       let projectJson = createProjectJSON(values);
       try {
@@ -247,6 +249,7 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
       }
     },
   });
+  console.log({error: formik.errors})
 
   const createProjectJSON = (values) => {
     const json = {
