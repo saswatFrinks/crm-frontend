@@ -31,4 +31,8 @@ export const getCookie = () => {
   return null;
 }
 
+export const removeCookie = () => {
+  document.cookie = `${TOKEN}=;path=/`
+}
+
 export default withAuth;

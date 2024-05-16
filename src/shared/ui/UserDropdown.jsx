@@ -7,6 +7,7 @@ import ChevronDown from '../icons/ChevronDown';
 import Logout from '../icons/Logout';
 import { TOKEN } from '@/core/constants';
 import { useNavigate } from 'react-router-dom';
+import { removeCookie } from '../hocs/withAuthenticated';
 export default function UserDropdown() {
   const name = JSON.parse(storageService.get('user'))?.name;
   const [openDropdown, setOpenDropdown] = useState(false);
@@ -17,8 +18,7 @@ export default function UserDropdown() {
   }
 
   const handleLogout = () => {
-    const cookie = `${TOKEN}=;path=/`;
-    document.cookie = cookie;
+    removeCookie();
     navigate('/login')
   }
 
