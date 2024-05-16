@@ -119,3 +119,10 @@ export const imageTypes = [
     count: 5
   }
 ]
+
+export const DEFAULT_ASSEMBLY={
+  productFlow: 0,
+  primaryObject: '',
+  primaryObjectClass: '',
+  rois: [DEFAULT_ROI],
+}

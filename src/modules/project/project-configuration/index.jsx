@@ -10,6 +10,7 @@ import { useRecoilState, useSetRecoilState } from 'recoil';
 import { selectedConfigurationAtom } from './state';
 import { rectanglesAtom } from '../state';
 import { stepAtom } from '../assembly/state';
+import { removeDuplicateFromArray } from '@/util/util';
 
 const columns = [
   '',
@@ -30,6 +31,8 @@ export default function ProjectConfiguration() {
 
   const [selectedConfiguration, setSelectedConfiguration] = useRecoilState(selectedConfigurationAtom)
 
+  
+
   const getConfigurations = async () => {
     try {
       const res = await axiosInstance.get('/configuration/list', {
@@ -37,7 +40,7 @@ export default function ProjectConfiguration() {
           projectId: params.projectId,
         },
       });
-      setConfigurations(res.data.data)
+      setConfigurations(removeDuplicateFromArray(res.data.data, 'id'))
     } catch (error) {
       
     }

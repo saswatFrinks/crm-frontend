@@ -3,7 +3,7 @@ import Button from '@/shared/ui/Button';
 import UploadImage from './components/UploadImage';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 
-import { ACTION_NAMES, ASSEMBLY_CONFIG, BASE_RECT, DEFAULT_ROI, RECTANGLE_TYPE, STATUS } from '@/core/constants';
+import { ACTION_NAMES, ASSEMBLY_CONFIG, BASE_RECT, DEFAULT_ASSEMBLY, DEFAULT_ROI, RECTANGLE_TYPE, STATUS } from '@/core/constants';
 import Steps from './components/Steps';
 import UploadImageStep from './upload-image-step';
 import InspectionParameterStep from './inspection-parameter-step';
@@ -240,6 +240,7 @@ export default function Assembly() {
   useEffect(()=>{
     getProject()
     setLabelsLoaded(Array.from({length: 10}, ()=>false))
+    setConfiguration(DEFAULT_ASSEMBLY)
   },[])
 
 

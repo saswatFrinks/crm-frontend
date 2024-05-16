@@ -1,4 +1,5 @@
 import {
+  DEFAULT_ASSEMBLY,
   DEFAULT_ROI,
   DEFAULT_STAGE,
   IMAGE_STATUS,
@@ -40,12 +41,7 @@ export const editingAtom = atom({
 
 export const assemblyAtom = atom({
   key: 'assemblyAtom',
-  default: {
-    productFlow: 0,
-    primaryObject: '',
-    primaryObjectClass: '',
-    rois: [DEFAULT_ROI],
-  },
+  default: DEFAULT_ASSEMBLY,
 });
 
 export const labelClassAtom = atom({

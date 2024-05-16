@@ -15,3 +15,15 @@ export function getRandomHexColor() {
   }
   return color;
 }
+
+export const removeDuplicateFromArray = (arr, key) => {
+  const tracker = new Set();
+  const res = []
+  arr.forEach(ele=>{
+    if(!tracker.has(ele[key])){
+      res.push(ele);
+      tracker.add(ele[key])
+    }
+  })
+  return res;
+}
