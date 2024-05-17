@@ -2,7 +2,7 @@ import logo from '@/assets/logo.svg';
 import Input from '@/shared/ui/Input';
 import Label from '@/shared/ui/Label';
 import Button from '@/shared/ui/Button';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import authService from '../auth.service';
 import toast, { Toaster } from 'react-hot-toast';
 import { useFormik } from 'formik';
@@ -10,9 +10,11 @@ import storageService from '@/core/storage';
 import { TOKEN } from '@/core/constants';
 import { updateAuthenHeader } from '@/core/request/updateAuth';
 import axiosInstance from '@/core/request/aixosinstance';
+import React from 'react';
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   
   const formik = useFormik({
     initialValues: {
@@ -85,6 +87,30 @@ export default function Login() {
 
     return {...res.data.data, plantName, teamName};
   }
+
+  React.useEffect(()=>{
+    const verify = async (magicId) => {
+      try{
+        await axiosInstance.patch(
+          '/user/verify', 
+          {}, 
+          {
+            params: {
+              referer: magicId
+            }
+          }
+        )
+        toast.success("Your email is now verified. You can login & start using the application!")
+      }
+      catch(e){}
+    }
+    const queryParams = new URLSearchParams(location.search);
+    const magicId = queryParams.get('referer');
+    console.log(magicId, 'Magic id');
+    if(magicId?.length==10){
+      verify(magicId);
+    }
+  }, [])
 
   return (
     <div className="flex h-screen flex-col items-center justify-center">
