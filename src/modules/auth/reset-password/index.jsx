@@ -14,7 +14,7 @@ export default function ResetPassword() {
   const params = useParams();
   const navigate = useNavigate();
 
-  const [validityLoader, setValidityLoader] = useState(false);
+  const [validityLoader, setValidityLoader] = useState(true);
   const [resetLoader, setResetLoader] = useState(false);
   const [isValid, setIsValid] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
