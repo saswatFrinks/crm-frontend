@@ -274,7 +274,8 @@ export default function ProjectConfiguration() {
                         className={`text-${preAnalysisStatusMap[Number(config.analysisStatus)].color}-500`}
                       >
                         <button
-                          className={`color-${preAnalysisStatusMap[Number(config.analysisStatus)].color}-500 cursor-${preAnalysisStatusMap[Number(config.analysisStatus)].disabled ? 'default' : 'pointer'}`}
+                          className={`color-${preAnalysisStatusMap[Number(config.analysisStatus)].color}-500`}
+                          style={{cursor:preAnalysisStatusMap[Number(config.analysisStatus)].disabled?"default":"pointer"}}
                           onClick={() => {
                             if (
                               preAnalysisStatusMap[

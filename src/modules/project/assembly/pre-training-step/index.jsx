@@ -140,13 +140,6 @@ export default function PreTrainingStep() {
         <ProjectCreateLoader title={loader} />
       ) : (
         <div className="flex flex-col gap-4">
-          <button
-            onClick={() => {
-              helper();
-            }}
-          >
-            Start
-          </button>
           <h3 className="text-center text-2xl font-semibold">
             Your project is configured!{' '}
           </h3>
