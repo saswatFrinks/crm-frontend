@@ -265,7 +265,7 @@ export default function ProjectConfiguration() {
                     </td>
                     <td className="px-6 py-4">
                       <span
-                        className={`${config.status == 'Pending' ? 'text-red-500' : 'text-green-500'}`}
+                        className={`text-${preAnalysisStatusMap[Number(config.analysisStatus)].color}-500`}
                       >
                         <button
                           className={`color-${preAnalysisStatusMap[Number(config.analysisStatus)].color}-500 cursor-${preAnalysisStatusMap[Number(config.analysisStatus)].disabled ? 'default' : 'pointer'}`}
