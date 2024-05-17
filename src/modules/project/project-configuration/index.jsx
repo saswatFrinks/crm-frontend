@@ -116,7 +116,7 @@ export default function ProjectConfiguration() {
         Object.keys(tempObj).map((finalKey) => {
           ret.push([
             roiName,
-            finalKey === 'Overall' ? finalKey : classNameMap[finalKey],
+            classNameMap[finalKey],
             tempObj[finalKey]['positive'],
             tempObj[finalKey]['negative'],
           ]);

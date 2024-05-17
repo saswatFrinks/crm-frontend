@@ -89,7 +89,7 @@ export default function PreTrainingStep() {
             Object.keys(tempObj).map((finalKey) => {
               ret.push([
                 roiName,
-                finalKey == 'Overall' ? finalKey : classMap[finalKey],
+                classMap[finalKey],
                 tempObj[finalKey]['positive'],
                 tempObj[finalKey]['negative'],
               ]);
