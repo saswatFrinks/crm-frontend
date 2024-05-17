@@ -18,7 +18,7 @@ const ForgotPassword = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if(error || !email){
-      setError('Email ID is required');4
+      setError('Email ID is required');
       return;
     }else{
       setError('');
