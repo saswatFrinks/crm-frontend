@@ -240,8 +240,6 @@ export default function Assembly() {
 
   useEffect(()=>{
     getProject()
-    setLabelsLoaded(Array.from({length: 10}, ()=>false))
-    setConfiguration(DEFAULT_ASSEMBLY)
   },[])
 
 

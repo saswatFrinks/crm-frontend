@@ -123,55 +123,58 @@ export default function LabelImage({save}) {
     const ind = images.findIndex(im=> im.id === selectedFile.id);
     if(ind >=0 && !loadedLabelData[ind]){
       const getData = async () => {
-        const data = await axiosInstance.get('/configuration/label-file', {
-          params: {
-            configurationId: params.configurationId,
-            imageId: selectedFile.id
+        try{
+          const data = await axiosInstance.get('/configuration/label-file', {
+            params: {
+              configurationId: params.configurationId,
+              imageId: selectedFile.id
+            }
+          })
+          const prevData = data?.data;
+          if(prevData.length && typeof prevData == 'string'){
+            const image = new Image();
+            image.src = selectedFile.url;
+            image.onload = () => {
+              const configuredData = []
+              const annotUpdates = {}
+              prevData.split('\n').forEach((entry, i)=>{
+                const line = entry.split(' ');
+                if(line.length>=5){
+                  let [cls, x, y, width, height] = line;
+                  x *= image.width;
+                  y *= image.height;
+                  width *= image.width;
+                  height *= image.height;
+  
+                  const className = labelsRef.current?.find(ele=>ele.id==cls)?.name
+  
+                  const color = getRandomHexColor();
+                  const id = selectedFile.id;
+                  configuredData.push({
+                    ...BASE_RECT, 
+                    id: selectedRois.length + i,
+                    fill: color,
+                    stroke: color,
+                    imageId: id,
+                    rectType: RECTANGLE_TYPE.ANNOTATION_LABEL,
+                    // roiId: roi.id,
+                    title: className,
+                    x: x - width/2,
+                    y: y - height/2,
+                    width,
+                    height
+                  })
+                  annotUpdates[selectedRois.length + i] = cls;
+                }
+              })
+              console.log('UPdate from txt', annotUpdates, configuredData)
+              setAnnotationMap(prev=>({...prev, ...annotUpdates}));
+              setRectangle(prev=>([...prev, ...configuredData]));
+            }
+  
           }
-        })
-        const prevData = data?.data;
-        if(prevData.length && typeof prevData == 'string'){
-          const image = new Image();
-          image.src = selectedFile.url;
-          image.onload = () => {
-            const configuredData = []
-            const annotUpdates = {}
-            prevData.split('\n').forEach((entry, i)=>{
-              const line = entry.split(' ');
-              if(line.length>=5){
-                let [cls, x, y, width, height] = line;
-                x *= image.width;
-                y *= image.height;
-                width *= image.width;
-                height *= image.height;
-
-                const className = labelsRef.current?.find(ele=>ele.id==cls)?.name
-
-                const color = getRandomHexColor();
-                const id = selectedFile.id;
-                configuredData.push({
-                  ...BASE_RECT, 
-                  id: selectedRois.length + i,
-                  fill: color,
-                  stroke: color,
-                  imageId: id,
-                  rectType: RECTANGLE_TYPE.ANNOTATION_LABEL,
-                  // roiId: roi.id,
-                  title: className,
-                  x: x - width/2,
-                  y: y - height/2,
-                  width,
-                  height
-                })
-                annotUpdates[selectedRois.length + i] = cls;
-              }
-            })
-            console.log('UPdate from txt', annotUpdates, configuredData)
-            setAnnotationMap(prev=>({...prev, ...annotUpdates}));
-            setRectangle(prev=>([...prev, ...configuredData]));
-          }
-
         }
+        catch(e){}
 
         setLoadedLabelData(prev=>{
           const d = [...prev];
