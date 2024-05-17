@@ -57,7 +57,7 @@ export default function ProjectConfiguration() {
 
   const [configurations, setConfigurations] = React.useState([]);
   const [open, setOpen] = React.useState(null);
-  const [modalAtom,setModalAtom]=useRecoilState(modalAtom)
+  const [modal,setModal]=useRecoilState(modalAtom)
   const [preTrainingData, setPreTrainingData] = React.useState(null);
   const setRectangles = useSetRecoilState(rectanglesAtom);
   const setSteps = useSetRecoilState(stepAtom);
@@ -83,13 +83,13 @@ export default function ProjectConfiguration() {
     setSteps(0);
   }, []);
 
-  getValidationForConfiguration=(configId)=>{
+  const getValidationForConfiguration=(configId)=>{
     try{
       
     }catch(e){
       toast.error(JSON.stringify(e))
     }finally{
-      setModalAtom(true);
+      setModal(true);
     }
   }
 
@@ -100,10 +100,10 @@ export default function ProjectConfiguration() {
   },[open])
 
   useEffect(()=>{
-    if(!modalAtom){
+    if(!modal){
       setOpen(null)
     }
-  },[modalAtom])
+  },[modal])
 
   return (
     <>
