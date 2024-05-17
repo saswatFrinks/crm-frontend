@@ -100,7 +100,7 @@ export default function Login() {
             }
           }
         )
-        toast.success("Your email is now verified. You can login & start using the application!")
+        toast.success("Your email is now verified. You can login and start using the application!");
       }
       catch(e){}
     }
