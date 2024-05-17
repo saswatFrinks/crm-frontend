@@ -23,3 +23,14 @@ export function removeDuplicates(array) {
       return seen.hasOwnProperty(key) ? false : (seen[key] = true);
   });
 }
+export const removeDuplicateFromArray = (arr, key) => {
+  const tracker = new Set();
+  const res = []
+  arr.forEach(ele=>{
+    if(!tracker.has(ele[key])){
+      res.push(ele);
+      tracker.add(ele[key])
+    }
+  })
+  return res;
+}

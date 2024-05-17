@@ -3,7 +3,7 @@ import Button from '@/shared/ui/Button';
 import UploadImage from './components/UploadImage';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 
-import { ACTION_NAMES, ASSEMBLY_CONFIG, BASE_RECT, DEFAULT_ROI, RECTANGLE_TYPE, STATUS } from '@/core/constants';
+import { ACTION_NAMES, ASSEMBLY_CONFIG, BASE_RECT, DEFAULT_ASSEMBLY, DEFAULT_ROI, RECTANGLE_TYPE, STATUS } from '@/core/constants';
 import Steps from './components/Steps';
 import UploadImageStep from './upload-image-step';
 import InspectionParameterStep from './inspection-parameter-step';
@@ -71,10 +71,13 @@ export default function Assembly() {
       t++;
     }
     else if(t==1){
-      t = await prepareApiData() ? t+1: t;
+      t = await updateRoiData() ? t+1: t;
     }
     else if(t==2){
       t = await preUpdate() ? t+1: t;
+    }
+    else if(t==3){
+      navigate(-1)
     }
     else if (t != 3) t +=1;
     console.log(step);
@@ -150,84 +153,85 @@ export default function Assembly() {
         }
       })
       const data = JSON.parse(roiData.data.data?.data)
-      console.log(data);
       if(data.length){
         const partsMap = {};
         const roiMap = {};
         const rects = []
         let configUpdate = {productFlow: data[0].configuration.direction }, configUpdateRequired = false;
-        
-        console.log('Hello')
-        data?.forEach((conf, i)=>{
-          const roiId = conf.rois.id;
-          console.log('Loop', roiId)
-          if(!roiMap[roiId]){
-            console.log('roi id not present')
-            roiMap[roiId] = {
+        const image = new Image();
+        image.src = images[0].url
+        console.log('inside proimse')
+        image.onload = ()=>{
+          data?.forEach((conf, i)=>{
+            const roiId = conf.rois.id;
+            console.log('Loop', roiId)
+            if(!roiMap[roiId]){
+              console.log('roi id not present')
+              roiMap[roiId] = {
+                id: i,
+                checked: false,
+                status: STATUS.FINISH,
+                open: true,
+                parts: []
+              }
+              //!do rectangle here too
+              console.log('before')
+              const {x1, x2, y1, y2} = conf.rois;
+              console.log('before')
+              const color = getRandomHexColor();
+              rects.push({
+                  ...BASE_RECT, 
+                  id: rois.length + i,
+                  fill: color,
+                  stroke: color,
+                  imageId: images[0].id,
+                  rectType: RECTANGLE_TYPE.ROI,
+                  roiId:i,
+                  title: 'ROI',
+                  x: x1* image.width,
+                  y: y1 * image.height,
+                  width: (x2-x1) * image.width,
+                  height: (y2-y1) * image.height
+              })
+            }
+            if(!partsMap[roiId]){
+              partsMap[roiId] = [];
+            }
+            console.log('doing parts')
+            if(conf.parts.isTracker){
+              configUpdateRequired = true;
+              configUpdate = {
+                ...configUpdate,
+                primaryObject: conf.parts?.name || '',
+                primaryObjectClass: conf.parts?.name || '',
+              }
+            }
+            partsMap[roiId].push({
               id: i,
-              checked: false,
-              status: STATUS.FINISH,
-              open: true,
-              parts: []
-            }
-            //!do rectangle here too
-            console.log('before')
-            const {width, height, x, y} = conf.rois;
-            console.log('before')
-            const color = getRandomHexColor();
-            rects.push({
-                ...BASE_RECT, 
-                id: rois.length + i,
-                fill: color,
-                stroke: color,
-                imageId: images[0].id,
-                rectType: RECTANGLE_TYPE.ROI,
-                roiId:i,
-                title: 'ROI',
-                x: Math.ceil(x - width/2),
-                y: Math.ceil(y - height/2),
-                width,
-                height
+              objectName: conf.parts?.name || '',
+              class: conf.parts?.classId || '',
+              className: conf.assembly_class?.name || '',
+              operation: conf.parts?.operator,
+              qty: conf.parts?.count,
+              classify: conf.assembly_class?.classify ? 'on': false,
+              checked : false,
+              open: true
             })
-          }
-          if(!partsMap[roiId]){
-            partsMap[roiId] = [];
-          }
-          console.log('doing parts')
-          if(conf.parts.isTracker){
-            configUpdateRequired = true;
-            configUpdate = {
-              ...configUpdate,
-              primaryObject: conf.parts?.name || '',
-              primaryObjectClass: conf.parts?.name || '',
-            }
-          }
-          partsMap[roiId].push({
-            id: i,
-            objectName: conf.parts?.name || '',
-            class: conf.parts?.classId || '',
-            className: conf.assembly_class?.name || '',
-            operation: conf.parts?.operator,
-            qty: conf.parts?.count,
-            classify: conf.assembly_class?.classify ? 'on': false,
-            checked : false,
-            open: true
           })
-        })
-        console.log(roiMap, partsMap)
-        for(let roiId in roiMap){
-          roiMap[roiId].parts = partsMap[roiId];
-        }
-        setConfiguration((t) => ({
-          ...t,
-          rois: Object.values(roiMap)
-        }));
-        setRectangles(prev=>[...prev, ...rects]);
-        if(configUpdateRequired){
-          setConfiguration(prev=>({
-            ...prev, 
-            ...configUpdate
-          }))
+          for(let roiId in roiMap){
+            roiMap[roiId].parts = partsMap[roiId];
+          }
+          setConfiguration((t) => ({
+            ...t,
+            rois: Object.values(roiMap)
+          }));
+          setRectangles(prev=>[...prev, ...rects]);
+          if(configUpdateRequired){
+            setConfiguration(prev=>({
+              ...prev, 
+              ...configUpdate
+            }))
+          }
         }
       }
       return true
@@ -239,12 +243,22 @@ export default function Assembly() {
 
   useEffect(()=>{
     getProject()
-    setLabelsLoaded(Array.from({length: 10}, ()=>false))
   },[])
 
 
-  const prepareApiData = async()=>{
-    console.log("contorl here")
+  const updateRoiData = async () => {
+    return new Promise((res, rej)=>{
+      const image = new Image();
+      image.src = images[0].url
+      console.log('inside proimse')
+      image.onload = ()=>prepareApiData(image).then(success=>{
+        if(success) res(true);
+        else res(false);
+      }).catch(()=>res(false));
+    })
+  }
+
+  const prepareApiData = async(image)=>{
     const imgMap = {}
     const temp = cloneDeep(configuration)
     temp.direction = parseInt(temp.productFlow)
@@ -260,22 +274,22 @@ export default function Assembly() {
           operator: part.operation
         }
       })
-      let x, width, y, height
+      let x1, x2, y1, y2
       console.log(roi.id, rois.map(ele=>ele.roiId))
       rois.forEach((roiRect)=>{
         if(roi.id==roiRect.roiId){
-          x = parseFloat((roiRect.x + roiRect.width/2).toFixed(4))
-          width = parseFloat((roiRect.width).toFixed(4))
-          y = parseFloat((roiRect.y+roiRect.height/2).toFixed(4))
-          height = parseFloat((roiRect.height).toFixed(4))
+          x1 = parseFloat((roiRect.x/image.width).toFixed(4))
+          x2 = parseFloat(((roiRect.x + roiRect.width)/image.width).toFixed(4))
+          y1 = parseFloat((roiRect.y/image.height).toFixed(4))
+          y2 = parseFloat(((roiRect.y + roiRect.height)/image.height).toFixed(4))
         }
       })
       return {
         name: `ROI ${index}`,
-        x,
-        width,
-        y,
-        height,
+        x1,
+        x2,
+        y1,
+        y2,
         parts: tempParts
       }
     })
@@ -322,14 +336,20 @@ export default function Assembly() {
     })
     const formData = new FormData();
     const imageIds = []
-    await Promise.all(images.map(async(img, index)=>{
-      const fileContents = imgMap[img.id] || ""
-      const fileBlob = new Blob([fileContents], { type: 'text/plain' })
-      formData.append('files', fileBlob, img.id)
-      imageIds.push(img.id || '');
-    }))
+    images.forEach((img, index)=>{
+      if(imgMap[img.id]?.length){
+        const fileContents = imgMap[img.id] || ""
+        const fileBlob = new Blob([fileContents], { type: 'text/plain' })
+        formData.append('files', fileBlob, img.id)
+        imageIds.push(img.id || '');
+      }
+    })
     formData.append('configurationId', configurationId);
     formData.append('imageIds', imageIds);
+    if(!imageIds.length) {
+      toast.success('No chanegs to update');
+      return;
+    }
     try{
       const data = await axiosInstance.post("/configuration/upload-label-files", formData)
       toast.success("Labels uploaded")
@@ -344,7 +364,7 @@ export default function Assembly() {
     <>
       <div className="grid h-screen grid-cols-12 ">
         <div className="col-span-5 grid grid-rows-12 border-r-[1px] border-gray-400" style={{maxHeight: '100vh', overflow: 'hidden'}}>
-          <div className="row-span-11 bg-white" style={{maxHeight: '91.65vh', overflowY: 'auto'}}>
+          <div className="row-span-11 bg-white flex flex-col" style={{maxHeight: '91.65vh', overflowY: 'auto'}}>
             <h1 className="mb-4 px-6 pt-6 text-3xl font-bold">
               Assembly Configuration
             </h1>
@@ -352,7 +372,7 @@ export default function Assembly() {
             <Steps />
 
             <div
-              className="p-6 pb-0 flex flex-col"
+              className="p-6 pb-0 flex flex-col grow"
               style={{
                 // height: calcHeight(),
               }}
@@ -375,7 +395,7 @@ export default function Assembly() {
               }
               {canGoNext && (
                 <Button size="xs" onClick={handleNext}>
-                  Next
+                  {step==3?"Finish":"Next"}
                 </Button>
               )}
             </div>
