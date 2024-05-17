@@ -2,7 +2,7 @@ import logo from '@/assets/logo.svg';
 import Input from '@/shared/ui/Input';
 import Label from '@/shared/ui/Label';
 import Button from '@/shared/ui/Button';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useFormik } from 'formik';
 import toast, { Toaster } from 'react-hot-toast';
 import axiosInstance from '@/core/request/aixosinstance';
@@ -12,6 +12,7 @@ import MessageComponent from '../MessageComponent';
 
 export default function ResetPassword() {
   const params = useParams();
+  const navigate = useNavigate();
 
   const [validityLoader, setValidityLoader] = useState(false);
   const [resetLoader, setResetLoader] = useState(false);
@@ -123,6 +124,12 @@ export default function ResetPassword() {
           </div>
 
           <Button type="submit">Confirm</Button>
+          <Button 
+            color='light'
+            onClick={() => navigate('/login')}
+          >
+            Cancel
+          </Button>
         </form>
       ) : (
         <MessageComponent
