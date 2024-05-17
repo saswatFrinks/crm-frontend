@@ -99,7 +99,8 @@ export default function ProjectConfiguration() {
         },
       });
       const ret = [];
-      const temp = res.data.data;
+      const temp = res.data.data.rois;
+      const classNameMap = res.data.data.classes;
       Object.keys(temp).map((item) => {
         const roiName = item;
         const obj = temp[item];
@@ -115,7 +116,7 @@ export default function ProjectConfiguration() {
         Object.keys(tempObj).map((finalKey) => {
           ret.push([
             roiName,
-            finalKey,
+            finalKey === 'Overall' ? finalKey : classNameMap[finalKey],
             tempObj[finalKey]['positive'],
             tempObj[finalKey]['negative'],
           ]);

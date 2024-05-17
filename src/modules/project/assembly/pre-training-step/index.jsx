@@ -12,6 +12,7 @@ import { useParams } from 'react-router-dom';
 import { assemblyAtom } from '../../state';
 import { useRecoilState } from 'recoil';
 import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader';
+import { classOptionsAtom } from '../../project-configuration/state';
 
 export const statusEnum = {
   not_started: 0,
@@ -29,6 +30,8 @@ export default function PreTrainingStep() {
   const params = useParams();
   const eventSourceRef = useRef();
   const [configuration] = useRecoilState(assemblyAtom);
+  const [classOptions] = useRecoilState(classOptionsAtom);
+  const [classMap, setClassMap] = useState({});
 
   const helper = async () => {
     console.log('configuration:', configuration);
@@ -37,6 +40,11 @@ export default function PreTrainingStep() {
       temp[item.id] = item.name;
     });
     setRoiMap({ ...temp });
+    const tempClassMap = {};
+    classOptions.map((item) => {
+      tempClassMap[item.id] = item.name;
+    });
+    setClassMap({ ...tempClassMap });
     setLoader('Starting pre-training analysis, please wait...');
     try {
       console.log('params:', params);
@@ -81,7 +89,7 @@ export default function PreTrainingStep() {
             Object.keys(tempObj).map((finalKey) => {
               ret.push([
                 roiName,
-                finalKey,
+                finalKey == 'Overall' ? finalKey : classMap[finalKey],
                 tempObj[finalKey]['positive'],
                 tempObj[finalKey]['negative'],
               ]);

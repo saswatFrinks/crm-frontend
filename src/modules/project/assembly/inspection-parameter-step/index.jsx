@@ -28,7 +28,7 @@ import DeleteObjectModal from './DeleteObjectModal';
 import DeleteRoiModal from './DeleteRoiModal';
 import axiosInstance from '@/core/request/aixosinstance';
 import { useParams } from 'react-router-dom';
-import { selectedConfigurationAtom } from '../../project-configuration/state';
+import { classOptionsAtom, selectedConfigurationAtom } from '../../project-configuration/state';
 import { cloneDeep } from 'lodash';
 
 export default function InspectionParameterStep(props) {
@@ -46,7 +46,8 @@ export default function InspectionParameterStep(props) {
   const [configuration, setConfiguration] = useRecoilState(assemblyAtom);
   const selectedConfiguration = useRecoilValue(selectedConfigurationAtom)
 
-  const [classOptions, setClassOptions] = useState([])
+  // const [classOptions, setClassOptions] = useState([])
+  const [classOptions, setClassOptions] = useRecoilState(classOptionsAtom);
 
   const setCurrentRoiId = useSetRecoilState(currentRoiIdAtom);
   const setSelectedRectId = useSetRecoilState(currentRectangleIdAtom);
