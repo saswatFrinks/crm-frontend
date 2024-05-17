@@ -25,6 +25,7 @@ const statusEnum = {
 export default function PreTrainingStep() {
   const columns = ['ROI', '', 'Positive', 'Negative'];
   const [loader, setLoader] = useState(null);
+  const [starter, setStarter] = useState(false);
   const [info, setInfo] = useState({});
   const [roiMap, setRoiMap] = useState({});
   const params = useParams();
@@ -34,16 +35,16 @@ export default function PreTrainingStep() {
   const [classMap, setClassMap] = useState({});
 
   const helper = async () => {
-    const temp = {};
+    const tempRoiMap = {};
     const res = await axiosInstance.get('/configuration/rois', {
       params: { configurationId: params.configurationId },
     });
     const resp=JSON.parse(res.data.data.data)
     resp.map((configItem) => {
       console.log("configItem:",configItem)
-      temp[configItem.id]=configItem.name
+      tempRoiMap[configItem.id]=configItem.name
     });
-    setRoiMap({ ...temp });
+    setRoiMap({ ...tempRoiMap });
     const tempClassMap = {};
     classOptions.map((item) => {
       tempClassMap[item.id] = item.name;
@@ -57,7 +58,8 @@ export default function PreTrainingStep() {
           configId: params.configurationId,
         },
       });
-      startSSE();
+      // startSSE();
+      setStarter(true);
     } catch (e) {
       console.error('Error in pre training helper:', e);
       toast.error(e);
@@ -102,6 +104,7 @@ export default function PreTrainingStep() {
           });
           console.log('ret:', ret);
           setInfo([...ret]);
+          setStarter(false);
           setLoader(null);
         } else if (Number(data.status) == statusEnum['running']) {
           setLoader(
@@ -124,6 +127,12 @@ export default function PreTrainingStep() {
   useEffect(() => {
     console.log('loader:', loader);
   }, [loader]);
+
+  useEffect(()=>{
+    if(starter){
+      startSSE()
+    }
+  },[starter])
 
   return (
     <>
