@@ -18,6 +18,7 @@ export default function ResetPassword() {
   const [resetLoader, setResetLoader] = useState(false);
   const [isValid, setIsValid] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [error, setError] = useState('');
 
   const getMagicInfo = async () => {
     try {
@@ -63,6 +64,7 @@ export default function ResetPassword() {
         }
       } catch(error) {
         toast.error(error?.response?.data?.data?.message);
+        setError(error?.response?.data?.data?.message)
       } finally {
         setResetLoader(false);
       }
@@ -81,8 +83,15 @@ export default function ResetPassword() {
     return <ProjectCreateLoader title='Reseting password' />
   }
 
+  if(error){
+    return <MessageComponent
+      description={error}
+      to={null}
+    />
+  }
+
   return (
-    <div className="flex h-screen flex-col items-center justify-center">
+    <div className="flex h-screen flex-col items-center justify-center mx-2">
       <Toaster position='top-center'/>
       <img src={logo} alt="logo" className="mb-8" />
 
