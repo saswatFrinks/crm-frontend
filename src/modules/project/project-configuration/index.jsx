@@ -8,12 +8,13 @@ import React, { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useRecoilState, useSetRecoilState } from 'recoil';
 import { selectedConfigurationAtom } from './state';
-import { rectanglesAtom } from '../state';
-import { stepAtom } from '../assembly/state';
+import { assemblyAtom, labelClassAtom, rectanglesAtom } from '../state';
+import { loadedLabelsAtom, stepAtom } from '../assembly/state';
 import { removeDuplicateFromArray } from '@/util/util';
 import Modal from '@/shared/ui/Modal';
 import { modalAtom } from '@/shared/states/modal.state';
 import toast from 'react-hot-toast';
+import { DEFAULT_ASSEMBLY } from '@/core/constants';
 
 const columns = [
   '',
@@ -65,6 +66,8 @@ export default function ProjectConfiguration() {
   const [preTrainingData, setPreTrainingData] = React.useState([]);
   const setRectangles = useSetRecoilState(rectanglesAtom);
   const setSteps = useSetRecoilState(stepAtom);
+  const setLabelsLoaded = useSetRecoilState(loadedLabelsAtom)
+  const setConfiguration = useSetRecoilState(assemblyAtom)
 
   const [selectedConfiguration, setSelectedConfiguration] = useRecoilState(
     selectedConfigurationAtom
@@ -87,64 +90,11 @@ export default function ProjectConfiguration() {
     }
   };
 
-  useEffect(() => {
-    getConfigurations();
+  useEffect(()=>{
+    getConfigurations()
     setRectangles([]);
     setSteps(0);
-  }, []);
-
-  const getValidationForConfiguration = async (configId) => {
-    try {
-      const res = await axiosInstance.get('/recommender/pre-analysis-data', {
-        params: {
-          configId: configId,
-        },
-      });
-      const ret = [];
-      const temp = res.data.data.rois;
-      const classNameMap = res.data.data.classes;
-      Object.keys(temp).map((item) => {
-        const roiName = item;
-        const obj = JSON.parse(temp[item]);
-        ret.push([roiName, 'Overall', obj['positive'], obj['negative']]);
-        delete obj['positive'];
-        delete obj['negative'];
-        const tempObj = {};
-        Object.keys(obj).map((innerVal) => {
-          const values = innerVal.split('_');
-          const currVal = tempObj[values[0]] || {};
-          tempObj[values[0]] = { ...currVal, [values[1]]: obj[innerVal] };
-        });
-        Object.keys(tempObj).map((finalKey) => {
-          console.log(finalKey);
-          ret.push([
-            roiName,
-            classNameMap[finalKey] || 'Invalid class ID',
-            tempObj[finalKey]['positive'],
-            tempObj[finalKey]['negative'],
-          ]);
-        });
-      });
-      console.log('ret:', ret);
-      setPreTrainingData([...ret]);
-    } catch (e) {
-      toast.error(JSON.stringify(e));
-    } finally {
-      setModal(true);
-    }
-  };
-
-  useEffect(() => {
-    if (open != null) {
-      getValidationForConfiguration(open);
-    }
-  }, [open]);
-
-  useEffect(() => {
-    if (!modal) {
-      setOpen(null);
-    }
-  }, [modal]);
+  }, [])
 
   return (
     <>
