@@ -14,7 +14,7 @@ import { useRecoilState } from 'recoil';
 import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader';
 import { classOptionsAtom } from '../../project-configuration/state';
 
-export const statusEnum = {
+const statusEnum = {
   not_started: 0,
   started: 1,
   running: 2,
@@ -29,15 +29,19 @@ export default function PreTrainingStep() {
   const [roiMap, setRoiMap] = useState({});
   const params = useParams();
   const eventSourceRef = useRef();
-  const [configuration] = useRecoilState(assemblyAtom);
+  // const [configuration] = useRecoilState(assemblyAtom);
   const [classOptions] = useRecoilState(classOptionsAtom);
   const [classMap, setClassMap] = useState({});
 
   const helper = async () => {
-    console.log('configuration:', configuration);
     const temp = {};
-    configuration.rois.map((item) => {
-      temp[item.id] = item.name;
+    const res = await axiosInstance.get('/configuration/rois', {
+      params: { configurationId: params.configurationId },
+    });
+    const resp=JSON.parse(res.data.data.data)
+    resp.map((configItem) => {
+      console.log("configItem:",configItem)
+      temp[configItem.id]=configItem.name
     });
     setRoiMap({ ...temp });
     const tempClassMap = {};

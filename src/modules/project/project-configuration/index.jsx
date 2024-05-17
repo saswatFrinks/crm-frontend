@@ -25,6 +25,8 @@ const columns = [
   'Pre-training Analysis',
 ];
 
+const preTrainingColumns=['ROI', '', 'Positive', 'Negative']
+
 const preAnalysisStatusMap = [
   {
     color: 'red',
@@ -93,7 +95,7 @@ export default function ProjectConfiguration() {
 
   const getValidationForConfiguration = async (configId) => {
     try {
-      const res = await axiosInstance.get('/configuration/list', {
+      const res = await axiosInstance.get('/recommender/pre-analysis-data', {
         params: {
           configId: configId,
         },
@@ -103,7 +105,7 @@ export default function ProjectConfiguration() {
       const classNameMap = res.data.data.classes;
       Object.keys(temp).map((item) => {
         const roiName = item;
-        const obj = temp[item];
+        const obj = JSON.parse(temp[item]);
         ret.push([roiName, 'Overall', obj['positive'], obj['negative']]);
         delete obj['positive'];
         delete obj['negative'];
@@ -151,7 +153,7 @@ export default function ProjectConfiguration() {
           <table className="w-full text-left text-sm text-gray-500 rtl:text-right ">
             <thead className="bg-white text-sm uppercase text-gray-700 ">
               <tr>
-                {columns.map((t) => (
+                {preTrainingColumns.map((t) => (
                   <th scope="col" className="px-6 py-3" key={t}>
                     {t}
                   </th>
