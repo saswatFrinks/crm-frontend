@@ -59,59 +59,58 @@ export default function PreTrainingStep() {
       { withCredentials: true }
     );
     const sse = eventSourceRef.current;
-    sse
-      .onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        console.log('Got sse data:',data);
-        if (data.config_id == params.configurationId) {
-          if (Number(data.status) == statusEnum['completed']) {
-            const ret = [];
-            const temp = data.roi;
-            Object.keys(temp).map((item) => {
-              const roiName = roiMap[item];
-              const obj = temp[item];
-              ret.push([roiName, 'Overall', obj['positive'], obj['negative']]);
-              delete obj['positive'];
-              delete obj['negative'];
-              const tempObj = {};
-              Object.keys(obj).map((innerVal) => {
-                const values = innerVal.split('_');
-                const currVal = tempObj[values[0]] || {};
-                tempObj[values[0]] = { ...currVal, [values[1]]: obj[innerVal] };
-              });
-              Object.keys(tempObj).map((finalKey) => {
-                ret.push([
-                  roiName,
-                  finalKey,
-                  tempObj[finalKey]['positive'],
-                  tempObj[finalKey]['negative'],
-                ]);
-              });
+    sse.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      console.log('Got sse data:', data);
+      if (data.config_id == params.configurationId) {
+        if (Number(data.status) == statusEnum['completed']) {
+          const ret = [];
+          const temp = data.roi;
+          Object.keys(temp).map((item) => {
+            const roiName = roiMap[item];
+            const obj = temp[item];
+            ret.push([roiName, 'Overall', obj['positive'], obj['negative']]);
+            delete obj['positive'];
+            delete obj['negative'];
+            const tempObj = {};
+            Object.keys(obj).map((innerVal) => {
+              const values = innerVal.split('_');
+              const currVal = tempObj[values[0]] || {};
+              tempObj[values[0]] = { ...currVal, [values[1]]: obj[innerVal] };
             });
-            console.log('ret:', ret);
-            setInfo([...ret]);
-            setLoader(null);
-          } else if (Number(data.status) == statusEnum['running']) {
-            setLoader(
-              'Pre-training analysis in progress. This may take around 2 minutes...'
-            );
-          } else if (Number(data.status) == statusEnum['started']) {
-            setLoader('Starting pre-training analysis, please wait...');
-          } else if (Number(data.status) == statusEnum['errored']) {
-            toast.error(data.error);
-            setLoader(null);
-          }
+            Object.keys(tempObj).map((finalKey) => {
+              ret.push([
+                roiName,
+                finalKey,
+                tempObj[finalKey]['positive'],
+                tempObj[finalKey]['negative'],
+              ]);
+            });
+          });
+          console.log('ret:', ret);
+          setInfo([...ret]);
+          setLoader(null);
+        } else if (Number(data.status) == statusEnum['running']) {
+          setLoader(
+            'Pre-training analysis in progress. This may take around 2 minutes...'
+          );
+        } else if (Number(data.status) == statusEnum['started']) {
+          setLoader('Starting pre-training analysis, please wait...');
+        } else if (Number(data.status) == statusEnum['errored']) {
+          toast.error(data.error);
+          setLoader(null);
         }
-      };
+      }
+    };
   };
 
   useEffect(() => {
     helper();
   }, []);
 
-  useEffect(()=>{
-    console.log("loader:",loader)
-  },[loader])
+  useEffect(() => {
+    console.log('loader:', loader);
+  }, [loader]);
 
   return (
     <>
@@ -119,7 +118,13 @@ export default function PreTrainingStep() {
         <ProjectCreateLoader title={loader} />
       ) : (
         <div className="flex flex-col gap-4">
-          <button onClick={()=>{helper()}}>Start</button>
+          <button
+            onClick={() => {
+              helper();
+            }}
+          >
+            Start
+          </button>
           <h3 className="text-center text-2xl font-semibold">
             Your project is configured!{' '}
           </h3>
@@ -139,11 +144,18 @@ export default function PreTrainingStep() {
             <tbody>
               {info &&
                 info?.length &&
-                info.map((roiRow) => {
+                info.map((roiRow, index) => {
                   return (
-                    <tr className="border-b odd:bg-white even:bg-[#C6C4FF]/10">
-                      {roiRow.map((item) => {
-                        return <td className="px-6 py-4">{item}</td>;
+                    <tr
+                      key={index}
+                      className="border-b odd:bg-white even:bg-[#C6C4FF]/10"
+                    >
+                      {roiRow.map((item, ind) => {
+                        return (
+                          <td className="px-6 py-4" key={ind}>
+                            {item}
+                          </td>
+                        );
                       })}
                     </tr>
                   );
