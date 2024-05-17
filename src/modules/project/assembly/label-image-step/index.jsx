@@ -64,13 +64,15 @@ export default function LabelImage({save}) {
 
   const addClasses = () => {
     const temp = {}
+    const idMap = {}
     configuration.rois.forEach((roi)=> {
       roi.parts.forEach((obj)=> {
         temp[obj.className] = temp[obj.className] ? temp[obj.className]+1 : 0
+        idMap[obj.className] = obj.class;
       })
     })
     setLabelClasses(Object.keys(temp).map((key, index)=> ({
-      id: index,
+      id: idMap[key],
       name: key,
       count: temp[key]
     })).sort((a,b)=> {
