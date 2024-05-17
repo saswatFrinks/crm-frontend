@@ -104,13 +104,9 @@ const CreateUserDrawer = React.forwardRef((props, ref) => {
       organizationId: getOrganizationId()
     };
 
-    if(values.plantId) {
-      user['plantId'] = values.plantId;
-    }
+    user['plantId'] = values.plantId ?? null;
 
-    if(values.teamId) {
-      user['teamId'] = values.teamId;
-    }
+    user['teamId'] = values.teamId ?? null;
 
     return user;
   };
