@@ -94,7 +94,63 @@ export default function ProjectConfiguration() {
     getConfigurations()
     setRectangles([]);
     setSteps(0);
+    setLabelsLoaded(Array.from({length: 10}, ()=>false));
+    setConfiguration(DEFAULT_ASSEMBLY);
   }, [])
+
+
+  const getValidationForConfiguration = async (configId) => {
+    try {
+      const res = await axiosInstance.get('/recommender/pre-analysis-data', {
+        params: {
+          configId: configId,
+        },
+      });
+      const ret = [];
+      const temp = res.data.data.rois;
+      const classNameMap = res.data.data.classes;
+      Object.keys(temp).map((item) => {
+        const roiName = item;
+        const obj = JSON.parse(temp[item]);
+        ret.push([roiName, 'Overall', obj['positive'], obj['negative']]);
+        delete obj['positive'];
+        delete obj['negative'];
+        const tempObj = {};
+        Object.keys(obj).map((innerVal) => {
+          const values = innerVal.split('_');
+          const currVal = tempObj[values[0]] || {};
+          tempObj[values[0]] = { ...currVal, [values[1]]: obj[innerVal] };
+        });
+        Object.keys(tempObj).map((finalKey) => {
+          console.log(finalKey);
+          ret.push([
+            roiName,
+            classNameMap[finalKey] || 'Invalid class ID',
+            tempObj[finalKey]['positive'],
+            tempObj[finalKey]['negative'],
+          ]);
+        });
+      });
+      console.log('ret:', ret);
+      setPreTrainingData([...ret]);
+    } catch (e) {
+      toast.error(JSON.stringify(e));
+    } finally {
+      setModal(true);
+    }
+  };
+
+  useEffect(() => {
+    if (open != null) {
+      getValidationForConfiguration(open);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (!modal) {
+      setOpen(null);
+    }
+  }, [modal]);
 
   return (
     <>
