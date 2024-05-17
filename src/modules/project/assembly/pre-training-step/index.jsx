@@ -87,9 +87,10 @@ export default function PreTrainingStep() {
               tempObj[values[0]] = { ...currVal, [values[1]]: obj[innerVal] };
             });
             Object.keys(tempObj).map((finalKey) => {
+              console.log('finalKey:', finalKey);
               ret.push([
                 roiName,
-                classMap[finalKey],
+                classMap[finalKey] || 'Invalid class ID',
                 tempObj[finalKey]['positive'],
                 tempObj[finalKey]['negative'],
               ]);

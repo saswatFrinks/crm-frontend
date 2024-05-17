@@ -114,9 +114,10 @@ export default function ProjectConfiguration() {
           tempObj[values[0]] = { ...currVal, [values[1]]: obj[innerVal] };
         });
         Object.keys(tempObj).map((finalKey) => {
+          console.log(finalKey);
           ret.push([
             roiName,
-            classNameMap[finalKey],
+            classNameMap[finalKey] || 'Invalid class ID',
             tempObj[finalKey]['positive'],
             tempObj[finalKey]['negative'],
           ]);
