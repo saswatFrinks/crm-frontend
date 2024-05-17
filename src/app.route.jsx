@@ -10,6 +10,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import { projectRouter } from './modules/project/project.route';
 import Magic from './modules/magic';
 import ResetPassword from './modules/auth/reset-password';
+import ForgotPassword from './modules/auth/forgot-password';
 
 const router = createBrowserRouter([
   {
@@ -27,6 +28,10 @@ const router = createBrowserRouter([
   {
     path: 'reset-password/:magicId',
     element: <ResetPassword />,
+  },
+  {
+    path: 'forgot-password',
+    element: <ForgotPassword />,
   },
   {
     path: '/',

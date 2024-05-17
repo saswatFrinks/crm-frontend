@@ -131,7 +131,7 @@ export default function User() {
                     <td className="px-6 py-4">{user.status}</td>
 
                     <td className="px-6 py-4">
-                      {loggedInUser.id === user.id && (
+                      {(loggedInUser.id === user.id || loggedInUser.authority === 0) && (
                         <Action
                           handleOpenModal={handleOpenModal}
                           hasReset={true}
