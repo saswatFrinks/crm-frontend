@@ -104,18 +104,15 @@ const CreateUserDrawer = React.forwardRef((props, ref) => {
       organizationId: getOrganizationId()
     };
 
-    if(values.plantId) {
-      user['plantId'] = values.plantId;
-    }
+    user['plantId'] = values.plantId ?? null;
 
-    if(values.teamId) {
-      user['teamId'] = values.teamId;
-    }
+    user['teamId'] = values.teamId ?? null;
 
     return user;
   };
 
   const getPhoneErrorMessage = () => {
+    if(userToEdit)return null;
     if (formik.dirty && !phone) {
       return 'Phone number is required';
     }

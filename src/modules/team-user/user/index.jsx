@@ -11,10 +11,12 @@ import CreateUserDrawer from '../CreateUserDrawer';
 import { IoIosSend } from 'react-icons/io';
 import axiosInstance from '@/core/request/aixosinstance';
 import { getOrganizationId } from '@/util/util';
+import storageService from '@/core/storage';
 
 export default function User() {
   const columns = ['User name', 'Email id', 'Phone Number', 'Plant', 'Team', 'Status'];
   const setModalState = useSetRecoilState(modalAtom);
+  const loggedInUser = JSON.parse(storageService.get('user'));
 
   const ref = React.useRef(null);
 
@@ -113,7 +115,7 @@ export default function User() {
               {users.map((user, i) => {
                 return (
                   <tr
-                    className="border-b odd:bg-white even:bg-[#C6C4FF]/10  "
+                    className="border-b bg-white"
                     key={user.id}
                   >
                     <th
@@ -129,15 +131,17 @@ export default function User() {
                     <td className="px-6 py-4">{user.status}</td>
 
                     <td className="px-6 py-4">
-                      <Action
-                        handleOpenModal={handleOpenModal}
-                        hasReset={true}
-                        id={user.id}
-                        setId={setId}
-                        editIndex={i}
-                        delete={deleteById}
-                        handleEdit={handleEditUser}
-                      />
+                      {(loggedInUser.id === user.id || loggedInUser.authority === 0) && (
+                        <Action
+                          handleOpenModal={handleOpenModal}
+                          hasReset={true}
+                          id={user.id}
+                          setId={setId}
+                          editIndex={i}
+                          delete={deleteById}
+                          handleEdit={handleEditUser}
+                        />
+                      )}
                     </td>
                   </tr>
                 );
@@ -177,7 +181,7 @@ export default function User() {
       {drawerAction==='EditUser' && <Drawer
         isOpen={open}
         handleClose={closeDrawer}
-        title={'Edit new user'}
+        title={'Edit user'}
         size="xs"
         footer={
           <div className="flex w-2/3 items-end justify-end gap-2 ">

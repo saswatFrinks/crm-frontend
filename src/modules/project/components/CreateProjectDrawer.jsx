@@ -9,7 +9,7 @@ import { useFormik } from 'formik';
 import axiosInstance from '@/core/request/aixosinstance';
 import { getOrganizationId } from '@/util/util';
 import storageService from '@/core/storage';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4, validate } from 'uuid';
 import AutofilledDisabledInput from '@/shared/ui/AutofilledDisabledInput';
 import toast, { Toaster } from 'react-hot-toast';
 
@@ -136,8 +136,8 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
       description: projectToEdit?.description || '',
       inspectionSpeed: projectToEdit?.inspectionSpeed || 10,
       cameraCount: projectToEdit?.cameraCount || 5,
-      isCameraFixed: projectToEdit ? (projectToEdit?.isCameraFixed ? "fixed" : "robo") : false,
-      isItemFixed: projectToEdit ? (projectToEdit?.isItemFixed ? "stationary" : "moving") : false,
+      isCameraFixed: projectToEdit ? (projectToEdit?.isCameraFixed ? "fixed" : "robo") : '',
+      isItemFixed: projectToEdit ? (projectToEdit?.isItemFixed ? "stationary" : "moving") : '',
       inspectionType: projectToEdit ? projectToEdit.inspectionType : '',
       plantId: user?.plantId,
       teamId: user?.teamId,
@@ -149,84 +149,82 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
     },
     validate: (values) => {
       const errors = {};
-      if(projectToEdit)return errors;
-      if (!values.name) {
+      if(formik.touched.name && !values.name){
         errors.name = 'Project name is required';
-        return errors;
       }
 
-      if (values.inspectionSpeed <= 0) {
+      if(formik.touched.description && !values.description){
+        errors.description = 'Project Description is required';
+      }
+
+      if(projectToEdit)return errors;
+
+      if (formik.touched.inspectionSpeed && values.inspectionSpeed <= 0) {
         errors.inspectionSpeed = 'Inspection speed must be greater than 0';
-        return errors;
       }
 
-      if (!values.isCameraFixed) {
+      if (formik.touched.isCameraFixed && !values.isCameraFixed) {
         errors.camera = 'Camera mount is mandatory';
-        return errors;
       }
 
-      if (!values.isItemFixed) {
+      if (formik.touched.isItemFixed && !values.isItemFixed) {
         errors.item = 'Product flow is mandatory';
-        return errors;
       }
 
-      if (values.variants.length <= 1 && !variants.length) {
+      if (formik.touched.variants && values.variants.length <= 1 && !variants.length) {
         errors.variants = 'One variant is required';
-        return errors;
       }
 
-      if(!values.inspectionType){
+      if(formik.touched.inspectionType && !values.inspectionType){
         errors.inspectionType = 'Inspection Type is required';
-        return errors;
       }
 
-      if (values.cameraCount <= 0) {
+      if (formik.touched.cameraCount && values.cameraCount <= 0) {
         errors.cameraCount = 'Number of camera must be greater than 0';
-        return errors;
       }
 
-      if (!values.plantId) {
+      if (formik.touched.plantId && !values.plantId) {
         errors.plantId = 'Plant name is required';
-        return errors;
       }
 
-      if (!values.teamId) {
+      if (formik.touched.teamId && !values.teamId) {
         errors.teamId = 'Team name is required';
-        return errors;
       }
 
-      if (values.objectives.length === 0) {
+      if (formik.touched.objectives && values.objectives.length === 0) {
         errors.objectives = 'Minimum one objective mandatory';
-        return errors;
       }
 
       if (
+        formik.touched.assemblyInspection &&
         values.objectives.includes('assemblyInspection') &&
         values.assemblyInspection.length <= 1
       ) {
         errors.assemblyInspection = 'Minimum one class is mandatory';
-        return errors;
       }
 
       if (
+        formik.touched.dimensioningInspection &&
         values.objectives.includes('dimensioningInspection') &&
         values.dimensioningInspection.length <= 1
       ) {
         errors.dimensioningInspection = 'Minimum one class is mandatory';
-        return errors;
       }
 
       if (
+        formik.touched.cosmeticInspection &&
         values.objectives.includes('cosmeticInspection') &&
         values.cosmeticInspection.length <= 1
       ) {
         errors.cosmeticInspection = 'Minimum one class is mandatory';
-        return errors;
       }
 
       return errors;
     },
     onSubmit: async (values) => {
+      const errors = await formik.validateForm();
+      const canContinue = Object.values(errors).every(error => error.length === 0);
+      if(!canContinue)return;
       setShowLoader(true);
       let projectJson = createProjectJSON(values);
       try {
@@ -251,6 +249,7 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
       }
     },
   });
+  console.log({error: formik.errors})
 
   const createProjectJSON = (values) => {
     const json = {
@@ -423,8 +422,8 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
             </Label>
           </div>
         </div>
-        {formik.errors.isCameraFixed ? (
-          <p className="text-xs text-red-500">{formik.errors.isCameraFixed}</p>
+        {formik.errors.camera ? (
+          <p className="text-xs text-red-500">{formik.errors.camera}</p>
         ) : null}
       </div>
 
@@ -458,8 +457,8 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
             </Label>
           </div>
         </div>
-        {formik.errors.isItemFixed ? (
-          <p className="text-xs text-red-500">{formik.errors.isItemFixed}</p>
+        {formik.errors.item ? (
+          <p className="text-xs text-red-500">{formik.errors.item}</p>
         ) : null}
       </div>
 
@@ -467,7 +466,6 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
         <Label>Inspection Requirement</Label>
         <div className="flex gap-8">
           {inspectionTypes.map(type => {
-            console.log(type, formik.values.inspectionType, type.id)
             return <div className="flex gap-2">
               <Radio
                 id={type.name}

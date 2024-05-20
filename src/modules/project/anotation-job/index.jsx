@@ -33,6 +33,8 @@ export default function AnnotationJob() {
   const [annotationMap, setAnnotationMap] = useRecoilState(annotationMapAtom);
   const labelRef = React.useRef(labelClass);
 
+  const [rois, setRois] = React.useState([]);
+
   const getImageUrl = (id) => {
     return `${import.meta.env.VITE_BASE_API_URL}/dataset/image?imageId=${id}`
   }
@@ -132,6 +134,102 @@ export default function AnnotationJob() {
   React.useEffect(()=>{
     labelRef.current = labelClass;
   }, [labelClass])
+
+  const getRois = async () => {
+    try{
+      const roiData = await axiosInstance.get('/configuration/classes', {
+        params: {
+          configurationId
+        }
+      })
+      const data = JSON.parse(roiData.data.data?.data)
+      if(data.length){
+        const partsMap = {};
+        const roiMap = {};
+        const rects = []
+        let configUpdate = {productFlow: data[0].configuration.direction }, configUpdateRequired = false;
+        const image = new Image();
+        image.src = images[0].url
+        console.log('inside proimse')
+        image.onload = ()=>{
+          data?.forEach((conf, i)=>{
+            const roiId = conf.rois.id;
+            console.log('Loop', roiId)
+            if(!roiMap[roiId]){
+              console.log('roi id not present')
+              roiMap[roiId] = {
+                id: i,
+                checked: false,
+                status: STATUS.FINISH,
+                open: true,
+                parts: []
+              }
+              //!do rectangle here too
+              console.log('before')
+              const {x1, x2, y1, y2} = conf.rois;
+              console.log('before')
+              const color = getRandomHexColor();
+              rects.push({
+                  ...BASE_RECT, 
+                  id: rois.length + i,
+                  fill: color,
+                  stroke: color,
+                  imageId: images[0].id,
+                  rectType: RECTANGLE_TYPE.ROI,
+                  roiId:i,
+                  title: 'ROI',
+                  x: x1* image.width,
+                  y: y1 * image.height,
+                  width: (x2-x1) * image.width,
+                  height: (y2-y1) * image.height
+              })
+            }
+            if(!partsMap[roiId]){
+              partsMap[roiId] = [];
+            }
+            console.log('doing parts')
+            if(conf.parts.isTracker){
+              configUpdateRequired = true;
+              configUpdate = {
+                ...configUpdate,
+                primaryObject: conf.parts?.name || '',
+                primaryObjectClass: conf.parts?.name || '',
+              }
+            }
+            partsMap[roiId].push({
+              id: i,
+              objectName: conf.parts?.name || '',
+              class: conf.parts?.classId || '',
+              className: conf.assembly_class?.name || '',
+              operation: conf.parts?.operator,
+              qty: conf.parts?.count,
+              classify: conf.assembly_class?.classify ? 'on': false,
+              checked : false,
+              open: true
+            })
+          })
+          for(let roiId in roiMap){
+            roiMap[roiId].parts = partsMap[roiId];
+          }
+          setConfiguration((t) => ({
+            ...t,
+            rois: Object.values(roiMap)
+          }));
+          setRectangles(prev=>[...prev, ...rects]);
+          if(configUpdateRequired){
+            setConfiguration(prev=>({
+              ...prev, 
+              ...configUpdate
+            }))
+          }
+        }
+      }
+      return true
+    }
+    catch(e){
+      return false;
+    }
+  }
 
   React.useEffect(()=>{
     setStep(2);
