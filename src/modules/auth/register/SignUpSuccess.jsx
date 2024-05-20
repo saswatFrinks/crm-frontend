@@ -11,9 +11,10 @@ const SignUpSuccess = () => {
 
   return (
     <div>
-      <ModalHeader>Check your Email to Activate Account</ModalHeader>
+      <ModalHeader>Verify Email</ModalHeader>
 
       <ModalBody>
+        <p>An email with the verification link has been sent to your registered email id. Please click on the verification link to verify your email and start using the application.</p>
         <div className="flex flex-row-reverse">
           <Button fullWidth={false} style={{padding: '0.5rem 1.5rem'}} color="flat" onClick={() => {
             navigate('/login');

@@ -43,12 +43,13 @@ export default function LabelImage({save}) {
 
   const selectedRois = useRecoilValue(selectedRoiSelector(selectedImage?.id));
 
-  const setRectangle = useSetRecoilState(rectanglesAtom);
+  const [rectangles, setRectangle] = useRecoilState(rectanglesAtom);
   const images = useRecoilValue(uploadedFileListAtom);
   const [selectedFile, setSelectedFile] = useRecoilState(selectedFileAtom)
   const [selectedPolyId, setSelectedPloyId] = useRecoilState(currentRectangleIdAtom)
   const [loadedLabelData, setLoadedLabelData] = useRecoilState(loadedLabelsAtom)
   const params = useParams();
+  const labelsRef = React.useRef(labelClasses);
 
   const removeRectangle = (id) => {
     setRectangle((t) => t.filter((k) => k.id !== id));
@@ -63,13 +64,15 @@ export default function LabelImage({save}) {
 
   const addClasses = () => {
     const temp = {}
+    const idMap = {}
     configuration.rois.forEach((roi)=> {
       roi.parts.forEach((obj)=> {
         temp[obj.className] = temp[obj.className] ? temp[obj.className]+1 : 0
+        idMap[obj.className] = obj.class;
       })
     })
     setLabelClasses(Object.keys(temp).map((key, index)=> ({
-      id: index,
+      id: idMap[key],
       name: key,
       count: temp[key]
     })).sort((a,b)=> {
@@ -84,6 +87,7 @@ export default function LabelImage({save}) {
     setLabel({
       name: labelClasses[i].name,
       count: labelClasses[i].count,
+      id: labelClasses[i].id
     })
   } 
 
@@ -99,21 +103,19 @@ export default function LabelImage({save}) {
   }
 
   React.useEffect(() => {
-    let updatedMap = {};
+    let annotations = []
     setAnnotationMap(prev=>{
-      updatedMap = prev;
-      return prev;
+      const updates = {}
+      annotations = selectedRois.filter(e=>e.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL && prev[e.id]==undefined);
+      if(annotations.length){
+        annotations.forEach(annot=>{
+          updates[annot.id] = selectedLabel.id
+        })
+      }
+      return {...prev, ...updates}
     })
-    console.log('Updated map', updatedMap);
-    
-    const annotations = selectedRois.filter(e=>e.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL && !updatedMap[e.id]);
     if(annotations.length){
       setSelectedPloyId(annotations[0].id)
-      const updates = {}
-      annotations.forEach(annot=>{
-        updates[annot.id] = selectedLabel.name
-      })
-      setAnnotationMap(p=>({...p, ...updates}))
     }
   }, [selectedRois])
 
@@ -121,53 +123,58 @@ export default function LabelImage({save}) {
     const ind = images.findIndex(im=> im.id === selectedFile.id);
     if(ind >=0 && !loadedLabelData[ind]){
       const getData = async () => {
-        const data = await axiosInstance.get('/configuration/label-file', {
-          params: {
-            configurationId: params.configurationId,
-            imageId: selectedFile.id
+        try{
+          const data = await axiosInstance.get('/configuration/label-file', {
+            params: {
+              configurationId: params.configurationId,
+              imageId: selectedFile.id
+            }
+          })
+          const prevData = data?.data;
+          if(prevData.length && typeof prevData == 'string'){
+            const image = new Image();
+            image.src = selectedFile.url;
+            image.onload = () => {
+              const configuredData = []
+              const annotUpdates = {}
+              prevData.split('\n').forEach((entry, i)=>{
+                const line = entry.split(' ');
+                if(line.length>=5){
+                  let [cls, x, y, width, height] = line;
+                  x *= image.width;
+                  y *= image.height;
+                  width *= image.width;
+                  height *= image.height;
+  
+                  const className = labelsRef.current?.find(ele=>ele.id==cls)?.name
+  
+                  const color = getRandomHexColor();
+                  const id = selectedFile.id;
+                  configuredData.push({
+                    ...BASE_RECT, 
+                    id: selectedRois.length + i,
+                    fill: color,
+                    stroke: color,
+                    imageId: id,
+                    rectType: RECTANGLE_TYPE.ANNOTATION_LABEL,
+                    // roiId: roi.id,
+                    title: className,
+                    x: x - width/2,
+                    y: y - height/2,
+                    width,
+                    height
+                  })
+                  annotUpdates[selectedRois.length + i] = cls;
+                }
+              })
+              console.log('UPdate from txt', annotUpdates, configuredData)
+              setAnnotationMap(prev=>({...prev, ...annotUpdates}));
+              setRectangle(prev=>([...prev, ...configuredData]));
+            }
+  
           }
-        })
-        const prevData = data?.data;
-        if(prevData.length && typeof prevData == 'string'){
-          const image = new Image();
-          image.src = selectedFile.url;
-          image.onload = () => {
-            const configuredData = []
-            const annotUpdates = {}
-            prevData.split('\n').forEach((entry, i)=>{
-              const line = entry.split(' ');
-              if(line.length>=5){
-                let [cls, x, y, width, height] = line;
-                x *= image.width;
-                y *= image.height;
-                width *= image.width;
-                height *= image.height;
-
-                const color = getRandomHexColor();
-                const id = selectedFile.id;
-                configuredData.push({
-                  ...BASE_RECT, 
-                  id: selectedRois.length + i,
-                  fill: color,
-                  stroke: color,
-                  imageId: id,
-                  rectType: RECTANGLE_TYPE.ANNOTATION_LABEL,
-                  // roiId: roi.id,
-                  title: cls,
-                  x: x - width/2,
-                  y: y - height/2,
-                  width,
-                  height
-                })
-                annotUpdates[selectedRois.length + i] = cls;
-              }
-            })
-            console.log('UPdate from txt', annotUpdates, configuredData)
-            setAnnotationMap(prev=>({...prev, ...annotUpdates}));
-            setRectangle(prev=>[...prev, ...configuredData]);
-          }
-
         }
+        catch(e){}
 
         setLoadedLabelData(prev=>{
           const d = [...prev];
@@ -178,6 +185,10 @@ export default function LabelImage({save}) {
       getData();
     }
   }, [selectedFile])
+
+  React.useEffect(()=>{
+    labelsRef.current = labelClasses;
+  }, [labelClasses])
 
   return (
     <div className="flex flex-col gap-4 grow">
@@ -205,12 +216,17 @@ export default function LabelImage({save}) {
             <div className=" flex grow">
               <div className=" w-full max-w-sm">
                 <Select size="sm"
-                options={labelClasses} 
-                placeholder="Select class"
-                value={annotationMap[t.id]}
-                onChange={(e)=>{
-                  setAnnotationMap({...annotationMap, [t.id]: e.target.value})
-                }}
+                  options={labelClasses} 
+                  placeholder="Select class"
+                  value={annotationMap[t.id]}
+                  onChange={(e)=>{
+                    //!update rectangle class tooo, title
+                    const ind = rectangles.findIndex(ele=>ele.id==t.id && ele.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL);
+                    const recCp = [...rectangles];
+                    recCp[ind] = {...recCp[ind], title: labelClasses.find(ele=>ele.id==e.target.value).name}
+                    setRectangle(recCp)
+                    setAnnotationMap({...annotationMap, [t.id]: e.target.value})
+                  }}
                 />
               </div>
             </div>

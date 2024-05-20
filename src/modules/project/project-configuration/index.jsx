@@ -8,8 +8,10 @@ import React, { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useRecoilState, useSetRecoilState } from 'recoil';
 import { selectedConfigurationAtom } from './state';
-import { rectanglesAtom } from '../state';
-import { stepAtom } from '../assembly/state';
+import { assemblyAtom, labelClassAtom, rectanglesAtom } from '../state';
+import { loadedLabelsAtom, stepAtom } from '../assembly/state';
+import { removeDuplicateFromArray } from '@/util/util';
+import { DEFAULT_ASSEMBLY } from '@/core/constants';
 
 const columns = [
   '',
@@ -27,8 +29,12 @@ export default function ProjectConfiguration() {
   ]);
   const setRectangles = useSetRecoilState(rectanglesAtom)
   const setSteps = useSetRecoilState(stepAtom)
+  const setLabelsLoaded = useSetRecoilState(loadedLabelsAtom)
+  const setConfiguration = useSetRecoilState(assemblyAtom)
 
   const [selectedConfiguration, setSelectedConfiguration] = useRecoilState(selectedConfigurationAtom)
+
+  
 
   const getConfigurations = async () => {
     try {
@@ -37,16 +43,18 @@ export default function ProjectConfiguration() {
           projectId: params.projectId,
         },
       });
-      setConfigurations(res.data.data)
+      setConfigurations(removeDuplicateFromArray(res.data.data, 'id'))
     } catch (error) {
       
     }
   }
 
   useEffect(()=>{
-    getConfigurations()
+    getConfigurations();
     setRectangles([]);
     setSteps(0);
+    setLabelsLoaded(Array.from({length: 10}, ()=>false));
+    setConfiguration(DEFAULT_ASSEMBLY);
   }, [])
 
   return (
