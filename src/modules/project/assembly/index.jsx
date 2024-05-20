@@ -76,6 +76,9 @@ export default function Assembly() {
     else if(t==2){
       t = await preUpdate() ? t+1: t;
     }
+    else if(t==3){
+      navigate(-1)
+    }
     else if (t != 3) t +=1;
     console.log(step);
     setStep(t);
@@ -392,7 +395,7 @@ export default function Assembly() {
               }
               {canGoNext && (
                 <Button size="xs" onClick={handleNext}>
-                  Next
+                  {step==3?"Finish":"Next"}
                 </Button>
               )}
             </div>
