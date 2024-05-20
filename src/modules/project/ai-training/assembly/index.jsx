@@ -20,10 +20,12 @@ import toast, { Toaster } from 'react-hot-toast';
 import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader';
 
 export const augmentationsMap = {
-  horizontal: 'Horizontal Flip',
-  vertical: 'Vertical Flip',
-  rotation: 'Rotation',
-  noise: 'Noise',
+  HorizontalFlip: 'Horizontal Flip',
+  VerticalFlip: 'Vertical Flip',
+  Rotate: 'Rotation',
+  GaussianBlur: 'Gaussian Blur',
+  RandomCrop: 'Random Crop',
+  RandomBrightnessContrast: 'Random Brightness Contrast',
 };
 
 export default function AIAssembly() {
