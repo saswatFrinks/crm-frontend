@@ -216,17 +216,17 @@ export default function LabelImage({save}) {
             <div className=" flex grow">
               <div className=" w-full max-w-sm">
                 <Select size="sm"
-                options={labelClasses} 
-                placeholder="Select class"
-                value={annotationMap[t.id]}
-                onChange={(e)=>{
-                  //!update rectangle class tooo, title
-                  const ind = rectangles.findIndex(ele=>ele.id==t.id);
-                  const recCp = [...rectangles];
-                  recCp[ind] = {...recCp[ind], title: labelClasses.find(ele=>ele.id==e.target.value).name}
-                  setRectangle(recCp)
-                  setAnnotationMap({...annotationMap, [t.id]: e.target.value})
-                }}
+                  options={labelClasses} 
+                  placeholder="Select class"
+                  value={annotationMap[t.id]}
+                  onChange={(e)=>{
+                    //!update rectangle class tooo, title
+                    const ind = rectangles.findIndex(ele=>ele.id==t.id && ele.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL);
+                    const recCp = [...rectangles];
+                    recCp[ind] = {...recCp[ind], title: labelClasses.find(ele=>ele.id==e.target.value).name}
+                    setRectangle(recCp)
+                    setAnnotationMap({...annotationMap, [t.id]: e.target.value})
+                  }}
                 />
               </div>
             </div>
