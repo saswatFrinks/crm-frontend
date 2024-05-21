@@ -12,7 +12,6 @@ import { TOKEN } from '@/core/constants';
 import { updateAuthenHeader } from '@/core/request/updateAuth';
 import axiosInstance from '@/core/request/aixosinstance';
 import { getCookie } from '@/shared/hocs/withAuthenticated';
-import React from 'react';
 
 export default function Login() {
   const navigate = useNavigate();

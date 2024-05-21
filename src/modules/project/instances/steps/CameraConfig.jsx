@@ -5,11 +5,18 @@ import axiosInstance from '@/core/request/aixosinstance';
 import Upload from '@/shared/icons/Upload';
 import { removeDuplicates } from '@/util/util';
 import toast from 'react-hot-toast';
+import { modalAtom } from '@/shared/states/modal.state';
+import Modal, { ModalBody, ModalHeader } from '@/shared/ui/Modal';
+import CheckCircle from '@/shared/icons/CheckCircle';
 
-const CameraConfig = ({formRef}) => {
+const CameraConfig = ({formRef, configUploaded}) => {
   const [addInstance, setAddInstance] = useRecoilState(addInstanceAtom);
   const [data, setData] = React.useState([]);
   const [files, setFiles] = React.useState(addInstance?.cameraConfig?.files || []);
+  const [uploaded, setUploaded] = React.useState([]);
+  const [loader, setLoader] = React.useState(false);
+  const [configDetails, setConfigDetails] = React.useState(null);
+  const [open, setOpen] = useRecoilState(modalAtom);
 
   React.useEffect(() => {
     const cameraConfigData = addInstance?.mappingData?.map(d => ({
@@ -25,10 +32,11 @@ const CameraConfig = ({formRef}) => {
     setData(uniqueData);
   }, [])
 
-  console.log({addInstance})
-
   React.useEffect(() => {
-    if(files?.length === 0)setFiles(Array.from({length: data?.length}, () => false));
+    if(files?.length === 0){
+      setFiles(Array.from({length: data?.length}, () => (configUploaded ? true : false)));
+      setUploaded(Array.from({length: data?.length}, () => false))
+    }
   }, [data])
 
   const handleSubmit = () => {
@@ -61,12 +69,38 @@ const CameraConfig = ({formRef}) => {
         newFiles[index] = true;
         return newFiles
       });
+      setUploaded(prev => {
+        const newStatus = [...prev];
+        newStatus[index] = true;
+        return newStatus
+      });
     } catch (error) {
       toast.error(error?.response?.data?.data);
     }
   }
 
+  const viewConfigDetails = async (configId) => {
+    try {
+      setOpen(true);
+      setLoader(true);
+      const response = await axiosInstance.get('/cameraDetails/get-config', {
+        params: {
+          instanceId: addInstance?.instanceId,
+          cameraConfigId: configId
+        }
+      });
+
+      setConfigDetails(response?.data?.data);
+    } catch (error) {
+      toast.error(error?.response?.data?.data?.message);
+    } finally {
+      setLoader(false);
+    }
+  }
+
   const columns = ['Variant', 'Camera Position', 'Camera Config', 'Upload Camera Config File']
+
+  const headings = ['fps', 'gain', 'gamma', 'height', 'width', 'pin'];
 
   return (
     <div>
@@ -94,18 +128,28 @@ const CameraConfig = ({formRef}) => {
                   <td className="px-6 py-4">{dataItem?.variantName}</td>
                   <td className="px-6 py-4">{dataItem?.cameraPositionName}</td>
                   <td className="px-6 py-4">{dataItem?.cameraConfigName}</td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 flex items-center gap-4">
+                    {files[index] && (
+                      <div>
+                        <label 
+                          className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-f-primary px-10 py-2 text-white duration-100 hover:bg-f-secondary"
+                          onClick={() => viewConfigDetails(dataItem?.cameraConfigId)}
+                        >
+                          View
+                        </label>
+                      </div>
+                    )}
                     <label 
-                      className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-f-primary px-20 py-2 text-white duration-100 hover:bg-f-secondary"
+                      className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-f-primary px-10 py-2 text-white duration-100 hover:bg-f-secondary"
                     >
-                      <input type="file" disabled={files[index]} hidden onChange={async (e) => {
+                      <input type="file" hidden onChange={async (e) => {
                         await handleConfigUpload(e.target.files[0], index, dataItem?.cameraConfigId);
                         e.target.files = null;
                         e.target.value = null;
                       }}/>
-                      <Upload /> Upload
+                      <Upload /> {files[index] ? 'Change' : 'Upload'}
                     </label>
-                    {files[index] && <div>Uploaded</div>}
+                    {uploaded[index] && <CheckCircle />}
                   </td>
                 </tr>
               );
@@ -113,6 +157,29 @@ const CameraConfig = ({formRef}) => {
             </tbody>
         </table>
       </div>
+
+      <Modal>
+        <ModalHeader>Camera Configuration Details</ModalHeader>
+
+        <ModalBody>
+          {loader ? (
+            <div>Loading...</div>
+          ) : (
+            <div className="flex gap-4 items-center justify-center">
+              <div className="flex flex-col items-start gap-2">
+                {headings.map(heading => (
+                  <h3 className='font-bold'>{heading.charAt(0).toUpperCase() + heading.slice(1)}:</h3>
+                ))}
+              </div>
+              <div className="flex flex-col items-start gap-2">
+                {headings.map(heading => (
+                  <h3>{configDetails ? configDetails[heading] : null}</h3>
+                ))}
+              </div>
+            </div>
+          )}
+        </ModalBody>
+      </Modal>
     </div>
   )
 }

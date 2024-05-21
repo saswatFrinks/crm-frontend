@@ -43,8 +43,24 @@ const ModelSelection = ({ formRef }) => {
     })
   }
 
+  const getModelsMapping = async () => {
+    const res = await axiosInstance.get('/instance/deployed-models', {
+      params: {
+        instanceId: addInstance?.instanceId
+      }
+    })
+
+    const mapping = res?.data?.data;
+    const newMap = new Map();
+    mapping.forEach(m => {
+      newMap.set(m.roiId, m.detectionModelId);
+    })
+    setSelectedModels(newMap)
+  }
+
   useEffect(() => {
     filterClasses()
+    getModelsMapping()
   }, [])
 
   useEffect(() => {
@@ -145,11 +161,11 @@ const ModelSelection = ({ formRef }) => {
             </AccordionHeader>
             {open[index] &&
               (
-                <AccordionBody>
+                <AccordionBody className='rounded-lg' style={{marginTop: '-16px'}}>
                   {modelData?.models?.map(model => (
                     <>
-                      <div className='ml-2 flex justify-between py-2' style={{ backgroundColor: '#E7E7FF' }}>
-                        <div className="whitespace-nowrap font-medium text-gray-900 border-b">
+                      <div className='flex justify-between py-2 px-2 rounded-md mb-0.5' style={{ backgroundColor: '#F0F0FF' }}>
+                        <div className="whitespace-nowrap font-medium text-gray-900 border-black">
                           <Radio
                             id={model?.id}
                             name={modelData?.roiId}
@@ -157,6 +173,10 @@ const ModelSelection = ({ formRef }) => {
                             checked={selectedModels?.get(modelData?.roiId) === model?.id}
                             onChange={() => {
                               handleChangeModel(modelData?.roiId, model?.id);
+                            }}
+                            style={{
+                              border: '2px solid #000',
+                              backgroundColor: 'red'
                             }}
                           />{' '}
                         </div>
@@ -173,7 +193,6 @@ const ModelSelection = ({ formRef }) => {
                           )}
                         </div>
                       </div>
-                      <hr style={{height: '2px'}}/>
                     </>
                   ))}
                 </AccordionBody>

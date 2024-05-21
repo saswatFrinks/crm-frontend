@@ -7,7 +7,9 @@ export const defaultAddInstanceValue = {
     instanceName: '',
     plantId: '',
     cameraIps: [],
-    plantName: ''
+    plantName: '',
+    teamId: '',
+    teamName: ''
   },
   mapCameraIp: {
     data: {},
