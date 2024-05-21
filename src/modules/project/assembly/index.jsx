@@ -364,7 +364,7 @@ export default function Assembly() {
 
   let imageIdStore = new Set();
   rectangles.forEach(rect=>{
-    rect.imageId && imageIdStore.add(rect.imageId);
+    rect.imageId && rect.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL && imageIdStore.add(rect.imageId);
   })
   const isAllImagesLabeled = imageIdStore.size == 10;
   console.log(isAllImagesLabeled)
