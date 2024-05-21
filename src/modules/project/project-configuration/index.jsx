@@ -26,7 +26,7 @@ const columns = [
   'Pre-training Analysis',
 ];
 
-const preTrainingColumns=['ROI', '', 'Positive', 'Negative']
+const preTrainingColumns = ['ROI', '', 'Positive', 'Negative'];
 
 const preAnalysisStatusMap = [
   {
@@ -66,8 +66,8 @@ export default function ProjectConfiguration() {
   const [preTrainingData, setPreTrainingData] = React.useState([]);
   const setRectangles = useSetRecoilState(rectanglesAtom);
   const setSteps = useSetRecoilState(stepAtom);
-  const setLabelsLoaded = useSetRecoilState(loadedLabelsAtom)
-  const setConfiguration = useSetRecoilState(assemblyAtom)
+  const setLabelsLoaded = useSetRecoilState(loadedLabelsAtom);
+  const setConfiguration = useSetRecoilState(assemblyAtom);
 
   const [selectedConfiguration, setSelectedConfiguration] = useRecoilState(
     selectedConfigurationAtom
@@ -80,7 +80,7 @@ export default function ProjectConfiguration() {
           projectId: params.projectId,
         },
       });
-      setConfigurations(res.data.data);
+      setConfigurations(removeDuplicateFromArray(res.data.data, 'id'));
     } catch (error) {
       console.error(
         'Got error trying to get configurations for the project:',
@@ -90,14 +90,13 @@ export default function ProjectConfiguration() {
     }
   };
 
-  useEffect(()=>{
-    getConfigurations()
+  useEffect(() => {
+    getConfigurations();
     setRectangles([]);
     setSteps(0);
-    setLabelsLoaded(Array.from({length: 10}, ()=>false));
+    setLabelsLoaded(Array.from({ length: 10 }, () => false));
     setConfiguration(DEFAULT_ASSEMBLY);
-  }, [])
-
+  }, []);
 
   const getValidationForConfiguration = async (configId) => {
     try {
@@ -275,7 +274,13 @@ export default function ProjectConfiguration() {
                       >
                         <button
                           className={`color-${preAnalysisStatusMap[Number(config.analysisStatus)].color}-500`}
-                          style={{cursor:preAnalysisStatusMap[Number(config.analysisStatus)].disabled?"default":"pointer"}}
+                          style={{
+                            cursor: preAnalysisStatusMap[
+                              Number(config.analysisStatus)
+                            ].disabled
+                              ? 'default'
+                              : 'pointer',
+                          }}
                           onClick={() => {
                             if (
                               preAnalysisStatusMap[
