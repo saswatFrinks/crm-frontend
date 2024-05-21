@@ -23,21 +23,18 @@ export default function AnnotationClass({labelClass}) {
   } 
 
   React.useEffect(() => {
-    let annotations = [];
-    setAnnotationMap(prev=>{
-      const updates = {}
-      annotations = rectangles.filter(e=>e.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL && prev[e.id]==undefined);
-      if(annotations.length){
-        annotations.forEach(annot=>{
-          updates[annot.id] = selectedClassId.id
-        })
-      }
-      return {...prev, ...updates}
-    })
+    let annotations = rectangles.filter(e=>e.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL && annotationMap[e.uuid]==undefined);
     if(annotations.length){
-      setSelectedPloyId(annotations[0].id)
+      setAnnotationMap(prev=>{
+        const updates = {}
+        annotations.forEach(annot=>{
+          updates[annot.uuid] = selectedClassId.id
+        })
+        return {...prev, ...updates}
+      })
+      setSelectedPloyId(annotations[0].uuid)
     }
-  }, [rectangles])
+  }, [rectangles, annotationMap])
 
   return (
     <div className="">

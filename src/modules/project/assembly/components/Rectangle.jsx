@@ -35,7 +35,7 @@ const Rectangle = ({
         {shapeProps?.title && <Text
             x={(offset?.x || 0) + shapeProps.x * effectiveScale}
             y={(offset?.y || 0) + shapeProps.y * effectiveScale - 17}
-            text={`${shapeProps.id}. ${shapeProps?.title}`}
+            text={`${shapeProps.id+1}. ${shapeProps?.title}`}
             fontSize={15}
             fill={shapeProps.fill}
         />}

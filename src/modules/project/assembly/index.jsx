@@ -42,7 +42,7 @@ export default function Assembly() {
   const [annotationMap, setAnnotationMap] = useRecoilState(annotationMapAtom)
   const [selectedRectId, setSelectedRectId] = useRecoilState(currentRectangleIdAtom)
   const setLastAction = useSetRecoilState(lastActionNameAtom);
-  const setRectangles = useSetRecoilState(rectanglesAtom);
+  const [rectangles, setRectangles] = useRecoilState(rectanglesAtom);
   const setLabelsLoaded = useSetRecoilState(loadedLabelsAtom)
 
   const getProject = async () => {
@@ -179,6 +179,7 @@ export default function Assembly() {
               const {x1, x2, y1, y2} = conf.rois;
               console.log('before')
               const color = getRandomHexColor();
+              const uuid = crypto.randomUUID();
               rects.push({
                   ...BASE_RECT, 
                   id: rois.length + i,
@@ -191,7 +192,8 @@ export default function Assembly() {
                   x: x1* image.width,
                   y: y1 * image.height,
                   width: (x2-x1) * image.width,
-                  height: (y2-y1) * image.height
+                  height: (y2-y1) * image.height,
+                  uuid
               })
             }
             if(!partsMap[roiId]){
@@ -323,7 +325,7 @@ export default function Assembly() {
   const updateAnnotation = async (image) => {
     const imgMap = {};
     annotationRects.forEach((rect)=>{
-      const classNo = annotationMap[rect.id]
+      const classNo = annotationMap[rect.uuid]
       const height = (rect.height/image.height).toFixed(4)
       const width = (rect.width/image.width).toFixed(4)
       const x = ((rect.x+rect.width/2)/image.width).toFixed(4)
@@ -360,6 +362,13 @@ export default function Assembly() {
     }
   }
 
+  let imageIdStore = new Set();
+  rectangles.forEach(rect=>{
+    rect.imageId && imageIdStore.add(rect.imageId);
+  })
+  const isAllImagesLabeled = imageIdStore.size == 10;
+  console.log(isAllImagesLabeled)
+
   return (
     <>
       <div className="grid h-screen grid-cols-12 ">
@@ -394,7 +403,13 @@ export default function Assembly() {
                 )
               }
               {canGoNext && (
-                <Button size="xs" onClick={handleNext}>
+                <Button size="xs" onClick={()=>{
+                  if(step==2){
+                    isAllImagesLabeled && handleNext();
+                  }else{
+                    handleNext()
+                  }
+                }} className={!isAllImagesLabeled && step==2? 'bg-slate-400 hover:bg-slate-400 cursor-not-allowed': ''}>
                   {step==3?"Finish":"Next"}
                 </Button>
               )}

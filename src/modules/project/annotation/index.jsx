@@ -121,7 +121,7 @@ export default function Annotation() {
                       <span
                         className={`${config.status == 'Pending' ? 'text-red-500' : 'text-green-500'}`}
                       >
-                        {config.status} - 0/100
+                        {config.status}
                       </span>
                     </td>
                   </tr>

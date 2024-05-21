@@ -9,6 +9,6 @@ export const selectedConfigurationAtom = atom({
 });
 
 export const classOptionsAtom = atom({
-  key: 'classes',
+  key: 'classesOptions',
   default: [],
 });

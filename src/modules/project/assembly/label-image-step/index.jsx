@@ -40,21 +40,25 @@ export default function LabelImage({save}) {
 
   const selectedImage = useRecoilValue(selectedFileAtom);
   const setIsEditing = useSetRecoilState(editingAtom);
-
-  const selectedRois = useRecoilValue(selectedRoiSelector(selectedImage?.id));
-
-  const [rectangles, setRectangle] = useRecoilState(rectanglesAtom);
+  
   const images = useRecoilValue(uploadedFileListAtom);
+
   const [selectedFile, setSelectedFile] = useRecoilState(selectedFileAtom)
+  const [rectangles, setRectangle] = useRecoilState(rectanglesAtom);
+  const selectedRois  = rectangles.filter(rect=>rect.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL && rect.imageId == selectedFile?.id);
+  const selectedRoisRef = React.useRef(selectedRois);
+
   const [selectedPolyId, setSelectedPloyId] = useRecoilState(currentRectangleIdAtom)
   const [loadedLabelData, setLoadedLabelData] = useRecoilState(loadedLabelsAtom)
   const params = useParams();
   const labelsRef = React.useRef(labelClasses);
 
-  const removeRectangle = (id) => {
-    setRectangle((t) => t.filter((k) => k.id !== id));
+  const selectedLabelRef = React.useRef(selectedLabel);
+
+  const removeRectangle = (uuid) => {
+    setRectangle((t) => t.filter((k) => k.uuid !== uuid));
     const temp = {...annotationMap}
-    delete temp[id]
+    delete temp[uuid]
     setAnnotationMap(temp)
   };
 
@@ -84,11 +88,17 @@ export default function LabelImage({save}) {
   const handleClassClick = async (e, i) => {
     setIsEditing(true)
     setRectangleType(RECTANGLE_TYPE.ANNOTATION_LABEL)
-    setLabel({
+    const update = {
       name: labelClasses[i].name,
       count: labelClasses[i].count,
       id: labelClasses[i].id
-    })
+    }
+    setLabel(update)
+    selectedLabelRef.current = {
+      name: labelClasses[i].name,
+      count: labelClasses[i].count,
+      id: labelClasses[i].id
+    }
   } 
 
   const curIndex = images.findIndex(image=>image.id==selectedFile.id)
@@ -104,20 +114,21 @@ export default function LabelImage({save}) {
 
   React.useEffect(() => {
     let annotations = []
-    setAnnotationMap(prev=>{
-      const updates = {}
-      annotations = selectedRois.filter(e=>e.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL && prev[e.id]==undefined);
-      if(annotations.length){
-        annotations.forEach(annot=>{
-          updates[annot.id] = selectedLabel.id
-        })
-      }
-      return {...prev, ...updates}
-    })
+    annotations = selectedRois.filter(e=>e.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL && annotationMap[e.uuid]==undefined);
     if(annotations.length){
-      setSelectedPloyId(annotations[0].id)
+      setAnnotationMap(prev=>{
+        const updates = {}
+        console.log(annotations, prev)
+        annotations.forEach(annot=>{
+          updates[annot.uuid] = selectedLabel.id
+        })
+        return {...prev, ...updates}
+      })
     }
-  }, [selectedRois])
+    if(annotations.length){
+      setSelectedPloyId(annotations[0].uuid)
+    }
+  }, [selectedRois, annotationMap])
 
   React.useEffect(()=>{
     const ind = images.findIndex(im=> im.id === selectedFile.id);
@@ -150,9 +161,10 @@ export default function LabelImage({save}) {
   
                   const color = getRandomHexColor();
                   const id = selectedFile.id;
+                  const uuid = crypto.randomUUID();
                   configuredData.push({
                     ...BASE_RECT, 
-                    id: selectedRois.length + i,
+                    id: selectedRoisRef.current.length + i,
                     fill: color,
                     stroke: color,
                     imageId: id,
@@ -162,9 +174,10 @@ export default function LabelImage({save}) {
                     x: x - width/2,
                     y: y - height/2,
                     width,
-                    height
+                    height,
+                    uuid
                   })
-                  annotUpdates[selectedRois.length + i] = cls;
+                  annotUpdates[uuid] = cls;
                 }
               })
               console.log('UPdate from txt', annotUpdates, configuredData)
@@ -218,23 +231,23 @@ export default function LabelImage({save}) {
                 <Select size="sm"
                   options={labelClasses} 
                   placeholder="Select class"
-                  value={annotationMap[t.id]}
+                  value={annotationMap[t.uuid]}
                   onChange={(e)=>{
                     //!update rectangle class tooo, title
-                    const ind = rectangles.findIndex(ele=>ele.id==t.id && ele.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL);
+                    const ind = rectangles.findIndex(ele=>ele.uuid==t.uuid && ele.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL);
                     const recCp = [...rectangles];
                     recCp[ind] = {...recCp[ind], title: labelClasses.find(ele=>ele.id==e.target.value).name}
                     setRectangle(recCp)
-                    setAnnotationMap({...annotationMap, [t.id]: e.target.value})
+                    setAnnotationMap({...annotationMap, [t.uuid]: e.target.value})
                   }}
                 />
               </div>
             </div>
-            <Edit size={18} className='cursor-pointer mr-4' onClick={()=>setSelectedPloyId(t.id)}/>
+            <Edit size={18} className='cursor-pointer mr-4' onClick={()=>setSelectedPloyId(t.uuid)}/>
             <Trash
               size={18}
               className="cursor-pointer"
-              onClick={() => removeRectangle(t.id)}
+              onClick={() => removeRectangle(t.uuid)}
             />
           </div>
         )}
