@@ -16,10 +16,10 @@ export default function AnnotationLabels({labelClass}) {
   
   const selectedImageId = selecteFile?.id
 
-  const remove = (id) => {
+  const remove = (id, uuid) => {
     let newMap = Object.assign({}, annotMap);
-    delete newMap[id];
-    const newList = allRects.filter(e=>e.id!==id);
+    delete newMap[uuid];
+    const newList = allRects.filter(e=>e.uuid!==uuid);
     setAnnotMap(newMap);
     setAllReacts(newList);
     console.log(newMap, newList);
@@ -47,22 +47,22 @@ export default function AnnotationLabels({labelClass}) {
                   <Select 
                     size="xs" 
                     options={labelClass}
-                    value={annotMap[t.id]}
+                    value={annotMap[t.uuid]}
                     onChange={(e)=>{
-                      const ind = rectangles.findIndex(ele=>ele.id==t.id);
+                      const ind = rectangles.findIndex(ele=>ele.uuid==t.uuid);
                       const recCp = [...rectangles];
                       recCp[ind] = {...recCp[ind], title: labelClass.find(ele=>ele.id==e.target.value).name}
                       setAllReacts(recCp)
-                      setAnnotMap(p=>({...p, [t.id]: e.target.value}))
+                      setAnnotMap(p=>({...p, [t.uuid]: e.target.value}))
                     }}
                   />
                 </div>
               </div>
-              <Edit size={18} className='cursor-pointer mr-4' onClick={()=>selectedRectangleId(t.id)}/>
+              <Edit size={18} className='cursor-pointer mr-4' onClick={()=>selectedRectangleId(t.uuid)}/>
               <Trash
                 size={16}
                 className="cursor-pointer"
-                onClick={() => remove(t.id)}
+                onClick={() => remove(t.id, t.uuid)}
               />
             </div>
           ))}
