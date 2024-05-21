@@ -178,24 +178,32 @@ export default function Assembly() {
         },
       });
       const data = JSON.parse(roiData.data.data?.data);
-      const temp = data;
+      const temp = [...data];
       temp.length &&
         temp.map((item, index) => {
-          if (item.isTracker) {
-            setConfiguration({
-              primaryObject: item.name,
-              primaryObjectClass: item.classId,
+          console.log("inside map:",item)
+          setConfiguration((prev)=>({
+            ...prev,
+            productFlow: item.configuration.direction,
+          }));
+          if (item.parts.isTracker) {
+            console.log("updating config")
+            setConfiguration((prev)=>({
+              ...prev,
+              primaryObject: item.parts.name,
+              primaryObjectClass: item.parts.classId,
               direction: item.configuration.direction,
-            });
+            }));
             data.splice(index, 1);
           }
         });
+        console.log("data here:",data)
       if (data.length) {
         const partsMap = {};
         const roiMap = {};
         const rects = [];
-        let configUpdate = { productFlow: data[0].configuration.direction },
-          configUpdateRequired = false;
+        // let configUpdate = { productFlow: data[0].configuration.direction },
+        //   configUpdateRequired = false;
         const image = new Image();
         image.src = images[0].url;
         console.log('inside proimse');
@@ -238,14 +246,14 @@ export default function Assembly() {
               partsMap[roiId] = [];
             }
             console.log('doing parts');
-            if (conf.parts.isTracker) {
-              configUpdateRequired = true;
-              configUpdate = {
-                ...configUpdate,
-                primaryObject: conf.parts?.name || '',
-                primaryObjectClass: conf.parts?.name || '',
-              };
-            }
+            // if (conf.parts.isTracker) {
+            //   configUpdateRequired = true;
+            //   configUpdate = {
+            //     ...configUpdate,
+            //     primaryObject: conf.parts?.name || '',
+            //     primaryObjectClass: conf.parts?.name || '',
+            //   };
+            // }
             partsMap[roiId].push({
               id: i,
               objectName: conf.parts?.name || '',
@@ -266,12 +274,12 @@ export default function Assembly() {
             rois: Object.values(roiMap),
           }));
           setRectangles((prev) => [...prev, ...rects]);
-          if (configUpdateRequired) {
-            setConfiguration((prev) => ({
-              ...prev,
-              ...configUpdate,
-            }));
-          }
+          // if (configUpdateRequired) {
+          //   setConfiguration((prev) => ({
+          //     ...prev,
+          //     ...configUpdate,
+          //   }));
+          // }
         };
       }
       return true;
