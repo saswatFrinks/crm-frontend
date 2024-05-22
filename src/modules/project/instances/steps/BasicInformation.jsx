@@ -23,8 +23,6 @@ const BasicInformation = ({project, formRef, editInstanceId = null}) => {
     cameraIps: addInstance?.basic?.cameraIps || []
   })
 
-  console.log({addInstance})
-
   const fetchAllPlants = async () => {
     const res = await axiosInstance.get('/plant/getList', {
       params: {
@@ -56,7 +54,6 @@ const BasicInformation = ({project, formRef, editInstanceId = null}) => {
       
       return await response?.data?.data;
     } catch (error) {
-      console.log({error})
       throw new Error(error);
     }
   }
@@ -242,7 +239,6 @@ const BasicInformation = ({project, formRef, editInstanceId = null}) => {
                     ...newIps[index],
                     cameraIp: e.target.value
                   }
-                  console.log({newIps})
                   return {
                     ...prev,
                     cameraIps: newIps

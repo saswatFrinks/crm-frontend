@@ -49,7 +49,6 @@ export default function Login() {
       return errors;
     },
     onSubmit: async (values) => {
-      console.log(values);
       try {
         const res = await authService.login(values);
         const expires = new Date();

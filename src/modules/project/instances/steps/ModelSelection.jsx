@@ -76,7 +76,6 @@ const ModelSelection = ({ formRef }) => {
     const newModels = new Map(selectedModels);
     newModels.set(key, value);
     setSelectedModels(newModels);
-    console.log({ newModels })
   }
 
   function Icon({ open }) {
@@ -173,10 +172,6 @@ const ModelSelection = ({ formRef }) => {
                             checked={selectedModels?.get(modelData?.roiId) === model?.id}
                             onChange={() => {
                               handleChangeModel(modelData?.roiId, model?.id);
-                            }}
-                            style={{
-                              border: '2px solid #000',
-                              backgroundColor: 'red'
                             }}
                           />{' '}
                         </div>

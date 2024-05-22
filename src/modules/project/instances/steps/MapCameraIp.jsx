@@ -93,7 +93,6 @@ const MapCameraIp = ({formRef}) => {
       const newIps = [...cameraIp];
       newIps[index] = cameraId?.camera?.id;
       setCameraIp(newIps);
-      console.log({newIps})
     })
     
   }
@@ -121,7 +120,6 @@ const MapCameraIp = ({formRef}) => {
       name: `(${camera.cameraIp})`
     }
   })
-  console.log({cameraIps})
 
   const handleSubmit = () => {
     if(cameraIp.some(ip => (ip == null)))throw new Error('Please Select All Camera IP')
@@ -132,7 +130,6 @@ const MapCameraIp = ({formRef}) => {
         cameraIps: cameraIp
       }
     })
-    console.log({addInstance})
   }
 
   formRef.current = {
