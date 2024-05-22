@@ -6,12 +6,15 @@ export default function Sidebar() {
   const { pathname } = useLocation();
   const params = useParams();
   // const {name} = JSON.parse(storageService.get('user'));
+  const location = useLocation();
+  // console.log(location);
 
   const menus = [
     {
       to: `/project/${params.projectId}`,
       pathname: 'project',
-      state: { projectName: 'kkkk' },
+      name: "Project Build",
+      state: { projectName: location.state?.projectName },
       icon: (active) => (
         <svg
           width="20"
@@ -33,6 +36,8 @@ export default function Sidebar() {
     {
       to: `/configuration/${params.projectId}`,
       pathname: 'configuration',
+      name: "Configurations",
+      state: { projectName: location.state?.projectName },
       icon: (active) => (
         <svg
           width="24"
@@ -68,6 +73,8 @@ export default function Sidebar() {
     {
       to: `/annotation/${params.projectId}`,
       pathname: 'annotation',
+      name: "Annotations",
+      state: { projectName: location.state?.projectName },
       icon: (active) => (
         <svg
           width="21"
@@ -89,6 +96,8 @@ export default function Sidebar() {
     {
       to: `/ai-training/${params.projectId}`,
       pathname: 'ai-training',
+      name: "AI Model Trainings",
+      state: { projectName: location.state?.projectName },
       icon: (active) => (
         <svg
           width="24"
@@ -109,6 +118,9 @@ export default function Sidebar() {
     },
     {
       to: `instances/${params.projectId}`,
+      pathname: 'instances',
+      name: "Instances",
+      state: { projectName: location.state?.projectName },
       icon: (active) => (
         <svg
           width="20"
@@ -136,14 +148,14 @@ export default function Sidebar() {
 
       <ul className="mt-8 flex w-full flex-col gap-2">
         {menus.map((t, i) => (
-          <li key={i}>
+          <li key={i} className="group relative">
             <NavLink
               to={t.to}
               state={t.state}
               className={({ isActive }) => {
                 const clx = isActive
                   ? 'active bg-f-primary text-white hover:bg-f-primary hover:text-white'
-                  : 'hover:bg-gray-100 ';
+                  : 'hover:bg-gray-100';
                 return `${clx} flex items-center justify-center rounded-md py-3 duration-100 hover:text-black`;
               }}
             >
@@ -151,9 +163,13 @@ export default function Sidebar() {
                 {t.icon(pathname.includes(t.pathname))}
               </div>
             </NavLink>
+            <span className="absolute left-full top-1/2 ml-2 -translate-y-1/2 transform rounded-md bg-f-primary px-2 py-1 text-sm text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+              {t.name}
+            </span>
           </li>
         ))}
       </ul>
+
       <div className="flex grow flex-col justify-end gap-2">
         <Link
           to=""

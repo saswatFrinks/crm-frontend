@@ -25,14 +25,14 @@ export default function CameraPosition() {
     try {
       await axiosInstance.delete('/capturePosition', {
         params: {
-          id: id
-        }
-      })
-      fetchAllCameraPosition()
+          id: id,
+        },
+      });
+      fetchAllCameraPosition();
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
-  }
+  };
 
   const fetchAllCameraPosition = async () => {
     const res = await axiosInstance.get('/capturePosition/fetch', {
@@ -43,16 +43,24 @@ export default function CameraPosition() {
     setCameraPositions(res.data.data);
   };
 
-
   React.useEffect(() => {
     fetchAllCameraPosition();
   }, []);
 
   const renderModalAction = () => {
     const obj = {
-      add: <AddCameraPositionModal fetchAllCameraPosition={fetchAllCameraPosition}/>,
-      delete: <DeleteModal deleteById={deleteCameraPosition}/>,
-      edit: <AddCameraPositionModal fetchAllCameraPosition={fetchAllCameraPosition} editPosition={cameraPositions[editIndex]}/>,
+      add: (
+        <AddCameraPositionModal
+          fetchAllCameraPosition={fetchAllCameraPosition}
+        />
+      ),
+      delete: <DeleteModal deleteById={deleteCameraPosition} />,
+      edit: (
+        <AddCameraPositionModal
+          fetchAllCameraPosition={fetchAllCameraPosition}
+          editPosition={cameraPositions[editIndex]}
+        />
+      ),
     };
 
     return obj[action];
@@ -64,15 +72,13 @@ export default function CameraPosition() {
   };
 
   const handleEdit = (index) => {
-    handleOpenModal('edit')
-    setEditIndex(index)
-  }
+    handleOpenModal('edit');
+    setEditIndex(index);
+  };
 
   return (
     <>
-      <Modal>
-        {renderModalAction()}
-      </Modal>
+      <Modal>{renderModalAction()}</Modal>
 
       <Heading
         subcontent={
@@ -96,7 +102,9 @@ export default function CameraPosition() {
           </>
         }
       >
-        Project
+        <Link to="/" className="mb-8">
+          Project
+        </Link>
       </Heading>
 
       <div className="p-10">
@@ -104,7 +112,7 @@ export default function CameraPosition() {
         <div className="mt-10 flex flex-wrap gap-6">
           <Variant.Create
             onClick={() => {
-              handleOpenModal('add')
+              handleOpenModal('add');
             }}
             title="Add Camera Position"
           />
@@ -114,19 +122,27 @@ export default function CameraPosition() {
               <Link
                 to={`camera-position/${cameraPosition.id}`}
                 key={cameraPosition.id}
-                state={{...location.state, cameraPositionName: cameraPosition.name}}
+                state={{
+                  ...location.state,
+                  cameraPositionName: cameraPosition.name,
+                }}
                 className=" flex basis-80 items-center justify-between rounded-md border border-gray-300/90 bg-white px-10 py-4 shadow-sm"
               >
                 <div className="inline-flex rounded-md bg-[#E7E7FF]/50 p-2">
                   <CiFileOn className="h-6 w-6 text-f-primary duration-100 group-hover:h-6 group-hover:w-6" />
                 </div>
                 {cameraPosition.name}
-                <div onClick={event=>{event.preventDefault();event.stopPropagation()}}>
+                <div
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                  }}
+                >
                   <Action
                     id={cameraPosition.id}
-                    handleEdit = {handleEdit}
-                    handleOpenModal = {handleOpenModal}
-                    editIndex = {i}
+                    handleEdit={handleEdit}
+                    handleOpenModal={handleOpenModal}
+                    editIndex={i}
                     setId={setId}
                   />
                 </div>

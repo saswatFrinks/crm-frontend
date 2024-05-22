@@ -143,7 +143,9 @@ export default function Folder() {
           </>
         }
       >
-        Project
+        <Link to="/" className="mb-8">
+          Project
+        </Link>
       </Heading>
 
       <div className="p-10">

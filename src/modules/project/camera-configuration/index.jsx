@@ -35,7 +35,7 @@ export default function CameraConfiguration() {
       });
       setCameraConfigs(res.data.data);
     } catch (error) {
-      toast.error(error.response.data.data.message)
+      toast.error(error.response.data.data.message);
     }
   };
 
@@ -49,14 +49,14 @@ export default function CameraConfiguration() {
     try {
       await axiosInstance.delete('/cameraConfig', {
         params: {
-          id: id
-        }
-      })
-      fetchAllCameraConfigs()
+          id: id,
+        },
+      });
+      fetchAllCameraConfigs();
     } catch (error) {
-      toast.error(error.response.data.data.message)
+      toast.error(error.response.data.data.message);
     }
-  }
+  };
 
   const closeDrawer = () => {
     setOpenDrawer(false);
@@ -73,15 +73,18 @@ export default function CameraConfiguration() {
   };
 
   const handleEdit = (index) => {
-    setEditIndex(index)
+    setEditIndex(index);
     setEditConfig(cameraConfigs[index]);
     openDrawer();
-  }
+  };
 
   return (
     <>
       <Modal>
-        <DeleteModal deleteById={deleteCameraConfig} title={'camera configuration'}/>
+        <DeleteModal
+          deleteById={deleteCameraConfig}
+          title={'camera configuration'}
+        />
       </Modal>
       <Heading
         subcontent={
@@ -114,7 +117,9 @@ export default function CameraConfiguration() {
           </>
         }
       >
-        Project
+        <Link to="/" className="mb-8">
+          Project
+        </Link>
       </Heading>
 
       <div className="p-10">
@@ -130,19 +135,27 @@ export default function CameraConfiguration() {
               <Link
                 to={`camera-config/${cameraConfig.id}`}
                 key={cameraConfig.id}
-                state={{...location.state, cameraConfigName: cameraConfig.name}}
+                state={{
+                  ...location.state,
+                  cameraConfigName: cameraConfig.name,
+                }}
                 className=" flex basis-80 items-center justify-between rounded-md border border-gray-300/90 bg-white px-10 py-4 shadow-sm"
               >
                 <div className="inline-flex rounded-md bg-[#E7E7FF]/50 p-2">
                   <CiFileOn className="h-6 w-6 text-f-primary duration-100 group-hover:h-6 group-hover:w-6" />
                 </div>
                 {cameraConfig.name}
-                <div onClick={event=>{event.preventDefault();event.stopPropagation()}}>
+                <div
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                  }}
+                >
                   <Action
                     id={cameraConfig.id}
-                    handleEdit = {handleEdit}
-                    handleOpenModal = {handleOpenModal}
-                    editIndex = {i}
+                    handleEdit={handleEdit}
+                    handleOpenModal={handleOpenModal}
+                    editIndex={i}
                     setId={setId}
                   />
                 </div>
@@ -179,7 +192,12 @@ export default function CameraConfiguration() {
           </div>
         }
       >
-        <AddCameraConfigurationDrawer editConfig = {editConfig} ref={ref} closeDrawer={closeDrawer} fetchAllCameraConfigs={fetchAllCameraConfigs}/>
+        <AddCameraConfigurationDrawer
+          editConfig={editConfig}
+          ref={ref}
+          closeDrawer={closeDrawer}
+          fetchAllCameraConfigs={fetchAllCameraConfigs}
+        />
       </Drawer>
     </>
   );
