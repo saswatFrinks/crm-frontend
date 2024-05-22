@@ -16,6 +16,7 @@ import { annotationMapAtom, assemblyAtom, editingAtom, labelClassAtom, lastActio
 import { getRandomHexColor } from '@/util/util';
 import { ACTION_NAMES, BASE_RECT, RECTANGLE_TYPE } from '@/core/constants';
 import toast from 'react-hot-toast';
+import { v4 } from 'uuid';
 
 export default function AnnotationJob() {
   const {datasetId, projectId, configurationId} = useParams();
@@ -166,7 +167,7 @@ export default function AnnotationJob() {
                 y: parseFloat(y1),
                 width: parseFloat(x2-x1),
                 height: parseFloat(y2-y1),
-                uuid: crypto.randomUUID()
+                uuid: v4()
             })
           }
         })
@@ -235,7 +236,7 @@ export default function AnnotationJob() {
 
                 const color = getRandomHexColor();
                 const id = selectedImage.id;
-                const uuid = crypto.randomUUID();
+                const uuid = v4();
                 configuredData.push({
                   ...BASE_RECT, 
                   id: rectangles.length + i,

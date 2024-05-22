@@ -39,6 +39,7 @@ import { useNavigate } from 'react-router-dom';
 import { cloneDeep } from 'lodash';
 import toast from 'react-hot-toast';
 import { getRandomHexColor } from '@/util/util';
+import { v4 } from 'uuid';
 
 export default function Assembly() {
   const [isEditing, setIsEditing] = useRecoilState(editingAtom);
@@ -252,7 +253,7 @@ export default function Assembly() {
             const { x1, x2, y1, y2 } = conf.rois;
             console.log('before');
             const color = getRandomHexColor();
-            const uuid = crypto.randomUUID();
+            const uuid = v4()
             rects.push({
               ...BASE_RECT,
               id: rois.length + i,
