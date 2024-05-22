@@ -192,7 +192,7 @@ const IndividualInstance = () => {
         <div className="flex h-[calc(100vh-56px)]">
           <div className="flex-1 overflow-y-auto px-10 py-8">
             <table className="w-full text-left text-sm text-gray-500 rtl:text-right w-[80%]">
-              <thead className="bg-white text-sm uppercase text-gray-700 ">
+              <thead className="bg-white text-sm text-gray-700 ">
                 <tr>
                   {columns?.map((t) => (
                     <th className={`px-6 py-3 ${getAlignment(t)}`} key={t}>
@@ -214,7 +214,7 @@ const IndividualInstance = () => {
                       />
                     ))
                   }
-                  return <tr className='border-b bg-white mb-2'>
+                  return <tr className='border-b bg-white'>
                     <td className="px-6 py-4">
                       {data.variantName}
                     </td>

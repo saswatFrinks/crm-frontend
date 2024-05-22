@@ -15,6 +15,7 @@ import DeleteModal from '@/modules/team-user/DeleteModal'
 import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader'
 import Heading from '@/shared/layouts/main/heading'
 import ArrowRight from '@/shared/icons/ArrowRight'
+import Download from '@/shared/icons/Download'
 
 const Instances = () => {
   const params = useParams();
@@ -27,6 +28,7 @@ const Instances = () => {
   const [addInstance, setAddInstance] = useRecoilState(addInstanceAtom);
   const [modalOpen, setModalOpen] = useRecoilState(modalAtom);
   const [loader, setLoader] = useState(false);
+  const [downloadLoader, setDownloadLoader] = useState(false);
   const [project, setProject] = React.useState(null);
 
   const fetchProject = async () => {
@@ -124,6 +126,30 @@ const Instances = () => {
     }
   }
 
+  const downloadInstance = async (instanceId, instanceName) => {
+    try {
+      setDownloadLoader(true);
+      const res = await axiosInstance.get('/instance/download', {
+        params: {
+          instanceId
+        }
+      })
+      const blob = new Blob([res.data], { type: 'text/plain' })
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `${instanceName.toLowerCase().split(' ').join('_')}.sql`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch(error) {
+      toast.error(error?.response?.data?.data?.message);
+    } finally {
+      setDownloadLoader(false);
+    }
+  }
+
   useEffect(() => {
     fetchAllInstances()
     fetchProject()
@@ -133,6 +159,9 @@ const Instances = () => {
 
   return (
     <>
+      {downloadLoader && (
+        <ProjectCreateLoader title='Downloading Instance'/>
+      )}
       <Heading
         subcontent={
           <>
@@ -187,7 +216,7 @@ const Instances = () => {
                     >
                       <td className="px-6 py-4">
                         <Link 
-                          to={`/instances/${params.projectId}/${instance.instances.id}`}
+                          to={`/instances/${params.projectId}/${instance?.instances?.isActive ? instance.instances.id : ''}`}
                           state={{...location.state, projectName: project?.name}}
                         >
                           {instance?.instances?.name}{'   '}
@@ -203,7 +232,12 @@ const Instances = () => {
                       <td className="px-6 py-4">{instance?.plant?.name}</td>
                       <td className="px-6 py-4">{instance?.instances?.id}</td>
                       <td className="px-6 py-4">
-                        
+                        <span 
+                          onClick={() => downloadInstance(instance?.instances?.id, instance?.instances?.name)}
+                          className='cursor-pointer'
+                        >
+                          <Download />
+                        </span>
                       </td>
                       <td className="px-6 py-4">
                         <Action

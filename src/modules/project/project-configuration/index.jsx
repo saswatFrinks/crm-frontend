@@ -79,10 +79,18 @@ export default function ProjectConfiguration() {
         <div className="mb-8 flex items-center justify-between">
           <h1 className=" text-2xl font-semibold">Project Configuration</h1>
           <Button fullWidth={false} size="xs" disabled={selectedConfiguration.id === ""}>
-            <Link className="flex items-center gap-2" to={`${selectedConfiguration.objective.toLowerCase()}/${selectedConfiguration.id}`}>
-              <Setting />
-              Start Configuration
-            </Link>
+            <div>
+            {selectedConfiguration.id ? 
+              (
+                <Link className="flex items-center gap-2" to={`${selectedConfiguration.objective.toLowerCase()}/${selectedConfiguration.id}`}>
+                  <Setting /> {'Start Configuration'}
+                </Link>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <Setting /> {'Start Configuration'}
+                </span>
+              )}
+            </div>
           </Button>
         </div>
 

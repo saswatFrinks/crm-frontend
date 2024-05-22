@@ -28,7 +28,7 @@ const Dropdown = ({data, selectedModels, classColors}) => {
       <tr className="bg-white border-b">
         <td></td>
         <td className='border border-gray-300'>
-          <div className="flex flex-col items-center gap-4 my-2">
+          <div className="flex flex-col items-start gap-4 my-2 px-4">
             {roiData.name}
             <div className="flex items-center gap-4 flex-wrap">
               {roiData.classes.map((id) => {
