@@ -4,26 +4,58 @@ import Input from '@/shared/ui/Input';
 import InputFile from '@/shared/ui/InputFile';
 import Label from '@/shared/ui/Label';
 import { useFormik } from 'formik';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import { useParams } from 'react-router-dom';
 
 const objectivesModulesMapping = {
-  assemblyInspection: "Assembly",
-  cosmeticInspection: "Cosmetic",
-  dimensioningInspection: "Dimensioning"
-}
+  assemblyInspection: 'Assembly',
+  cosmeticInspection: 'Cosmetic',
+  dimensioningInspection: 'Dimensioning',
+};
 
 const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
   const inputRef = React.useRef(null);
   const params = useParams();
-  const {closeDrawer, fetchAllCameraConfigs, editConfig} = props
+  const { closeDrawer, fetchAllCameraConfigs, editConfig } = props;
+  const [initialObjectives, setInitialObjectives] = useState([]);
 
   const objectivesMap = {
     assemblyInspection: 0,
     cosmeticInspection: 1,
-    dimensioningInspection: 2
-  }
+    dimensioningInspection: 2,
+  };
+
+  const fetchAllClasses = async () => {
+    const objectives = [];
+    let res = await axiosInstance.get('/class/list', {
+      params: {
+        projectId: params.projectId,
+      },
+    });
+    if (res.data.data.length > 0) objectives.push('assemblyInspection');
+
+    res = await axiosInstance.get('/cosmetic/list', {
+      params: {
+        projectId: params.projectId,
+      },
+    });
+    if (res.data.data.length > 0) objectives.push('cosmeticInspection');
+
+    res = await axiosInstance.get('/dimensioning/list', {
+      params: {
+        projectId: params.projectId,
+      },
+    });
+    if (res.data.data.length > 0) objectives.push('dimensioningInspection');
+
+    formik.setValues({
+      ...formik.values,
+      objectives,
+    });
+    setInitialObjectives(objectives);
+
+  };
 
   const formik = useFormik({
     initialValues: {
@@ -44,31 +76,31 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
     onSubmit: async (values) => {
       // change to form data
       try {
-        const modules = []
+        const modules = [];
 
         values.objectives.forEach((t) => {
-          modules.push(objectivesModulesMapping[t])
+          modules.push(objectivesModulesMapping[t]);
         });
         let data = {
           name: values.name,
           order: values.order,
           modules: modules,
-          capturePositionId: params.cameraPositionId
-        }
+          capturePositionId: params.cameraPositionId,
+        };
 
-        if(editConfig){
+        if (editConfig) {
           delete data.capturePositionId;
           data = {
             ...data,
-            cameraConfigId: editConfig.id
-          }
-          await axiosInstance.put('/cameraConfig/edit', data)
+            cameraConfigId: editConfig.id,
+          };
+          await axiosInstance.put('/cameraConfig/edit', data);
         } else {
-          await axiosInstance.post('/cameraConfig/setup', data)
+          await axiosInstance.post('/cameraConfig/setup', data);
         }
 
-        fetchAllCameraConfigs()
-        closeDrawer()
+        fetchAllCameraConfigs();
+        closeDrawer();
         formik.resetForm();
       } catch (err) {
         toast.error(err.response.data.data.message);
@@ -77,7 +109,7 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
   });
 
   const handleCheckboxChange = (value) => {
-    if(editConfig && editConfig?.objectives.includes(objectivesMap[value]))return;
+    if (!initialObjectives.includes(value)) return;
     if (formik.values.objectives.includes(value)) {
       formik.setValues({
         ...formik.values,
@@ -97,15 +129,19 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
     },
   }));
 
+  useEffect(() => {
+    fetchAllClasses();
+  }, [])
+
   React.useEffect(() => {
-    if(editConfig){
+    if (editConfig) {
       formik.setValues({
         ...formik.values,
         name: editConfig?.name,
-        order: editConfig?.order
+        order: editConfig?.order,
       });
     }
-  }, [editConfig])
+  }, [editConfig]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -140,7 +176,14 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
             id="assemblyInspection"
             value="assemblyInspection"
             name="objectives"
-            checked={formik.values.objectives.includes('assemblyInspection') || (editConfig && editConfig?.objectives.includes(objectivesMap.assemblyInspection))}
+            checked={
+              formik.values.objectives.includes('assemblyInspection') ||
+              (editConfig &&
+                editConfig?.objectives.includes(
+                  objectivesMap.assemblyInspection
+                ))
+            }
+            disabled={!initialObjectives.includes('assemblyInspection')}
             onChange={() => handleCheckboxChange('assemblyInspection')}
             htmlFor="assemblyInspection"
           />
@@ -153,7 +196,14 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
             id="cosmeticInspection"
             value="cosmeticInspection"
             name="objectives"
-            checked={formik.values.objectives.includes('cosmeticInspection') || (editConfig && editConfig?.objectives.includes(objectivesMap.cosmeticInspection))}
+            checked={
+              formik.values.objectives.includes('cosmeticInspection') ||
+              (editConfig &&
+                editConfig?.objectives.includes(
+                  objectivesMap.cosmeticInspection
+                ))
+            }
+            disabled={!initialObjectives.includes('cosmeticInspection')}
             onChange={() => handleCheckboxChange('cosmeticInspection')}
             htmlFor="cosmeticInspection"
           />
@@ -166,11 +216,16 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
             id="dimensioningInspection"
             value="dimensioningInspection"
             name="objectives"
-            checked={formik.values.objectives.includes(
-              'dimensioningInspection'
-            ) || (
-              editConfig && editConfig?.objectives.includes(objectivesMap.dimensioningInspection)
-            )}
+            checked={
+              formik.values.objectives.includes('dimensioningInspection') ||
+               (
+                editConfig &&
+                  editConfig?.objectives.includes(
+                    objectivesMap.dimensioningInspection
+                  )
+              )
+            }
+            disabled={!initialObjectives.includes('dimensioningInspection')}
             onChange={() => handleCheckboxChange('dimensioningInspection')}
             htmlFor="dimensioningInspection"
           />

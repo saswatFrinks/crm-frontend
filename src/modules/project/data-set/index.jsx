@@ -36,14 +36,14 @@ export default function DataSet() {
     try {
       await axiosInstance.delete('/dataset', {
         params: {
-          id: id
-        }
-      })
-      fetchAllFolders()
+          id: id,
+        },
+      });
+      fetchAllFolders();
     } catch (error) {
-      toast.error(error.response.data.data.message)
+      toast.error(error.response.data.data.message);
     }
-  }
+  };
 
   React.useEffect(() => {
     fetchAllFolders();
@@ -52,8 +52,13 @@ export default function DataSet() {
   const renderModalAction = () => {
     const obj = {
       add: <AddFolderModal fetchAllFolders={fetchAllFolders} />,
-      delete: <DeleteModal deleteById={deleteFolder} title={'dataset'}/>,
-      edit: <AddFolderModal editFolder = {folders[editIndex]} fetchAllFolders={fetchAllFolders} />,
+      delete: <DeleteModal deleteById={deleteFolder} title={'dataset'} />,
+      edit: (
+        <AddFolderModal
+          editFolder={folders[editIndex]}
+          fetchAllFolders={fetchAllFolders}
+        />
+      ),
     };
 
     return obj[action];
@@ -65,15 +70,13 @@ export default function DataSet() {
   };
 
   const handleEdit = (index) => {
-    handleOpenModal('edit')
-    setEditIndex(index)
-  }
+    handleOpenModal('edit');
+    setEditIndex(index);
+  };
 
   return (
     <>
-      <Modal>
-        {renderModalAction()}
-      </Modal>
+      <Modal>{renderModalAction()}</Modal>
 
       <Heading
         subcontent={
@@ -115,7 +118,9 @@ export default function DataSet() {
           </>
         }
       >
-        Project
+        <Link to="/" className="mb-8">
+          Project
+        </Link>
       </Heading>
 
       <div className="p-10">
@@ -131,19 +136,24 @@ export default function DataSet() {
               <Link
                 to={`folder/${folder.id}`}
                 key={folder.id}
-                state={{...location.state, folderName: folder.name}}
+                state={{ ...location.state, folderName: folder.name }}
                 className=" flex basis-80 items-center justify-between rounded-md border border-gray-300/90 bg-white px-10 py-4 shadow-sm"
               >
                 <div className="inline-flex rounded-md bg-[#E7E7FF]/50 p-2">
                   <CiFileOn className="h-6 w-6 text-f-primary duration-100 group-hover:h-6 group-hover:w-6" />
                 </div>
                 {folder.name}
-                <div onClick={event=>{event.preventDefault();event.stopPropagation()}}>
+                <div
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                  }}
+                >
                   <Action
                     id={folder.id}
-                    handleEdit = {handleEdit}
-                    handleOpenModal = {handleOpenModal}
-                    editIndex = {i}
+                    handleEdit={handleEdit}
+                    handleOpenModal={handleOpenModal}
+                    editIndex={i}
                     setId={setId}
                   />
                 </div>
