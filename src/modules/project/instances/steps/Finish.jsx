@@ -2,14 +2,22 @@ import React from 'react'
 import { useRecoilState } from 'recoil'
 import { addInstanceAtom, defaultAddInstanceValue } from '../state'
 import Chip from '@/shared/ui/Chip';
+import axiosInstance from '@/core/request/aixosinstance';
 
 const Finish = ({formRef}) => {
   const [addInstance, setAddInstance] = useRecoilState(addInstanceAtom);
 
   const keys = ['variantName', 'capturePositionName', 'cameraConfigName', 'roiName'];
 
-  const handleSubmit = () => {
-    setAddInstance(defaultAddInstanceValue);
+  const handleSubmit = async () => {
+    try {
+      await axiosInstance.post('/instance/activate', {
+        instanceId: addInstance?.instanceId
+      });
+      setAddInstance(defaultAddInstanceValue);
+    } catch (error) {
+      throw new Error(error?.response?.data?.data?.message)
+    }
   }
 
   formRef.current = {

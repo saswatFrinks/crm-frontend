@@ -73,10 +73,17 @@ export default function Annotation() {
         <div className="mb-8 flex items-center justify-between">
           <h1 className=" text-2xl font-semibold">Annotation</h1>
           <Button fullWidth={false} size="xs">
-            <Link className="flex items-center gap-2" to={`annotation-job/${selectedConfiguration.id}/${selectedDataset}`}>
-              <Setting />
-              Start Annotation
-            </Link>
+            {(selectedConfiguration.id && selectedDataset) ? (
+              <Link className="flex items-center gap-2" to={`annotation-job/${selectedConfiguration.id}/${selectedDataset}`}>
+                <Setting />
+                Start Annotation
+              </Link>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Setting />
+                Start Annotation
+              </div>
+            )}
           </Button>
         </div>
 

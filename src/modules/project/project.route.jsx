@@ -15,6 +15,7 @@ import ProjectConfiguration from './project-configuration';
 import Variants from './variants';
 import ProjectLayout from '@/shared/layouts/project';
 import InstanceLayout from './instances/InstanceLayout';
+import IndividualInstance from './instances/individual-instance';
 
 export const projectRouter = {
   path: '',
@@ -101,6 +102,10 @@ export const projectRouter = {
           path: '',
           element: <Instances />,
         },
+        {
+          path: ':instanceId',
+          element: <IndividualInstance />
+        }
       ],
     },
   ],

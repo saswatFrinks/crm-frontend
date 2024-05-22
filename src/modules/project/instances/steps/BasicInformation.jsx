@@ -8,14 +8,18 @@ import { useRecoilState } from 'recoil';
 import { addInstanceAtom } from '../state';
 import { useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader';
 
-const BasicInformation = ({project, formRef}) => {
+const BasicInformation = ({project, formRef, editInstanceId = null}) => {
   const [plants, setPlants] = useState([]);
+  const [teams, setTeams] = useState([]);
+  const [loader, setLoader] = useState(false);
   const params = useParams();
   const [addInstance, setAddInstance] = useRecoilState(addInstanceAtom);
   const [formData, setFormData] = React.useState({
     instanceName: addInstance?.basic?.instanceName || '',
     plantId: addInstance?.basic?.plantId || '',
+    teamId: addInstance?.basic?.teamId || '',
     cameraIps: addInstance?.basic?.cameraIps || []
   })
 
@@ -29,11 +33,22 @@ const BasicInformation = ({project, formRef}) => {
     setPlants(res.data.data);
   };
 
+  const fetchAllTeams = async () => {
+    const res = await axiosInstance.get('/team/getList', {
+      params: {
+        organizationId: getOrganizationId(),
+      },
+    });
+    const teamsFetched = res.data.data;
+
+    setTeams(teamsFetched);
+  };
+
   const fetchCamera = async (instanceId) => {
     try {
       const response = await axiosInstance('/camera/list', {
         params: {
-          instanceId: instanceId || addInstance?.instanceId
+          instanceId: addInstance?.instanceId || instanceId
         }
       });
       
@@ -43,14 +58,66 @@ const BasicInformation = ({project, formRef}) => {
     }
   }
 
+  const fetchInstanceData = async (instanceId) => {
+    try {
+      setLoader(true);
+      const response = await axiosInstance.get('/instance', {
+        params: {
+          instanceId
+        }
+      });
+
+      const data = await response?.data?.data;
+      const formDataToEdit = {
+        instanceName: data?.instance?.name,
+        plantId: data?.instance?.plantId,
+        teamId: data?.instance?.teamId,
+        cameraIps: data?.cameras
+      }
+      setAddInstance({
+        ...addInstance,
+        instanceId: instanceId,
+        basic:{
+          ...addInstance.basic,
+          ...formDataToEdit
+        }
+      })
+
+      setFormData(formDataToEdit);
+    } catch (error) {
+      toast.error(error?.response?.data?.data?.message);
+    } finally {
+      setLoader(false);
+    }
+  }
+
   useEffect(() => {
     fetchAllPlants();
+    fetchAllTeams();
   }, [])
+
+  useEffect(() => {
+    if(editInstanceId){
+      fetchInstanceData(editInstanceId);
+    }
+  }, [editInstanceId])
+
+  useEffect(() => {
+    if(addInstance?.instanceId){
+      const formDataToEdit = {
+        instanceName: addInstance?.basic?.instanceName,
+        plantId: addInstance?.basic?.plantId,
+        teamId: addInstance?.basic?.teamId,
+        cameraIps: addInstance?.basic?.cameraIps
+      }
+      setFormData(formDataToEdit)
+    }
+  }, [addInstance])
 
   useEffect(() => {
     if(addInstance?.basic?.cameraIps?.length === 0){
       setFormData(prev => {
-        const ips = Array.from({length: project?.cameraCount}, () => ({cameraIp: ''}));
+        const ips = Array.from({length: project?.cameraCount}, () => ({cameraIp: '', id: null}));
         return {
           ...prev,
           cameraIps: ips
@@ -61,18 +128,25 @@ const BasicInformation = ({project, formRef}) => {
 
   const handleSubmit = async () => {
     try {
+      setLoader(true);
       if(!formData.instanceName || !formData.plantId || formData.cameraIps.some(ip => ip.cameraIp.trim().length === 0)){
         throw new Error('All fields are required')
       }
-      const data = {
+      let data = {
         name: formData.instanceName,
         projectId: params.projectId,
         plantId: formData.plantId,
-        cameraIps: formData.cameraIps?.map(ip => ip.cameraIp),
-        teamId: "f395068b-8890-4099-ae4e-16b7d5acd964"
+        cameraIps: formData.cameraIps?.map(ip => ({cameraIp: ip.cameraIp, id: ip.id})),
+        teamId: formData.teamId,
+      }
+      if(addInstance?.instanceId || editInstanceId){
+        data = {
+          ...data,
+          instanceId: addInstance?.instanceId || editInstanceId
+        }
       }
       const response = await axiosInstance.post('/instance', data);
-      const instanceId = await response?.data?.data?.id;
+      const instanceId = (addInstance?.instanceId || editInstanceId) ?? await response?.data?.data?.id;
       const selectedIps = await fetchCamera(instanceId);
 
       setAddInstance({
@@ -86,11 +160,17 @@ const BasicInformation = ({project, formRef}) => {
       });
     } catch (error) {
       throw new Error(error?.response ? error?.response?.data?.data?.message : error?.message)
+    } finally {
+      setLoader(false);
     }
   }
 
   formRef.current = {
     handleSubmit: handleSubmit
+  }
+
+  if(loader){
+    return <ProjectCreateLoader title='Loading...' />
   }
 
   return (
@@ -118,6 +198,7 @@ const BasicInformation = ({project, formRef}) => {
         <div>
           <Label>Plant</Label>
           <Select
+            disabled={editInstanceId ? true : false}
             placeholder={'Select Plant'}
             options={plants}
             onChange={(e) => {
@@ -127,6 +208,21 @@ const BasicInformation = ({project, formRef}) => {
               }))
             }}
             value = {formData.plantId}
+          />
+        </div>
+        <div>
+          <Label>Team</Label>
+          <Select
+            disabled={editInstanceId ? true : false}
+            placeholder={'Select Team'}
+            options={teams}
+            onChange={(e) => {
+              setFormData(prev => ({
+                ...prev,
+                teamId: e.target.value
+              }))
+            }}
+            value = {formData.teamId}
           />
         </div>
         {formData.cameraIps.map((cameraIp, index) => (
@@ -139,7 +235,10 @@ const BasicInformation = ({project, formRef}) => {
               onChange={(e) => {
                 setFormData(prev => {
                   const newIps = [...prev.cameraIps];
-                  newIps[index].cameraIp = e.target.value
+                  newIps[index] = {
+                    ...newIps[index],
+                    cameraIp: e.target.value
+                  }
                   return {
                     ...prev,
                     cameraIps: newIps
