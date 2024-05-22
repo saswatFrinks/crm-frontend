@@ -22,6 +22,7 @@ import { useParams } from 'react-router-dom';
 import { getRandomHexColor } from '@/util/util';
 import { loadedLabelsAtom } from '../state';
 import Pagination from '@/shared/ui/Pagination';
+import { v4 } from 'uuid';
 
 export default function LabelImage({save}) {
   const configuration = useRecoilValue(assemblyAtom)
@@ -159,7 +160,7 @@ export default function LabelImage({save}) {
     
                     const color = getRandomHexColor();
                     const id = prevData.imageId
-                    const uuid = crypto.randomUUID();
+                    const uuid = v4();
                     configuredData.push({
                       ...BASE_RECT, 
                       id: selectedRoisRef.current.length + i,

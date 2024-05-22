@@ -7,6 +7,7 @@ import { getRandomHexColor } from "@/util/util";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { currentRectangleIdAtom, currentRoiIdAtom, editingAtom, imageStatusAtom, labelClassAtom, lastActionNameAtom, rectanglesTypeAtom } from "../../state";
 import { stepAtom } from "../state";
+import { v4 } from "uuid";
 
 const KonvaImageView = ({image, onDrawStop, rectangles, title=null, imageId}) => {
     const coverRef = React.useRef(null);
@@ -78,7 +79,7 @@ const KonvaImageView = ({image, onDrawStop, rectangles, title=null, imageId}) =>
             const id = 1 +  step==1? 
                 (rectangles?.filter(ele=>ele.rectType==RECTANGLE_TYPE.ROI).length || 0 ) : 
                 (rectangles?.filter(ele=>ele.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL && ele.imageId==imageId).length || 0)
-            const uuid = crypto.randomUUID();
+            const uuid = v4()
             setCurrentPoly(
             {
                 ...BASE_RECT, 
