@@ -8,7 +8,7 @@ import {
 } from 'react-feather';
 import { useRecoilState, useRecoilValue } from 'recoil';
 
-export default function Pagination() {
+export default function Pagination({chevornsMovement=5}) {
   const allImages = useRecoilValue(uploadedFileListAtom);
   const [selectedImage, setSelectedImage] = useRecoilState(selectedFileAtom);
 
@@ -18,11 +18,11 @@ export default function Pagination() {
   const paginationBar = allImages?.length < 6 ? 
     Array.from({length: allImages.length}, (v,k)=>k+1) :
     Array.from({length: 6}, (v,k)=>i+k+1)
-  const chevornsMovement = 5;
+  // const chevornsMovement = 5;
 
 
   return (
-    <nav className="flex items-center ">
+    // <nav className="flex items-center">
       <ul className="mx-auto flex gap-2 rounded-full border border-gray-300 px-2 py-1.5">
       <li onClick={()=>setSelectedImage(allImages[Math.max(currentIndex-chevornsMovement, 0)])} className='cursor-pointer'>
           <ChevronsLeft />
@@ -42,6 +42,6 @@ export default function Pagination() {
           <ChevronsRight />
         </li>
       </ul>
-    </nav>
+    // </nav>
   );
 }

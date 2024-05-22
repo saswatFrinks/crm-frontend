@@ -159,6 +159,11 @@ export default function Login() {
             value={formik.values.password}
             errorMessage={formik.errors.password}
           />
+          <Link to={'/forgot-password'}>
+            <div className="text-right text-f-primary">
+              Forgot Password?
+            </div>
+          </Link>
         </div>
 
         <Button type="submit">Log in</Button>

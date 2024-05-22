@@ -139,11 +139,13 @@ export default function Folder() {
               <span>{location.state.cameraConfigName}</span>
             </Link>
             <ArrowRight />
-            <span>{location.state.foldername}</span>
+            <span>{location.state.folderName}</span>
           </>
         }
       >
-        Project
+        <Link to="/" className="mb-8">
+          Project
+        </Link>
       </Heading>
 
       <div className="p-10">

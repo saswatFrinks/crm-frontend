@@ -27,10 +27,12 @@ export const modelInfoAtom = atom({
 export const augmentationsAtom = atom({
   key: 'augmentations',
   default: {
-    horizontal: false,
-    vertical: false,
-    rotation: false,
-    noise: false,
+    HorizontalFlip: false,
+    VerticalFlip: false,
+    Rotate: false,
+    GaussianBlur: false,
+    RandomCrop: false,
+    RandomBrightnessContrast: false,
   },
 });
 

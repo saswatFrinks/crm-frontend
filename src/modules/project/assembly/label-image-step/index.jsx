@@ -21,6 +21,7 @@ import axiosInstance from '@/core/request/aixosinstance';
 import { useParams } from 'react-router-dom';
 import { getRandomHexColor } from '@/util/util';
 import { loadedLabelsAtom } from '../state';
+import Pagination from '@/shared/ui/Pagination';
 
 export default function LabelImage({save}) {
   const configuration = useRecoilValue(assemblyAtom)
@@ -40,21 +41,25 @@ export default function LabelImage({save}) {
 
   const selectedImage = useRecoilValue(selectedFileAtom);
   const setIsEditing = useSetRecoilState(editingAtom);
-
-  const selectedRois = useRecoilValue(selectedRoiSelector(selectedImage?.id));
-
-  const [rectangles, setRectangle] = useRecoilState(rectanglesAtom);
+  
   const images = useRecoilValue(uploadedFileListAtom);
+
   const [selectedFile, setSelectedFile] = useRecoilState(selectedFileAtom)
+  const [rectangles, setRectangle] = useRecoilState(rectanglesAtom);
+  const selectedRois  = rectangles.filter(rect=>rect.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL && rect.imageId == selectedFile?.id);
+  const selectedRoisRef = React.useRef(selectedRois);
+
   const [selectedPolyId, setSelectedPloyId] = useRecoilState(currentRectangleIdAtom)
   const [loadedLabelData, setLoadedLabelData] = useRecoilState(loadedLabelsAtom)
   const params = useParams();
   const labelsRef = React.useRef(labelClasses);
 
-  const removeRectangle = (id) => {
-    setRectangle((t) => t.filter((k) => k.id !== id));
+  const selectedLabelRef = React.useRef(selectedLabel);
+
+  const removeRectangle = (uuid) => {
+    setRectangle((t) => t.filter((k) => k.uuid !== uuid));
     const temp = {...annotationMap}
-    delete temp[id]
+    delete temp[uuid]
     setAnnotationMap(temp)
   };
 
@@ -84,11 +89,17 @@ export default function LabelImage({save}) {
   const handleClassClick = async (e, i) => {
     setIsEditing(true)
     setRectangleType(RECTANGLE_TYPE.ANNOTATION_LABEL)
-    setLabel({
+    const update = {
       name: labelClasses[i].name,
       count: labelClasses[i].count,
       id: labelClasses[i].id
-    })
+    }
+    setLabel(update)
+    selectedLabelRef.current = {
+      name: labelClasses[i].name,
+      count: labelClasses[i].count,
+      id: labelClasses[i].id
+    }
   } 
 
   const curIndex = images.findIndex(image=>image.id==selectedFile.id)
@@ -104,82 +115,84 @@ export default function LabelImage({save}) {
 
   React.useEffect(() => {
     let annotations = []
-    setAnnotationMap(prev=>{
-      const updates = {}
-      annotations = selectedRois.filter(e=>e.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL && prev[e.id]==undefined);
-      if(annotations.length){
-        annotations.forEach(annot=>{
-          updates[annot.id] = selectedLabel.id
-        })
-      }
-      return {...prev, ...updates}
-    })
+    annotations = selectedRois.filter(e=>e.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL && annotationMap[e.uuid]==undefined);
     if(annotations.length){
-      setSelectedPloyId(annotations[0].id)
+      setAnnotationMap(prev=>{
+        const updates = {}
+        console.log(annotations, prev)
+        annotations.forEach(annot=>{
+          updates[annot.uuid] = selectedLabel.id
+        })
+        return {...prev, ...updates}
+      })
     }
-  }, [selectedRois])
+    if(annotations.length){
+      setSelectedPloyId(annotations[0].uuid)
+    }
+  }, [selectedRois, annotationMap])
 
   React.useEffect(()=>{
     const ind = images.findIndex(im=> im.id === selectedFile.id);
     if(ind >=0 && !loadedLabelData[ind]){
       const getData = async () => {
         try{
-          const data = await axiosInstance.get('/configuration/label-file', {
+          const data = await axiosInstance.get('/configuration/label-files', {
             params: {
               configurationId: params.configurationId,
-              imageId: selectedFile.id
             }
           })
-          const prevData = data?.data;
-          if(prevData.length && typeof prevData == 'string'){
+          const loadedData = data?.data.data;
+          if(loadedData.length){
+            // console.log(loadedData, "got data"); return;
             const image = new Image();
             image.src = selectedFile.url;
             image.onload = () => {
               const configuredData = []
               const annotUpdates = {}
-              prevData.split('\n').forEach((entry, i)=>{
-                const line = entry.split(' ');
-                if(line.length>=5){
-                  let [cls, x, y, width, height] = line;
-                  x *= image.width;
-                  y *= image.height;
-                  width *= image.width;
-                  height *= image.height;
-  
-                  const className = labelsRef.current?.find(ele=>ele.id==cls)?.name
-  
-                  const color = getRandomHexColor();
-                  const id = selectedFile.id;
-                  configuredData.push({
-                    ...BASE_RECT, 
-                    id: selectedRois.length + i,
-                    fill: color,
-                    stroke: color,
-                    imageId: id,
-                    rectType: RECTANGLE_TYPE.ANNOTATION_LABEL,
-                    // roiId: roi.id,
-                    title: className,
-                    x: x - width/2,
-                    y: y - height/2,
-                    width,
-                    height
-                  })
-                  annotUpdates[selectedRois.length + i] = cls;
-                }
+              loadedData.forEach(prevData=>{
+                prevData.data.split('\n').forEach((entry, i)=>{
+                  const line = entry.split(' ');
+                  if(line.length>=5){
+                    let [cls, x, y, width, height] = line;
+                    x *= image.width;
+                    y *= image.height;
+                    width *= image.width;
+                    height *= image.height;
+    
+                    const className = labelsRef.current?.find(ele=>ele.id==cls)?.name
+    
+                    const color = getRandomHexColor();
+                    const id = prevData.imageId
+                    const uuid = crypto.randomUUID();
+                    configuredData.push({
+                      ...BASE_RECT, 
+                      id: selectedRoisRef.current.length + i,
+                      fill: color,
+                      stroke: color,
+                      imageId: id,
+                      rectType: RECTANGLE_TYPE.ANNOTATION_LABEL,
+                      // roiId: roi.id,
+                      title: className,
+                      x: x - width/2,
+                      y: y - height/2,
+                      width,
+                      height,
+                      uuid
+                    })
+                    annotUpdates[uuid] = cls;
+                  }
+                })
               })
-              console.log('UPdate from txt', annotUpdates, configuredData)
+              console.log('UPdate from txt', annotUpdates, configuredData);
               setAnnotationMap(prev=>({...prev, ...annotUpdates}));
               setRectangle(prev=>([...prev, ...configuredData]));
             }
-  
           }
         }
         catch(e){}
 
         setLoadedLabelData(prev=>{
-          const d = [...prev];
-          d[ind] = true;
-          return d;
+          return Array.from({length: images.length}, ()=>true);
         })
       }
       getData();
@@ -216,72 +229,34 @@ export default function LabelImage({save}) {
             <div className=" flex grow">
               <div className=" w-full max-w-sm">
                 <Select size="sm"
-                options={labelClasses} 
-                placeholder="Select class"
-                value={annotationMap[t.id]}
-                onChange={(e)=>{
-                  //!update rectangle class tooo, title
-                  const ind = rectangles.findIndex(ele=>ele.id==t.id);
-                  const recCp = [...rectangles];
-                  recCp[ind] = {...recCp[ind], title: labelClasses.find(ele=>ele.id==e.target.value).name}
-                  setRectangle(recCp)
-                  setAnnotationMap({...annotationMap, [t.id]: e.target.value})
-                }}
+                  options={labelClasses} 
+                  placeholder="Select class"
+                  value={annotationMap[t.uuid]}
+                  onChange={(e)=>{
+                    //!update rectangle class tooo, title
+                    const ind = rectangles.findIndex(ele=>ele.uuid==t.uuid && ele.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL);
+                    const recCp = [...rectangles];
+                    recCp[ind] = {...recCp[ind], title: labelClasses.find(ele=>ele.id==e.target.value).name}
+                    setRectangle(recCp)
+                    setAnnotationMap({...annotationMap, [t.uuid]: e.target.value})
+                  }}
                 />
               </div>
             </div>
-            <Edit size={18} className='cursor-pointer mr-4' onClick={()=>setSelectedPloyId(t.id)}/>
+            <Edit size={18} className='cursor-pointer mr-4' onClick={()=>setSelectedPloyId(t.uuid)}/>
             <Trash
               size={18}
               className="cursor-pointer"
-              onClick={() => removeRectangle(t.id)}
+              onClick={() => removeRectangle(t.uuid)}
             />
           </div>
         )}
       </div>
-      <div className='sticky bottom-0 bg-white relative'>
-        <div className='flex justify-center align-center'>
-          <div className='flex border border-grey-400 p-1 px-3 rounded-full gap-1'>
-          {/* <button className='hover:bg-blue-100 p-1 px-3 rounded-full'>
-              <ChevronsLeft
-                  size={20}
-                  className={`cursor-pointer duration-100`}
-                  onClick={() => console.log('left')}
-                />
-            </button> */}
-            <button className={`${curIndex == 0 ? 'hover:bg-white': 'hover:bg-blue-100'}  p-1 px-3 rounded-full`} onClick={()=>changeImageFile(false)}>
-              <ChevronLeft
-                  size={24}
-                  className={`cursor-pointer duration-100 ${curIndex==0? 'text-grey-400': ''}`}
-                  onClick={() => console.log('left')}
-                />
-            </button>
-            {images.map((image, i)=>(
-              <Button size='sm' variant='flat' className={selectedFile.id === image.id?'bg-blue-100':'bg-white'} onClick={()=>selectedFile.id != image.id && setSelectedFile(image)}>
-                <span className={selectedFile.id === image.id? 'text-black': 'text-gray-400'}>{i+1}</span>
-              </Button>
-            ))}
-            <button className={`${curIndex+1 == images.length ? 'hover:bg-white': 'hover:bg-blue-100'} p-1 px-3 rounded-full`} onClick={()=>changeImageFile(true)}>
-              <ChevronRight
-                  size={24}
-                  className={`cursor-pointer duration-100`}
-                  onClick={() => console.log('left')}
-                />
-            </button>
-            {/* <button className='hover:bg-blue-100 p-1 px-3 rounded-full'>
-              <ChevronsRight
-                  size={20}
-                  className={`cursor-pointer duration-100`}
-                  onClick={() => console.log('left')}
-                />
-            </button> */}
-          </div>
-        </div>
-        <div className='absolute right-0 top-0 pt-1'>
-          <Button size='sm' variant='flat' onClick={save}>
-            Save
-          </Button>
-        </div>
+      <div className='sticky bottom-0 bg-white flex flex-col items-center gap-2'>
+        <Pagination chevornsMovement={10}/>
+        <Button size='sm' variant='flat' onClick={save} style={{width: '260px'}} className='mb-2'>
+          Save
+        </Button>
       </div>
     </div>
   );

@@ -4,6 +4,11 @@ export const selectedConfigurationAtom = atom({
   key: 'selectedConfiguration',
   default: {
     id: '',
-    objective: 'Assembly'
+    objective: 'Assembly',
   },
+});
+
+export const classOptionsAtom = atom({
+  key: 'classesOptions',
+  default: [],
 });

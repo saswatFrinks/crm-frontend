@@ -7,6 +7,7 @@ import {
   augmentationsAtom,
   //  modelSizeAtom
 } from './state';
+import { augmentationsMap } from '.';
 
 export default function ModelConfiguration() {
   const [augmentations, setAugmentations] = useRecoilState(augmentationsAtom);
@@ -73,7 +74,24 @@ export default function ModelConfiguration() {
 
       <div className="flex flex-col gap-2">
         <p>Augmentations:</p>
-        <div className="flex gap-2">
+        {Object.keys(augmentations).map((item, index) => {
+          return (
+            <div key={index} className="flex gap-2">
+              <Checkbox
+                id={item}
+                value={item}
+                name={item}
+                htmlFor={item}
+                checked={augmentations[item]}
+                onClick={() => handleAugmentationsChange(item)}
+              />
+              <Label htmlFor={item} main={false}>
+                {augmentationsMap[item]}
+              </Label>
+            </div>
+          );
+        })}
+        {/* <div className="flex gap-2">
           <Checkbox
             id="horizontalFlip"
             value="horizontalFlip"
@@ -127,7 +145,7 @@ export default function ModelConfiguration() {
           <Label htmlFor="noise" main={false}>
             Noise
           </Label>
-        </div>
+        </div> */}
       </div>
     </div>
   );

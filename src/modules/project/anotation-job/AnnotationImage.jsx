@@ -93,11 +93,11 @@ export default function AnnotationImage() {
     drawRectHook.draw(e, selectedFile?.id);
   };
 
-  const handleClickRectangle = (e, id) => {
+  const handleClickRectangle = (e, id, uuid) => {
     console.log(e.target, id);
     if (id == e.target.attrs.id) {
       setEditingRect(true);
-      setSelectedRectId(id);
+      setSelectedRectId(uuid);
     }
     // if (labelType === e.target.attrs.type) {
     //   setIsEditRect(true);
@@ -171,7 +171,7 @@ export default function AnnotationImage() {
                     // onMouseLeave={handleMouseLeave}
                     strokeWidth={stage.scale > 3 ? 0.25 : rect.strokeWidth}
                     selectedReactangleId={selectedRectId}
-                    onClick={(e) => handleClickRectangle(e, rect.id)}
+                    onClick={(e) => handleClickRectangle(e, rect.id, rect.uuid)}
                   />
                 )
             )}

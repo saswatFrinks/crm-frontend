@@ -7,12 +7,12 @@ import AnnotationLabels from './AnnotationLabels';
 import Actions from '../assembly/components/Actions';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import { stepAtom } from '../assembly/state';
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import KonvaImageView from '../assembly/components/KonvaImageView';
 import axiosInstance from '@/core/request/aixosinstance';
 import { useParams } from 'react-router-dom';
 import useImage from 'use-image';
-import { annotationMapAtom, editingAtom, labelClassAtom, lastActionNameAtom, rectanglesAtom, selectedFileAtom, uploadedFileListAtom } from '../state';
+import { annotationMapAtom, assemblyAtom, editingAtom, labelClassAtom, lastActionNameAtom, rectanglesAtom, selectedFileAtom, uploadedFileListAtom } from '../state';
 import { getRandomHexColor } from '@/util/util';
 import { ACTION_NAMES, BASE_RECT, RECTANGLE_TYPE } from '@/core/constants';
 import toast from 'react-hot-toast';
@@ -32,6 +32,7 @@ export default function AnnotationJob() {
   const [annotationLoadeFlag, setAnnotationLoadedFlag] = useState({})
   const [annotationMap, setAnnotationMap] = useRecoilState(annotationMapAtom);
   const labelRef = React.useRef(labelClass);
+  const [roiLoaded, setRoiLoaded] = React.useState(false)
 
   const getImageUrl = (id) => {
     return `${import.meta.env.VITE_BASE_API_URL}/dataset/image?imageId=${id}`
@@ -101,7 +102,9 @@ export default function AnnotationJob() {
     console.log(selectedImage, imageSpecificRects )
     if(imageSpecificRects.length==0) return false;
     imageSpecificRects.forEach((rect)=>{
-      const classNo = annotationMap[rect.id]
+      console.log(annotationMap, rect.uuid);
+
+      const classNo = annotationMap[rect.uuid]
       const height = (rect.height/image.height).toFixed(4)
       const width = (rect.width/image.width).toFixed(4)
       const x = ((rect.x+rect.width/2)/image.width).toFixed(4)
@@ -133,6 +136,57 @@ export default function AnnotationJob() {
     labelRef.current = labelClass;
   }, [labelClass])
 
+  const getRois = async () => {
+    try{
+      const roiData = await axiosInstance.get('/configuration/classes', {
+        params: {
+          configurationId
+        }
+      })
+      const data = JSON.parse(roiData.data.data?.data)
+      if(data.length){
+        console.log(data)
+        const postProcess = ()=>{
+          console.log('refImage loaded')
+          const rects = []
+          const roiMap = {}
+          data?.forEach((conf, i)=>{
+            const roiId = conf.rois.id;
+            if(!roiMap[roiId]){
+              const {x1, x2, y1, y2} = conf.rois;
+              const color = getRandomHexColor();
+              rects.push({
+                  ...BASE_RECT, 
+                  id:  i,
+                  fill: color,
+                  stroke: color,
+                  imageId: null,
+                  rectType: RECTANGLE_TYPE.ROI,
+                  roiId:i,
+                  title: `ROI_${i+1}`,
+                  x: x1* refImage.width,
+                  y: y1 * refImage.height,
+                  width: (x2-x1) * refImage.width,
+                  height: (y2-y1) * refImage.height,
+                  uuid: crypto.randomUUID()
+              })
+            }
+          })
+          if(rects.length)
+            setRectangles(prev=>[...prev, ...rects]);
+        }
+        const refImage = new Image();
+        refImage.onload = postProcess
+        refImage.src = images[0].url
+        console.log(images[0].url)
+      }
+      return true
+    }
+    catch(e){
+      return false;
+    }
+  }
+
   React.useEffect(()=>{
     setStep(2);
     getAllImages();
@@ -143,6 +197,10 @@ export default function AnnotationJob() {
     console.log('Images triggered');
     if(images?.length){
       setSelectedImage(images[0]);
+    }
+    if(!roiLoaded && images[0]?.url){
+      setRoiLoaded(true)
+      getRois();
     }
   }, [images]);
 
@@ -170,6 +228,7 @@ export default function AnnotationJob() {
           }
         }).catch();
         const prevData = data?.data
+        console.log(prevData)
         if(prevData.length && typeof prevData == 'string'){
           const image = new Image();
           image.src = selectedImage.url;
@@ -186,9 +245,11 @@ export default function AnnotationJob() {
                 height *= image.height;
 
                 const className = labelRef.current?.find(ele=>ele.id==cls)?.name
+                console.log(cls,className)
 
                 const color = getRandomHexColor();
                 const id = selectedImage.id;
+                const uuid = crypto.randomUUID();
                 configuredData.push({
                   ...BASE_RECT, 
                   id: rectangles.length + i,
@@ -201,9 +262,10 @@ export default function AnnotationJob() {
                   x: x - width/2,
                   y: y - height/2,
                   width,
-                  height
+                  height,
+                  uuid
                 })
-                annotUpdates[rectangles.length + i] = cls;
+                annotUpdates[uuid] = cls;
               }
             })
             console.log('UPdate from txt', annotUpdates, configuredData)
@@ -222,6 +284,8 @@ export default function AnnotationJob() {
       setAnnotationLoadedFlag(prev=>({...prev, [selectedImage.id]: true}))
     }
   }, [selectedImage])
+
+  console.log(rectangles)
 
   return (
     <div className="grid h-screen grid-cols-12">

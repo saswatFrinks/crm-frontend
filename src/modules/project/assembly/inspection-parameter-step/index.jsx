@@ -28,7 +28,7 @@ import DeleteObjectModal from './DeleteObjectModal';
 import DeleteRoiModal from './DeleteRoiModal';
 import axiosInstance from '@/core/request/aixosinstance';
 import { useParams } from 'react-router-dom';
-import { selectedConfigurationAtom } from '../../project-configuration/state';
+import { classOptionsAtom, selectedConfigurationAtom } from '../../project-configuration/state';
 import { cloneDeep } from 'lodash';
 
 export default function InspectionParameterStep(props) {
@@ -46,11 +46,12 @@ export default function InspectionParameterStep(props) {
   const [configuration, setConfiguration] = useRecoilState(assemblyAtom);
   const selectedConfiguration = useRecoilValue(selectedConfigurationAtom)
 
-  const [classOptions, setClassOptions] = useState([])
+  // const [classOptions, setClassOptions] = useState([])
+  const [classOptions, setClassOptions] = useRecoilState(classOptionsAtom);
 
   const setCurrentRoiId = useSetRecoilState(currentRoiIdAtom);
   const setSelectedRectId = useSetRecoilState(currentRectangleIdAtom);
-  const rectangles = useRecoilValue(rectanglesAtom);
+  const [rectangles, setRectangles] = useRecoilState(rectanglesAtom);
 
   const getClasses = async() => {
     try {
@@ -146,10 +147,19 @@ export default function InspectionParameterStep(props) {
   };
 
   const deleteRoi = () => {
-    setConfiguration((t) => ({
-      ...t,
-      rois: t.rois.filter((k) => !k.checked),
-    }));
+    let roiId = null;
+    setConfiguration((t) =>{
+      console.log(t);
+      const ret = t.rois.filter((k) => !k.checked);
+      roiId = t.rois.find(ele=>ele.checked)?.id
+      return {
+        ...t,
+        rois: ret
+      }
+    });
+    if(roiId){
+      setRectangles(rects=>rects.filter(rect=>rect.roiId !== roiId));
+    }
   };
 
   const genObjId = (id) => {
@@ -163,7 +173,7 @@ export default function InspectionParameterStep(props) {
     setCurrentRoiId(id);
     let idx = rectangles.findIndex(rect=>rect.roiId == id && rect.rectType==RECTANGLE_TYPE.ROI);
     if(idx>=0){
-      setSelectedRectId(rectangles[idx].id)
+      setSelectedRectId(rectangles[idx].uuid)
     }
     setConfiguration((t) => ({
       ...t,

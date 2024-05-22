@@ -74,7 +74,10 @@ const KonvaImageView = ({image, onDrawStop, rectangles, title=null, imageId}) =>
             console.log({...poly})
             setRectStart(poly)
             const color = getRandomHexColor()
-            const id =  (rectangles?.length || 0)+ 1;
+            const id = 1 +  step==1? 
+                (rectangles?.filter(ele=>ele.rectType==RECTANGLE_TYPE.ROI).length || 0 ) : 
+                (rectangles?.filter(ele=>ele.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL && ele.imageId==imageId).length || 0)
+            const uuid = crypto.randomUUID();
             setCurrentPoly(
             {
                 ...BASE_RECT, 
@@ -85,9 +88,10 @@ const KonvaImageView = ({image, onDrawStop, rectangles, title=null, imageId}) =>
                 imageId: imageId,
                 rectType: rectangleType,
                 roiId,
-                title
+                title,
+                uuid,
             })
-            setLastPolyId(id);
+            setLastPolyId(uuid);
         } else {
             console.log("starting dragging here:",e.clientX)
           setAction(a=>({...a, isDragging: true}))
@@ -146,7 +150,7 @@ const KonvaImageView = ({image, onDrawStop, rectangles, title=null, imageId}) =>
             setCurrentPoly(null);
             updateObj['drawMode'] = false;
             updateObj['drawing'] = false;
-            setSelectedPloyId(normalizedValue.id);
+            setSelectedPloyId(normalizedValue.uuid);
         }
         else{
             setSelectedPloyId(null);
@@ -265,7 +269,7 @@ const KonvaImageView = ({image, onDrawStop, rectangles, title=null, imageId}) =>
                     return null;
                 })
                 if(spId)
-                    onDrawStop(rectangles.filter(rect=>rect.id!==spId))
+                    onDrawStop(rectangles.filter(rect=>rect.uuid!==spId))
                 handleMouseUp();
             }
         };
@@ -277,7 +281,7 @@ const KonvaImageView = ({image, onDrawStop, rectangles, title=null, imageId}) =>
         if(lastAction && lastAction !== ACTION_NAMES.SELECTED){
 
           if(lastAction == ACTION_NAMES.CANCEL){
-            onDrawStop(rectangles.filter(r=>r.id!==lastPolyId))
+            onDrawStop(rectangles.filter(r=>r.uuid!==lastPolyId))
           }
           
           setLastPolyId(null);
@@ -303,15 +307,15 @@ const KonvaImageView = ({image, onDrawStop, rectangles, title=null, imageId}) =>
                     {rectangles.filter(e=>e.rectType==RECTANGLE_TYPE.ROI || ([2,3].includes(step) && e.imageId==imageId))?.map((rect, i)=>{
                         // console.log('rendering', i, origin)
                         return <Rectangle 
-                            key={`rect_${rect.rectType}_${rect.id}`} 
+                            key={`rect_${rect.rectType}_${rect.uuid}`} 
                             shapeProps={rect}
                             offset={origin} 
                             scale={origin.scale}
-                            isSelected={rect.id==selectedPolyId} 
+                            isSelected={rect.uuid==selectedPolyId} 
                             onChange={(e)=>{
                                 console.log(e)
-                                const unchanged = rectangles.filter(ele=>ele.id!==rect.id);
-                                const index = rectangles.findIndex(r=>r.id==e.id);
+                                const unchanged = rectangles.filter(ele=>ele.uuid!==rect.uuid);
+                                const index = rectangles.findIndex(r=>r.uuid==e.uuid);
                                 if(index>=0){
                                     const normalizedValue = {...e, ...normalizeDimensions(e)};
                                     handleValueReset(normalizedValue)
@@ -320,15 +324,15 @@ const KonvaImageView = ({image, onDrawStop, rectangles, title=null, imageId}) =>
                                 else onDrawStop(unchanged)
                                 }}
                             fill={
-                                // (hoveredId === rect.id && !isEditRect) ||
-                                selectedPolyId === rect.id
+                                // (hoveredId === rect.uuid && !isEditRect) ||
+                                selectedPolyId === rect.uuid
                                     ? `${rect.fill}4D`
                                     : `transparent`
                                 }
                             strokeWidth={origin.scale > 3 ? 0.25 : rect.strokeWidth}
                             onClick={(e) =>{
-                                if(rect.id==selectedPolyId) e.cancelBubble=true;
-                                // handleClickRectangle(e, rect.id);
+                                if(rect.uuid==selectedPolyId) e.cancelBubble=true;
+                                // handleClickRectangle(e, rect.uuid);
                             }}
                             />
                     })}
