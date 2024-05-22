@@ -10,12 +10,13 @@ import { stepAtom } from '../assembly/state';
 import React, { useEffect, useState } from 'react'
 import KonvaImageView from '../assembly/components/KonvaImageView';
 import axiosInstance from '@/core/request/aixosinstance';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import useImage from 'use-image';
 import { annotationMapAtom, assemblyAtom, editingAtom, labelClassAtom, lastActionNameAtom, rectanglesAtom, selectedFileAtom, uploadedFileListAtom } from '../state';
 import { getRandomHexColor } from '@/util/util';
 import { ACTION_NAMES, BASE_RECT, RECTANGLE_TYPE } from '@/core/constants';
 import toast from 'react-hot-toast';
+import { v4 } from 'uuid';
 
 export default function AnnotationJob() {
   const {datasetId, projectId, configurationId} = useParams();
@@ -33,6 +34,7 @@ export default function AnnotationJob() {
   const [annotationMap, setAnnotationMap] = useRecoilState(annotationMapAtom);
   const labelRef = React.useRef(labelClass);
   const [roiLoaded, setRoiLoaded] = React.useState(false)
+  const nav = useNavigate()
 
   const getImageUrl = (id) => {
     return `${import.meta.env.VITE_BASE_API_URL}/dataset/image?imageId=${id}`
@@ -105,10 +107,10 @@ export default function AnnotationJob() {
       console.log(annotationMap, rect.uuid);
 
       const classNo = annotationMap[rect.uuid]
-      const height = (rect.height/image.height).toFixed(4)
-      const width = (rect.width/image.width).toFixed(4)
-      const x = ((rect.x+rect.width/2)/image.width).toFixed(4)
-      const y = ((rect.y+rect.height/2)/image.height).toFixed(4)
+      const height = (rect.height).toFixed(4)
+      const width = (rect.width).toFixed(4)
+      const x = (rect.x+rect.width/2).toFixed(4)
+      const y = (rect.y+rect.height/2).toFixed(4)
       if(imgMap[rect.imageId]){
         imgMap[rect.imageId]+= `${classNo} ${x} ${y} ${width} ${height}\n`
       }else{
@@ -145,41 +147,33 @@ export default function AnnotationJob() {
       })
       const data = JSON.parse(roiData.data.data?.data)
       if(data.length){
-        console.log(data)
-        const postProcess = ()=>{
-          console.log('refImage loaded')
-          const rects = []
-          const roiMap = {}
-          data?.forEach((conf, i)=>{
-            const roiId = conf.rois.id;
-            if(!roiMap[roiId]){
-              const {x1, x2, y1, y2} = conf.rois;
-              const color = getRandomHexColor();
-              rects.push({
-                  ...BASE_RECT, 
-                  id:  i,
-                  fill: color,
-                  stroke: color,
-                  imageId: null,
-                  rectType: RECTANGLE_TYPE.ROI,
-                  roiId:i,
-                  title: `ROI_${i+1}`,
-                  x: x1* refImage.width,
-                  y: y1 * refImage.height,
-                  width: (x2-x1) * refImage.width,
-                  height: (y2-y1) * refImage.height,
-                  uuid: crypto.randomUUID()
-              })
-            }
-          })
-          if(rects.length)
-            setRectangles(prev=>[...prev, ...rects]);
-        }
-        const refImage = new Image();
-        refImage.onload = postProcess
-        refImage.src = images[0].url
-        console.log(images[0].url)
-      }
+        const rects = []
+        const roiMap = {}
+        data?.forEach((conf, i)=>{
+          const roiId = conf.rois.id;
+          if(!roiMap[roiId]){
+            const {x1, x2, y1, y2} = conf.rois;
+            const color = getRandomHexColor();
+            rects.push({
+                ...BASE_RECT, 
+                id:  i,
+                fill: color,
+                stroke: color,
+                imageId: null,
+                rectType: RECTANGLE_TYPE.ROI,
+                roiId:i,
+                title: `ROI_${i+1}`,
+                x: parseFloat(x1),
+                y: parseFloat(y1),
+                width: parseFloat(x2-x1),
+                height: parseFloat(y2-y1),
+                uuid: v4()
+            })
+          }
+        })
+        if(rects.length)
+          setRectangles(prev=>[...prev, ...rects]);
+    }
       return true
     }
     catch(e){
@@ -189,6 +183,7 @@ export default function AnnotationJob() {
 
   React.useEffect(()=>{
     setStep(2);
+    setRectangles([]);
     getAllImages();
     getClasses();
   }, [])
@@ -228,28 +223,20 @@ export default function AnnotationJob() {
           }
         }).catch();
         const prevData = data?.data
-        console.log(prevData)
         if(prevData.length && typeof prevData == 'string'){
-          const image = new Image();
-          image.src = selectedImage.url;
-          image.onload = () => {
             const configuredData = []
             const annotUpdates = {}
             prevData.split('\n').forEach((entry, i)=>{
               const line = entry.split(' ');
               if(line.length>=5){
                 let [cls, x, y, width, height] = line;
-                x *= image.width;
-                y *= image.height;
-                width *= image.width;
-                height *= image.height;
 
                 const className = labelRef.current?.find(ele=>ele.id==cls)?.name
                 console.log(cls,className)
 
                 const color = getRandomHexColor();
                 const id = selectedImage.id;
-                const uuid = crypto.randomUUID();
+                const uuid = v4();
                 configuredData.push({
                   ...BASE_RECT, 
                   id: rectangles.length + i,
@@ -259,10 +246,10 @@ export default function AnnotationJob() {
                   rectType: RECTANGLE_TYPE.ANNOTATION_LABEL,
                   // roiId: roi.id,
                   title: className,
-                  x: x - width/2,
-                  y: y - height/2,
-                  width,
-                  height,
+                  x: parseFloat(x - width/2),
+                  y: parseFloat(y - height/2),
+                  width: parseFloat(width),
+                  height: parseFloat(height),
                   uuid
                 })
                 annotUpdates[uuid] = cls;
@@ -271,8 +258,6 @@ export default function AnnotationJob() {
             console.log('UPdate from txt', annotUpdates, configuredData)
             setAnnotationMap(prev=>({...prev, ...annotUpdates}));
             setRectangles(prev=>[...prev, ...configuredData]);
-          }
-
         }
 
         setAnnotationLoadedFlag(prev=>{
@@ -286,6 +271,11 @@ export default function AnnotationJob() {
   }, [selectedImage])
 
   console.log(rectangles)
+
+  const udpateAndExit = async () => {
+    await updateAnnotation()
+    nav('..', {relative: 'route'});
+  }
 
   return (
     <div className="grid h-screen grid-cols-12">
@@ -304,7 +294,7 @@ export default function AnnotationJob() {
           </div>
         </div>
         <div className="row-span-1 flex items-center gap-2 border-t-[1px] border-black bg-white px-6">
-          <Button variant="flat" size="xs">
+          <Button variant="flat" size="xs" onClick={udpateAndExit}>
             Save & Exit
           </Button>
           <Button size="xs" onClick={updateAnnotation}>Save</Button>

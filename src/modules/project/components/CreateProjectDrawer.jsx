@@ -249,7 +249,6 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
       }
     },
   });
-  console.log({error: formik.errors})
 
   const createProjectJSON = (values) => {
     const json = {

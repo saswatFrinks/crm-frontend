@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Stage, Rect, Layer, Transformer, Image } from "react-konva";
 import Rectangle from "./Rectangle";
 import Crosshair from "./Crosshair";
@@ -7,6 +7,7 @@ import { getRandomHexColor } from "@/util/util";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { currentRectangleIdAtom, currentRoiIdAtom, editingAtom, imageStatusAtom, labelClassAtom, lastActionNameAtom, rectanglesTypeAtom } from "../../state";
 import { stepAtom } from "../state";
+import { v4 } from "uuid";
 
 const KonvaImageView = ({image, onDrawStop, rectangles, title=null, imageId}) => {
     const coverRef = React.useRef(null);
@@ -31,7 +32,8 @@ const KonvaImageView = ({image, onDrawStop, rectangles, title=null, imageId}) =>
     const step = useRecoilValue(stepAtom);
 
     const [lastPolyId, setLastPolyId] = React.useState(null);
-    const [lastAction, setLastAction] = useRecoilState(lastActionNameAtom)
+    const [lastAction, setLastAction] = useRecoilState(lastActionNameAtom);
+    const [scaledRectangles, setScaledRectangles] = useState([]);
 
     const handleScroll = (evt)=>{
         const e = evt.evt
@@ -77,7 +79,7 @@ const KonvaImageView = ({image, onDrawStop, rectangles, title=null, imageId}) =>
             const id = 1 +  step==1? 
                 (rectangles?.filter(ele=>ele.rectType==RECTANGLE_TYPE.ROI).length || 0 ) : 
                 (rectangles?.filter(ele=>ele.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL && ele.imageId==imageId).length || 0)
-            const uuid = crypto.randomUUID();
+            const uuid = v4()
             setCurrentPoly(
             {
                 ...BASE_RECT, 
@@ -124,10 +126,10 @@ const KonvaImageView = ({image, onDrawStop, rectangles, title=null, imageId}) =>
 
     const normalizeDimensions = ({x, y, width, height}) => {
         return {
-            x: (x - origin.x)/origin.scale, 
-            y: (y - origin.y)/origin.scale, 
-            width: width/origin.scale,
-            height: height/origin.scale
+            x: ((x - origin.x)/origin.scale)/image.width, 
+            y: ((y - origin.y)/origin.scale)/image.height, 
+            width: (width/origin.scale)/image.width,
+            height: (height/origin.scale)/image.height
         }
     }
 
@@ -189,8 +191,8 @@ const KonvaImageView = ({image, onDrawStop, rectangles, title=null, imageId}) =>
     // };
 
     const handleValueReset = (rectObj) =>{
-        const imageBoundaryX = image.width
-        const imageBoundaryY = image.height
+        const imageBoundaryX = 1
+        const imageBoundaryY = 1
     
         //!if x and y are beyond the boundary, move them back to the image, snap to boundary
         //right and bottom boundary
@@ -278,6 +280,21 @@ const KonvaImageView = ({image, onDrawStop, rectangles, title=null, imageId}) =>
     }, [rectangles])
 
     React.useEffect(()=>{
+        const modified = [];
+        if(image?.width){
+            rectangles.forEach(rect=>{
+                const x = rect.x * image.width;
+                const y = rect.y * image.height;
+                const width = rect.width * image.width;
+                const height = rect.height * image.height;
+                modified.push({...rect, x, y, width, height})
+            })
+        }
+        console.log(modified);
+        setScaledRectangles(modified);
+    }, [rectangles, image?.width])
+
+    React.useEffect(()=>{
         if(lastAction && lastAction !== ACTION_NAMES.SELECTED){
 
           if(lastAction == ACTION_NAMES.CANCEL){
@@ -304,10 +321,11 @@ const KonvaImageView = ({image, onDrawStop, rectangles, title=null, imageId}) =>
             >
                 <Layer ref={canvasRef}>
                     <Image image={image} width={image.width * origin.scale} height={image.height * origin.scale} x={origin.x} y={origin.y}/>
-                    {rectangles.filter(e=>e.rectType==RECTANGLE_TYPE.ROI || ([2,3].includes(step) && e.imageId==imageId))?.map((rect, i)=>{
+                    {scaledRectangles.filter(e=>e.rectType==RECTANGLE_TYPE.ROI || ([2,3].includes(step) && e.imageId==imageId))?.map((rect, i)=>{
                         // console.log('rendering', i, origin)
                         return <Rectangle 
                             key={`rect_${rect.rectType}_${rect.uuid}`} 
+                            id={`rect_${rect.id}`}
                             shapeProps={rect}
                             offset={origin} 
                             scale={origin.scale}
@@ -340,6 +358,7 @@ const KonvaImageView = ({image, onDrawStop, rectangles, title=null, imageId}) =>
                             setCurrentPoly(prev=>({...prev, ...e}))
                         }}
                         fill={`${currentPoly.fill}4D`}
+                        id={`drawing_rect_${currentPoly.id}`}
                         />
                     }
                     {action.drawing && (

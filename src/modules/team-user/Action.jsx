@@ -15,6 +15,7 @@ export default function Action(props) {
     editIndex,
     handleEdit,
     deleteImageById = null,
+    allowDelete = true
   } = props;
   const [open, setOpen] = React.useState(false);
 
@@ -52,23 +53,25 @@ export default function Action(props) {
             </li>
           )}
 
-          <li
-            className="flex cursor-pointer items-center gap-2 p-2 text-xs text-red-500 hover:bg-gray-100"
-            onClick={() => {
-              if(setId){
-                setId(id);
-              }
-              handleOpenModal('delete');
+          {allowDelete && (
+            <li
+              className="flex cursor-pointer items-center gap-2 p-2 text-xs text-red-500 hover:bg-gray-100"
+              onClick={() => {
+                if(setId){
+                  setId(id);
+                }
+                handleOpenModal('delete');
 
-              if (deleteImageById) {
-                deleteImageById(id);
-              }
+                if (deleteImageById) {
+                  deleteImageById(id);
+                }
 
-              setOpen(false);
-            }}
-          >
-            <FaRegTrashCan /> Delete
-          </li>
+                setOpen(false);
+              }}
+            >
+              <FaRegTrashCan /> Delete
+            </li>
+          )}
         </ul>
       )}
     </div>

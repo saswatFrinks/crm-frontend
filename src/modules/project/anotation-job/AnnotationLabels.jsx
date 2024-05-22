@@ -27,12 +27,12 @@ export default function AnnotationLabels({labelClass}) {
   const selectClass = (id) => {};
   return (
     <div>
-      <p className="mb-4  px-2">
+      <p className="mb-4 break-all px-2">
         Current labels for {' '}
         <span className="font-semibold">{selectedImage?.name}</span>
       </p>
       <div
-        className="flex h-[calc(100vh-478px)] flex-col gap-2 overflow-y-scroll"
+        className="flex h-[calc(100vh-478px)] flex-col gap-2 overflow-y-auto"
         onClick={() => selectClass('id')}
       >
         {rectangles.filter(ele=>ele.imageId==selectedImageId)

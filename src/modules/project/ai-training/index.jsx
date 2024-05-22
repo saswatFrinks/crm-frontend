@@ -109,14 +109,17 @@ export default function AiTrainingLayout() {
             <Link
               to={`/project/${params.projectId}`}
               className="flex items-center gap-2"
+              state = {location.state}
             >
               <ArrowRight />
-              <span>Project Name</span>
+              <span>{location.state?.projectName}</span>
             </Link>
           </>
         }
       >
-        Project
+        <Link to="/" className="mb-8">
+          Project
+        </Link>
       </Heading>
       <div className="flex h-[calc(100vh-56px)]">
         <ul className="flex h-full w-56  flex-col gap-2 border-t-[1px] bg-white px-2 py-8 shadow-md">

@@ -5,7 +5,7 @@ import Heading from '@/shared/layouts/main/heading';
 import Button from '@/shared/ui/Button';
 import Radio from '@/shared/ui/Radio';
 import React from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
 import { assemblyAtom } from '../state';
 import { selectedConfigurationAtom } from '../project-configuration/state';
@@ -25,6 +25,7 @@ export default function Annotation() {
   const [selectedConfiguration, setSelectedConfiguration] = useRecoilState(selectedConfigurationAtom)
   const [configurations, setConfigurations] = React.useState([]);
   const [selectedDataset, setSelectedDataset] = React.useState(null);
+  const location = useLocation();
 
   // const [configurations, setConfigurations] = React.useState([
   //   { id: 1, status: 'Pending' },
@@ -55,24 +56,34 @@ export default function Annotation() {
             <Link
               to={`/annotation/${params.projectId}`}
               className="flex items-center gap-2"
+              state={location.state}
             >
               <ArrowRight />
-              <span>Project Name</span>
+              <span>{location.state?.projectName}</span>
             </Link>
           </>
         }
       >
-        Project
+        <Link to="/" className="mb-8">
+          Project
+        </Link>
       </Heading>
 
       <div className="p-10">
         <div className="mb-8 flex items-center justify-between">
           <h1 className=" text-2xl font-semibold">Annotation</h1>
           <Button fullWidth={false} size="xs">
-            <Link className="flex items-center gap-2" to={`annotation-job/${selectedConfiguration.id}/${selectedDataset}`}>
-              <Setting />
-              Start Annotation
-            </Link>
+            {(selectedConfiguration.id && selectedDataset) ? (
+              <Link className="flex items-center gap-2" to={`annotation-job/${selectedConfiguration.id}/${selectedDataset}`}>
+                <Setting />
+                Start Annotation
+              </Link>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Setting />
+                Start Annotation
+              </div>
+            )}
           </Button>
         </div>
 

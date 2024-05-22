@@ -28,7 +28,8 @@ const MapCameraIp = ({formRef}) => {
       setLoader(index, true)
       const data = {
         cameraId: selectedCameraId,
-        capturePositionId
+        capturePositionId,
+        instanceId: addInstance?.instanceId
       }
       await axiosInstance.post('/cameraDetails/create', data);
       const newCameraIps = [...cameraIp];
@@ -76,9 +77,33 @@ const MapCameraIp = ({formRef}) => {
     }
   }
 
+  const fetchMapping = async () => {
+    const res = await axiosInstance.get('/instance/camera-mapping', {
+      params: {
+        instanceId: addInstance?.instanceId
+      }
+    });
+
+    const cameraMappings = await res?.data?.data;
+    data?.forEach((d, index) => {
+      const cpId = d?.cameraPositionId;
+      const cameraId = cameraMappings?.find(mapping => {
+        return mapping?.capture_position?.id === cpId
+      });
+      const newIps = [...cameraIp];
+      newIps[index] = cameraId?.camera?.id;
+      setCameraIp(newIps);
+    })
+    
+  }
+
   useEffect(() => {
     fetchAllData();
   }, [])
+
+  useEffect(() => {
+    fetchMapping()
+  }, [data])
 
   useEffect(() => {
     if(addInstance?.mapCameraIp?.cameraIps?.length === 0){
@@ -95,7 +120,6 @@ const MapCameraIp = ({formRef}) => {
       name: `(${camera.cameraIp})`
     }
   })
-  console.log({cameraIps})
 
   const handleSubmit = () => {
     if(cameraIp.some(ip => (ip == null)))throw new Error('Please Select All Camera IP')
@@ -106,7 +130,6 @@ const MapCameraIp = ({formRef}) => {
         cameraIps: cameraIp
       }
     })
-    console.log({addInstance})
   }
 
   formRef.current = {

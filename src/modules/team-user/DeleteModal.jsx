@@ -13,7 +13,7 @@ function DeleteModal({ deleteById, title = '' }) {
 
       <ModalBody>
         <p>
-          The {`${title || 'project'}`} <span className="font-semibold">#name</span> and
+          The {`${title || 'project'}`} and
           assosiated date will be permanently deleted, do you want to continue?
         </p>
       </ModalBody>

@@ -22,6 +22,7 @@ import { useParams } from 'react-router-dom';
 import { getRandomHexColor } from '@/util/util';
 import { loadedLabelsAtom } from '../state';
 import Pagination from '@/shared/ui/Pagination';
+import { v4 } from 'uuid';
 
 export default function LabelImage({save}) {
   const configuration = useRecoilValue(assemblyAtom)
@@ -154,16 +155,12 @@ export default function LabelImage({save}) {
                   const line = entry.split(' ');
                   if(line.length>=5){
                     let [cls, x, y, width, height] = line;
-                    x *= image.width;
-                    y *= image.height;
-                    width *= image.width;
-                    height *= image.height;
     
                     const className = labelsRef.current?.find(ele=>ele.id==cls)?.name
     
                     const color = getRandomHexColor();
                     const id = prevData.imageId
-                    const uuid = crypto.randomUUID();
+                    const uuid = v4();
                     configuredData.push({
                       ...BASE_RECT, 
                       id: selectedRoisRef.current.length + i,
@@ -173,10 +170,10 @@ export default function LabelImage({save}) {
                       rectType: RECTANGLE_TYPE.ANNOTATION_LABEL,
                       // roiId: roi.id,
                       title: className,
-                      x: x - width/2,
-                      y: y - height/2,
-                      width,
-                      height,
+                      x: parseFloat(x - width/2),
+                      y: parseFloat(y - height/2),
+                      width: parseFloat(width),
+                      height: parseFloat(height),
                       uuid
                     })
                     annotUpdates[uuid] = cls;

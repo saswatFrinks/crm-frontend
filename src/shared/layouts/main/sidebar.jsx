@@ -12,41 +12,18 @@ export default function Sidebar() {
       pathname: '/',
       icon: (active) => (
         <svg
-          className={`${active ? 'text-white' : ''}`}
-          width="16"
-          height="16"
-          viewBox="0 0 16 16"
-          fill="none"
           xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="feather feather-zap"
         >
-          <rect
-            width="6.66667"
-            height="6.66667"
-            rx="2"
-            fill={`${active ? '#fff' : '#0E0F0F'}`}
-          />
-          <rect
-            x="9.33301"
-            width="6.66667"
-            height="6.66667"
-            rx="2"
-            fill={`${active ? '#fff' : '#0E0F0F'}`}
-          />
-          <rect
-            y="9.33325"
-            width="6.66667"
-            height="6.66667"
-            rx="2"
-            fill={`${active ? '#fff' : '#0E0F0F'}`}
-          />
-          <rect
-            x="9.33301"
-            y="9.33325"
-            width="6.66667"
-            height="6.66667"
-            rx="2"
-            fill={`${active ? '#fff' : '#0E0F0F'}`}
-          />
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
         </svg>
       ),
     },
@@ -118,7 +95,6 @@ export default function Sidebar() {
     },
   ];
 
-  
   return (
     <div className="fixed left-0 top-0 flex h-screen w-64 flex-col items-center  px-2 py-4 shadow-md">
       <Link to="/" className="mb-8">

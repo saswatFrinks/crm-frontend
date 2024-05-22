@@ -5,7 +5,7 @@ import Heading from '@/shared/layouts/main/heading';
 import Button from '@/shared/ui/Button';
 import Radio from '@/shared/ui/Radio';
 import React, { useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import { useRecoilState, useSetRecoilState } from 'recoil';
 import { selectedConfigurationAtom } from './state';
 import { assemblyAtom, labelClassAtom, rectanglesAtom } from '../state';
@@ -59,6 +59,8 @@ const preAnalysisStatusMap = [
 
 export default function ProjectConfiguration() {
   const params = useParams();
+  const location = useLocation();
+  // console.log(location)
 
   const [configurations, setConfigurations] = React.useState([]);
   const [open, setOpen] = React.useState(null);
@@ -194,31 +196,35 @@ export default function ProjectConfiguration() {
             <Link
               to={`/project/${params.projectId}`}
               className="flex items-center gap-2"
+              state={location.state}
             >
               <ArrowRight />
-              <span>Project Name</span>
+              <span>{location.state?.projectName}</span>
             </Link>
           </>
         }
       >
-        Project
+        <Link to="/" className="mb-8">
+          Project
+        </Link>
       </Heading>
 
       <div className="p-10">
         <div className="mb-8 flex items-center justify-between">
           <h1 className=" text-2xl font-semibold">Project Configuration</h1>
-          <Button
-            fullWidth={false}
-            size="xs"
-            disabled={selectedConfiguration.id === ''}
-          >
-            <Link
-              className="flex items-center gap-2"
-              to={`${selectedConfiguration.objective.toLowerCase()}/${selectedConfiguration.id}`}
-            >
-              <Setting />
-              Start Configuration
-            </Link>
+          <Button fullWidth={false} size="xs" disabled={selectedConfiguration.id === ""}>
+            <div>
+            {selectedConfiguration.id ? 
+              (
+                <Link className="flex items-center gap-2" to={`${selectedConfiguration.objective.toLowerCase()}/${selectedConfiguration.id}`}>
+                  <Setting /> {'Start Configuration'}
+                </Link>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <Setting /> {'Start Configuration'}
+                </span>
+              )}
+            </div>
           </Button>
         </div>
 

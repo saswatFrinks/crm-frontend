@@ -22,7 +22,7 @@ export default function Pagination({chevornsMovement=5}) {
 
 
   return (
-    // <nav className="flex items-center">
+    <nav className="flex items-center">
       <ul className="mx-auto flex gap-2 rounded-full border border-gray-300 px-2 py-1.5">
       <li onClick={()=>setSelectedImage(allImages[Math.max(currentIndex-chevornsMovement, 0)])} className='cursor-pointer'>
           <ChevronsLeft />
@@ -30,11 +30,11 @@ export default function Pagination({chevornsMovement=5}) {
         <li onClick={()=>currentIndex!==0 && setSelectedImage(allImages[currentIndex-1])} className='cursor-pointer'>
           <ChevronLeft />
         </li>
-        {currentIndex-3 >0 &&<li>...</li>}
+        {!paginationBar.includes(1) &&<li>...</li>}
         {paginationBar.map(e=>{
           return (<li className={e==currentIndex+1? 'font-semibold cursor-pointer': 'text-gray-400 cursor-pointer'} onClick={()=>{setSelectedImage(allImages[e-1])}}>{e}</li>)
         })}
-        {currentIndex+3 < allImages?.length &&<li>...</li>}
+        {!paginationBar.includes(allImages?.length) &&<li>...</li>}
         <li onClick={()=>currentIndex+1!==allImages.length && setSelectedImage(allImages[currentIndex+1])} className='cursor-pointer'>
           <ChevronRight />
         </li>
@@ -42,6 +42,6 @@ export default function Pagination({chevornsMovement=5}) {
           <ChevronsRight />
         </li>
       </ul>
-    // </nav>
+     </nav>
   );
 }
