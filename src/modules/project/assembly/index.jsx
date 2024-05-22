@@ -89,6 +89,52 @@ export default function Assembly() {
   );
   const navigate = useNavigate();
 
+  const updateAnnotation = async () => {
+    const imgMap = {};
+    annotationRects.forEach((rect) => {
+      const classNo = annotationMap[rect.uuid];
+      const height = (rect.height).toFixed(4);
+      const width = (rect.width).toFixed(4);
+      const x = (rect.x + rect.width / 2).toFixed(4);
+      const y = (rect.y + rect.height / 2).toFixed(4);
+      if (imgMap[rect.imageId]) {
+        imgMap[rect.imageId] += `${classNo} ${x} ${y} ${width} ${height}\n`;
+      } else {
+        imgMap[rect.imageId] = `${classNo} ${x} ${y} ${width} ${height}\n`;
+      }
+    });
+    const formData = new FormData();
+    const imageIds = [];
+    images.forEach((img, index) => {
+      if (imgMap[img.id]?.length) {
+        const fileContents = imgMap[img.id] || '';
+        const fileBlob = new Blob([fileContents], { type: 'text/plain' });
+        formData.append('files', fileBlob, img.id);
+        imageIds.push(img.id || '');
+      }
+    });
+    formData.append('configurationId', configurationId);
+    formData.append('imageIds', imageIds);
+    if (!imageIds.length) {
+      toast.success('No chanegs to update');
+      return;
+    }
+    try {
+      const data = await axiosInstance.post(
+        '/configuration/upload-label-files',
+        formData
+      );
+      toast.success('Labels uploaded');
+      return data.data?.success;
+    } catch (e) {
+      toast.error(
+        e?.response?.data?.data?.message
+          ? `${e?.response?.data?.data?.message}. All fields are required`
+          : 'Failed'
+      );
+    }
+  };
+
   const handleNext = async () => {
     let t = step;
     if (!canGoNext) t = 0;
@@ -96,9 +142,9 @@ export default function Assembly() {
       await getRois();
       t++;
     } else if (t == 1) {
-      t = (await updateRoiData()) ? t + 1 : t;
+      t = (await prepareApiData()) ? t + 1 : t;
     } else if (t == 2) {
-      t = (await preUpdate()) ? t + 1 : t;
+      t = (await updateAnnotation()) ? t + 1 : t;
     } else if (t == 3) {
       navigate(-1);
     } else if (t != 3) t += 1;
@@ -148,25 +194,10 @@ export default function Assembly() {
     setRectangleType(RECTANGLE_TYPE.ROI);
   };
 
-  const preUpdate = () => {
-    console.log('pre update');
-    return new Promise((res, rej) => {
-      const image = new Image();
-      image.src = images[0].url;
-      console.log('inside proimse');
-      image.onload = () =>
-        updateAnnotation(image)
-          .then((success) => {
-            if (success) res(true);
-            else res(false);
-          })
-          .catch(() => res(false));
-    });
-  };
   const stepObj = {
     0: <UploadImageStep />,
     1: <InspectionParameterStep type={type} />,
-    2: <LabelImage save={preUpdate} />,
+    2: <LabelImage save={updateAnnotation} />,
     3: <PreTrainingStep />,
   };
 
@@ -204,83 +235,78 @@ export default function Assembly() {
         const rects = [];
         // let configUpdate = { productFlow: data[0].configuration.direction },
         //   configUpdateRequired = false;
-        const image = new Image();
-        image.src = images[0].url;
-        console.log('inside proimse');
-        image.onload = () => {
-          data?.forEach((conf, i) => {
-            const roiId = conf.rois.id;
-            console.log('Loop', roiId);
-            if (!roiMap[roiId]) {
-              console.log('roi id not present');
-              roiMap[roiId] = {
-                id: i,
-                checked: false,
-                status: STATUS.FINISH,
-                open: true,
-                parts: [],
-              };
-              //!do rectangle here too
-              console.log('before');
-              const { x1, x2, y1, y2 } = conf.rois;
-              console.log('before');
-              const color = getRandomHexColor();
-              const uuid = crypto.randomUUID();
-              rects.push({
-                ...BASE_RECT,
-                id: rois.length + i,
-                fill: color,
-                stroke: color,
-                imageId: images[0].id,
-                rectType: RECTANGLE_TYPE.ROI,
-                roiId: i,
-                title: 'ROI',
-                x: x1 * image.width,
-                y: y1 * image.height,
-                width: (x2 - x1) * image.width,
-                height: (y2 - y1) * image.height,
-                uuid,
-              });
-            }
-            if (!partsMap[roiId]) {
-              partsMap[roiId] = [];
-            }
-            console.log('doing parts');
-            // if (conf.parts.isTracker) {
-            //   configUpdateRequired = true;
-            //   configUpdate = {
-            //     ...configUpdate,
-            //     primaryObject: conf.parts?.name || '',
-            //     primaryObjectClass: conf.parts?.name || '',
-            //   };
-            // }
-            partsMap[roiId].push({
+        data?.forEach((conf, i) => {
+          const roiId = conf.rois.id;
+          console.log('Loop', roiId);
+          if (!roiMap[roiId]) {
+            console.log('roi id not present');
+            roiMap[roiId] = {
               id: i,
-              objectName: conf.parts?.name || '',
-              class: conf.parts?.classId || '',
-              className: conf.assembly_class?.name || '',
-              operation: conf.parts?.operator,
-              qty: conf.parts?.count,
-              classify: conf.assembly_class?.classify ? 'on' : false,
               checked: false,
+              status: STATUS.FINISH,
               open: true,
+              parts: [],
+            };
+            //!do rectangle here too
+            console.log('before');
+            const { x1, x2, y1, y2 } = conf.rois;
+            console.log('before');
+            const color = getRandomHexColor();
+            const uuid = crypto.randomUUID();
+            rects.push({
+              ...BASE_RECT,
+              id: rois.length + i,
+              fill: color,
+              stroke: color,
+              imageId: images[0].id,
+              rectType: RECTANGLE_TYPE.ROI,
+              roiId: i,
+              title: 'ROI',
+              x: parseFloat(x1),
+              y: parseFloat(y1),
+              width: parseFloat(x2 - x1),
+              height: parseFloat(y2 - y1),
+              uuid,
             });
-          });
-          for (let roiId in roiMap) {
-            roiMap[roiId].parts = partsMap[roiId];
           }
-          setConfiguration((t) => ({
-            ...t,
-            rois: Object.values(roiMap),
-          }));
-          setRectangles((prev) => [...prev, ...rects]);
+          if (!partsMap[roiId]) {
+            partsMap[roiId] = [];
+          }
+          console.log('doing parts');
+          // if (conf.parts.isTracker) {
+          //   configUpdateRequired = true;
+          //   configUpdate = {
+          //     ...configUpdate,
+          //     primaryObject: conf.parts?.name || '',
+          //     primaryObjectClass: conf.parts?.name || '',
+          //   };
+          // }
+          partsMap[roiId].push({
+            id: i,
+            objectName: conf.parts?.name || '',
+            class: conf.parts?.classId || '',
+            className: conf.assembly_class?.name || '',
+            operation: conf.parts?.operator,
+            qty: conf.parts?.count,
+            classify: conf.assembly_class?.classify ? 'on' : false,
+            checked: false,
+            open: true,
+          });
+        });
+        for (let roiId in roiMap) {
+          roiMap[roiId].parts = partsMap[roiId];
+        }
+        setConfiguration((t) => ({
+          ...t,
+          rois: Object.values(roiMap),
+        }));
+        setRectangles((prev) => [...prev, ...rects]);
           // if (configUpdateRequired) {
           //   setConfiguration((prev) => ({
           //     ...prev,
           //     ...configUpdate,
           //   }));
           // }
-        };
       }
       return true;
     } catch (e) {
@@ -292,22 +318,7 @@ export default function Assembly() {
     getProject();
   }, []);
 
-  const updateRoiData = async () => {
-    return new Promise((res, rej) => {
-      const image = new Image();
-      image.src = images[0].url;
-      console.log('inside proimse');
-      image.onload = () =>
-        prepareApiData(image)
-          .then((success) => {
-            if (success) res(true);
-            else res(false);
-          })
-          .catch(() => res(false));
-    });
-  };
-
-  const prepareApiData = async (image) => {
+  const prepareApiData = async () => {
     const imgMap = {};
     const temp = cloneDeep(configuration);
     temp.direction = parseInt(temp.productFlow);
@@ -330,13 +341,13 @@ export default function Assembly() {
       );
       rois.forEach((roiRect) => {
         if (roi.id == roiRect.roiId) {
-          x1 = parseFloat((roiRect.x / image.width).toFixed(4));
+          x1 = parseFloat((roiRect.x).toFixed(4));
           x2 = parseFloat(
-            ((roiRect.x + roiRect.width) / image.width).toFixed(4)
+            (roiRect.x + roiRect.width).toFixed(4)
           );
-          y1 = parseFloat((roiRect.y / image.height).toFixed(4));
+          y1 = parseFloat((roiRect.y).toFixed(4));
           y2 = parseFloat(
-            ((roiRect.y + roiRect.height) / image.height).toFixed(4)
+            (roiRect.y + roiRect.height).toFixed(4)
           );
         }
       });
@@ -386,52 +397,6 @@ export default function Assembly() {
         formData
       );
       toast.success('ROIs uploaded');
-      return data.data?.success;
-    } catch (e) {
-      toast.error(
-        e?.response?.data?.data?.message
-          ? `${e?.response?.data?.data?.message}. All fields are required`
-          : 'Failed'
-      );
-    }
-  };
-
-  const updateAnnotation = async (image) => {
-    const imgMap = {};
-    annotationRects.forEach((rect) => {
-      const classNo = annotationMap[rect.uuid];
-      const height = (rect.height / image.height).toFixed(4);
-      const width = (rect.width / image.width).toFixed(4);
-      const x = ((rect.x + rect.width / 2) / image.width).toFixed(4);
-      const y = ((rect.y + rect.height / 2) / image.height).toFixed(4);
-      if (imgMap[rect.imageId]) {
-        imgMap[rect.imageId] += `${classNo} ${x} ${y} ${width} ${height}\n`;
-      } else {
-        imgMap[rect.imageId] = `${classNo} ${x} ${y} ${width} ${height}\n`;
-      }
-    });
-    const formData = new FormData();
-    const imageIds = [];
-    images.forEach((img, index) => {
-      if (imgMap[img.id]?.length) {
-        const fileContents = imgMap[img.id] || '';
-        const fileBlob = new Blob([fileContents], { type: 'text/plain' });
-        formData.append('files', fileBlob, img.id);
-        imageIds.push(img.id || '');
-      }
-    });
-    formData.append('configurationId', configurationId);
-    formData.append('imageIds', imageIds);
-    if (!imageIds.length) {
-      toast.success('No chanegs to update');
-      return;
-    }
-    try {
-      const data = await axiosInstance.post(
-        '/configuration/upload-label-files',
-        formData
-      );
-      toast.success('Labels uploaded');
       return data.data?.success;
     } catch (e) {
       toast.error(
