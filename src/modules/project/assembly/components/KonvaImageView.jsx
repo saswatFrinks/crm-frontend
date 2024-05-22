@@ -191,8 +191,8 @@ const KonvaImageView = ({image, onDrawStop, rectangles, title=null, imageId}) =>
     // };
 
     const handleValueReset = (rectObj) =>{
-        const imageBoundaryX = image.width
-        const imageBoundaryY = image.height
+        const imageBoundaryX = 1
+        const imageBoundaryY = 1
     
         //!if x and y are beyond the boundary, move them back to the image, snap to boundary
         //right and bottom boundary
