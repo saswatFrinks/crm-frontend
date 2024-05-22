@@ -154,10 +154,6 @@ export default function LabelImage({save}) {
                   const line = entry.split(' ');
                   if(line.length>=5){
                     let [cls, x, y, width, height] = line;
-                    x *= image.width;
-                    y *= image.height;
-                    width *= image.width;
-                    height *= image.height;
     
                     const className = labelsRef.current?.find(ele=>ele.id==cls)?.name
     
@@ -173,10 +169,10 @@ export default function LabelImage({save}) {
                       rectType: RECTANGLE_TYPE.ANNOTATION_LABEL,
                       // roiId: roi.id,
                       title: className,
-                      x: x - width/2,
-                      y: y - height/2,
-                      width,
-                      height,
+                      x: parseFloat(x - width/2),
+                      y: parseFloat(y - height/2),
+                      width: parseFloat(width),
+                      height: parseFloat(height),
                       uuid
                     })
                     annotUpdates[uuid] = cls;

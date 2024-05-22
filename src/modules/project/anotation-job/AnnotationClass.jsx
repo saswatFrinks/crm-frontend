@@ -38,7 +38,7 @@ export default function AnnotationClass({labelClass}) {
 
   return (
     <div className="">
-      <p className="mb-4">Click the class below to label it</p>
+      <p className="mb-4 break-all">Click the class below to label it</p>
       <ul className="flex flex-wrap gap-4">
         {labelClass.map((t, i) => (
           <li
