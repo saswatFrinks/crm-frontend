@@ -49,7 +49,8 @@ const Instances = () => {
   const handleNext = async () => {
     try {
       if(childRefs[step-1].current){
-        await childRefs[step-1].current.handleSubmit();
+        const res = await childRefs[step-1].current.handleSubmit();
+        if(res === null)return;
       }
       setStep((t) => {
         if (t == 5) {
@@ -59,7 +60,7 @@ const Instances = () => {
         return t + 1;
       });
     } catch (error) {
-      toast.error(error.message)
+      toast.error(error?.message)
     }
   };
 
@@ -121,6 +122,7 @@ const Instances = () => {
           instanceId: id
         }
       });
+      fetchAllInstances();
     } catch (error){
       toast.error(error?.response?.data?.data?.message)
     }

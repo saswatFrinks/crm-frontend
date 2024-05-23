@@ -62,7 +62,7 @@ export default function PreTrainingStep() {
       setStarter(true);
     } catch (e) {
       console.error('Error in pre training helper:', e);
-      toast.error(e);
+      toast.error(e?.response?.data?.data?.message);
     }
   };
 

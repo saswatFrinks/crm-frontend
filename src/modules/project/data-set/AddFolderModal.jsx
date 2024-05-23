@@ -29,7 +29,7 @@ export default function AddFolderModal({fetchAllFolders, editFolder}) {
   
       fetchAllFolders();
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error?.response?.data?.data?.message);
     }
   };
 
@@ -52,7 +52,7 @@ export default function AddFolderModal({fetchAllFolders, editFolder}) {
         addFolder(values);
         setOpenModal(false);
       } catch (error) {
-        toast.error(error.message);
+        toast.error(error?.response?.data?.data?.message);
       }
     },
   });
