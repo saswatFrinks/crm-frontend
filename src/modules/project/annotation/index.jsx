@@ -32,7 +32,7 @@ export default function Annotation() {
   const [selectedDataset, setSelectedDataset] = React.useState(null);
   const [loader, setLoader] = React.useState(false);
   const [isHovered, setIsHovered] = React.useState(false);
-  const [description, setDescription] = React.useState('');
+  const [warningIndex, setWarningIndex] = React.useState(null);
   const [open, setOpen] = useRecoilState(modalAtom);
   const location = useLocation();
   const navigate = useNavigate();
@@ -74,23 +74,20 @@ export default function Annotation() {
   }
 
   const startConfiguration = async () => {
+    const status = selectedConfiguration.status.toLocaleLowerCase();
     if(!selectedDataset){
-      setDescription(`
-        Please, first, create a dataset folder for this camera configuration from the Build flow of this project. 
-        Then, upload the positive & negative images in this newly created dataset folder for this configuration according to the below pre-training analysis result for this camera configuration.`
-      );
+      setWarningIndex(0);
       setOpen(true);
       return;
     }else{
       const hasImages = await getImagesFromDataset();
       if(!hasImages){
-        setDescription(`
-          Please upload the positive & negative images in the mentioned dataset folder, within the table column Dataset, for this configuration according to the below pre-training analysis result for this camera configuration.
-        `);
+        setWarningIndex(1);
         setOpen(true);
         return;
       }
     }
+    
     navigate(`annotation-job/${selectedConfiguration.id}/${selectedDataset}`)
   }
 
@@ -98,7 +95,8 @@ export default function Annotation() {
     setSelectedConfiguration({
       id: '',
       objective: 'Assembly',
-      status: ''
+      status: '',
+      analysisStatus: ''
     })
     getConfigurations();
   }, [])
@@ -106,7 +104,7 @@ export default function Annotation() {
     <>
       <Modal>
         <WarningModal 
-          description = {description}
+          warningIndex = {warningIndex}
           configId = {selectedConfiguration.id}
         />
       </Modal>
@@ -192,7 +190,8 @@ export default function Annotation() {
                           setSelectedConfiguration({
                             id: config.id,
                             objective: config.objective,
-                            status: config.status
+                            status: config.status,
+                            analysisStatus: config.analysisStatus
                           })
                         }}
                       />

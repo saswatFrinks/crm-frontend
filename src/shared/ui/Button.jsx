@@ -19,7 +19,8 @@ export default function Button({
           danger: 'bg-red-500 text-white hover:bg-red-400',
           warn: 'bg-yellow-500 text-white hover:bg-yellow-400',
           success: 'bg-green-500 text-white hover:bg-green-400',
-          light: 'bg-[#F6F6FF] text-[#6B4EFF]'
+          light: 'bg-[#F6F6FF] text-[#6B4EFF]',
+          disbaled: 'bg-[#ddd] text-[#444]'
         },
         size: {
           tiny: 'text-sm py-1',
@@ -61,7 +62,7 @@ export default function Button({
   return (
     <button
       type="button"
-      className={`${button({ size, color, fullWidth, variant })} ${className}`}
+      className={`${button({ size, color: props?.disabled ? 'disbaled' : color, fullWidth, variant })} ${className}`}
       {...props}
     >
       {children}
