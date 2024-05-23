@@ -23,7 +23,7 @@ const statusEnum = {
 };
 
 export default function PreTrainingStep() {
-  const columns = ['ROI', '', 'Positive', 'Negative'];
+  const columns = ['ROI', 'Images with', 'Positive', 'Negative'];
   const [loader, setLoader] = useState(null);
   const [starter, setStarter] = useState(false);
   const [info, setInfo] = useState({});
@@ -39,10 +39,10 @@ export default function PreTrainingStep() {
     const res = await axiosInstance.get('/configuration/rois', {
       params: { configurationId: params.configurationId },
     });
-    const resp=JSON.parse(res.data.data.data)
+    const resp = JSON.parse(res.data.data.data);
     resp.map((configItem) => {
-      console.log("configItem:",configItem)
-      tempRoiMap[configItem.id]=configItem.name
+      console.log('configItem:', configItem);
+      tempRoiMap[configItem.id] = configItem.name;
     });
     setRoiMap({ ...tempRoiMap });
     const tempClassMap = {};
@@ -83,7 +83,12 @@ export default function PreTrainingStep() {
           Object.keys(temp).map((item) => {
             const roiName = roiMap[item];
             const obj = temp[item];
-            ret.push([roiName, 'All classes', obj['positive'], obj['negative']]);
+            ret.push([
+              roiName,
+              'All classes',
+              obj['positive'],
+              obj['negative'],
+            ]);
             delete obj['positive'];
             delete obj['negative'];
             const tempObj = {};
@@ -128,11 +133,11 @@ export default function PreTrainingStep() {
     console.log('loader:', loader);
   }, [loader]);
 
-  useEffect(()=>{
-    if(starter){
-      startSSE()
+  useEffect(() => {
+    if (starter) {
+      startSSE();
     }
-  },[starter])
+  }, [starter]);
 
   return (
     <>

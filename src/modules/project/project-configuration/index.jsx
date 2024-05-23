@@ -26,7 +26,7 @@ const columns = [
   'Pre-training Analysis',
 ];
 
-const preTrainingColumns = ['ROI', '', 'Positive', 'Negative'];
+const preTrainingColumns = ['ROI', 'Images with', 'Positive', 'Negative'];
 
 const preAnalysisStatusMap = [
   {
