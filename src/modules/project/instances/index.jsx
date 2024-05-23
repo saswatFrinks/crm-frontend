@@ -126,8 +126,9 @@ const Instances = () => {
     }
   }
 
-  const downloadInstance = async (instanceId, instanceName) => {
+  const downloadInstance = async (instanceId, instanceName, isActive) => {
     try {
+      if(!isActive)return;
       setDownloadLoader(true);
       const res = await axiosInstance.get('/instance/download', {
         params: {
@@ -233,10 +234,12 @@ const Instances = () => {
                       <td className="px-6 py-4">{instance?.instances?.id}</td>
                       <td className="px-6 py-4">
                         <span 
-                          onClick={() => downloadInstance(instance?.instances?.id, instance?.instances?.name)}
-                          className='cursor-pointer'
+                          onClick={() => downloadInstance(instance?.instances?.id, instance?.instances?.name, instance?.instances?.isActive)}
+                          className={`${instance?.instances?.isActive ? 'cursor-pointer' : ''}`}
                         >
-                          <Download />
+                          <Download 
+                            disabled={!instance?.instances?.isActive}
+                          />
                         </span>
                       </td>
                       <td className="px-6 py-4">
