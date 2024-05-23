@@ -98,13 +98,17 @@ export default function PreTrainingStep() {
               console.error('could not delete positive negative');
             }
             const tempObj = {};
+            let totalPositive = 0;
+            let totalNegative = 0;
             Object.keys(obj).map((innerVal) => {
               const values = innerVal.split('_');
               const currVal = tempObj[values[0]] || {};
               tempObj[values[0]] = { ...currVal, [values[1]]: obj[innerVal] };
             });
             Object.keys(tempObj).map((finalKey) => {
-              console.log('finalKey:', finalKey);
+              // console.log('finalKey:', finalKey);
+              totalPositive += Number(tempObj[finalKey]['positive']);
+              totalNegative += Number(tempObj[finalKey]['negative']);
               ret.push([
                 roiName,
                 classMap[finalKey] || 'Invalid class ID',
@@ -112,6 +116,9 @@ export default function PreTrainingStep() {
                 tempObj[finalKey]['negative'],
               ]);
             });
+            if (obj && Object.keys(obj).length > 4) {
+              ret.push([roiName, 'Total', '', totalPositive + totalNegative]);
+            }
           });
           console.log('ret:', ret);
           setInfo([...ret]);

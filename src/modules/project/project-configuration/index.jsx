@@ -119,13 +119,17 @@ export default function ProjectConfiguration() {
         delete obj['positive'];
         delete obj['negative'];
         const tempObj = {};
+        let totalPositive = 0;
+        let totalNegative = 0;
         Object.keys(obj).map((innerVal) => {
           const values = innerVal.split('_');
           const currVal = tempObj[values[0]] || {};
           tempObj[values[0]] = { ...currVal, [values[1]]: obj[innerVal] };
         });
         Object.keys(tempObj).map((finalKey) => {
-          console.log(finalKey);
+          // console.log(finalKey);
+          totalPositive += Number(tempObj[finalKey]['positive']);
+          totalNegative += Number(tempObj[finalKey]['negative']);
           ret.push([
             roiName,
             classNameMap[finalKey] || 'Invalid class ID',
@@ -133,6 +137,9 @@ export default function ProjectConfiguration() {
             tempObj[finalKey]['negative'],
           ]);
         });
+        if (obj && Object.keys(obj).length > 4) {
+          ret.push([roiName, 'Total', '', totalPositive + totalNegative]);
+        }
       });
       console.log('ret:', ret);
       setPreTrainingData([...ret]);
