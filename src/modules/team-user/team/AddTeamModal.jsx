@@ -29,13 +29,15 @@ export default function AddTeamModal({fetchTeamNames}) {
     onSubmit: async (values) => {
       try {
         console.log(values);
+        if(Object.values(formik.errors).some(error => error.length > 0))return;
         await axiosInstance.post('/team/create', {
           name: values.name,
           organizationId: getOrganizationId()
         })
+        setOpenModal(false)
         fetchTeamNames()
       } catch (error) {
-        toast.error(error.message);
+        toast.error(error?.response?.data?.data?.details);
       }
     },
   });
@@ -69,7 +71,6 @@ export default function AddTeamModal({fetchTeamNames}) {
           </Button>
           <Button size="xs" fullWidth={true} onClick={() => {
             formik.handleSubmit() 
-            setOpenModal(false)
           }}>
             Confirm
           </Button>
