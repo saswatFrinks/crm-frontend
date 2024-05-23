@@ -32,14 +32,16 @@ export default function EditPlantModal({ plant, fetchAllPlants }) {
     },
     onSubmit: async (values) => {
       try {
+        if(Object.values(formik.errors).some(error => error.length > 0))return;
         await axiosInstance.put('/plant', {
 					plantId: plant.id,
           name: values.name,
           location: values.location,
         });
+        setOpenModal(false)
         fetchAllPlants();
       } catch (error) {
-        toast.error(error.message);
+        toast.error(error?.response?.data?.data?.details);
       }
     },
   });
@@ -85,7 +87,6 @@ export default function EditPlantModal({ plant, fetchAllPlants }) {
           </Button>
           <Button size="xs" fullWidth={true} onClick={() => {
             formik.handleSubmit()
-            setOpenModal(false)
           }}>
             Confirm
           </Button>

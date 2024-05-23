@@ -88,7 +88,7 @@ export default function ProjectConfiguration() {
         'Got error trying to get configurations for the project:',
         error
       );
-      toast.error(error);
+      toast.error(error.response.data.data.message);
     }
   };
 
@@ -135,7 +135,7 @@ export default function ProjectConfiguration() {
       console.log('ret:', ret);
       setPreTrainingData([...ret]);
     } catch (e) {
-      toast.error(JSON.stringify(e));
+      toast.error(e?.response?.data?.data?.message);
     } finally {
       setModal(true);
     }
