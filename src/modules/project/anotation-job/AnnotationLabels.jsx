@@ -3,26 +3,31 @@ import React from 'react';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import Select from '@/shared/ui/Select';
 import { Edit, Trash } from 'react-feather';
-import { annotationMapAtom, currentRectangleIdAtom, rectanglesAtom, selectedFileAtom, uploadedFileListAtom } from '../state';
+import { annotationClassesAtom, annotationMapAtom, currentRectangleIdAtom, rectanglesAtom, selectedFileAtom, uploadedFileListAtom } from '../state';
 import { RECTANGLE_TYPE } from '@/core/constants';
 
 export default function AnnotationLabels({labelClass}) {
   const selectedImage = useRecoilValue(selectedFileAtom);
-  const [allRects, setAllReacts] = useRecoilState(rectanglesAtom);
-  const rectangles = allRects.filter(rect=>rect.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL)
   const [annotMap, setAnnotMap] = useRecoilState(annotationMapAtom);
   const selectedRectangleId = useSetRecoilState(currentRectangleIdAtom)
   const selecteFile = useRecoilValue(selectedFileAtom)
+  const [annotationClasses, setAnnotationClasses] = useRecoilState(annotationClassesAtom)
   
   const selectedImageId = selecteFile?.id
+  const rectangles = selectedImageId ? annotationClasses[selectedImageId]?.rectangles || [] : [];
 
   const remove = (id, uuid) => {
     let newMap = Object.assign({}, annotMap);
     delete newMap[uuid];
-    const newList = allRects.filter(e=>e.uuid!==uuid);
     setAnnotMap(newMap);
-    setAllReacts(newList);
-    console.log(newMap, newList);
+    setAnnotationClasses(prev=>({
+      ...prev, 
+      [selectedImageId]: {
+        ...prev[selectedImageId],
+        changed: true,
+        rectangles: prev[selectedImageId].rectangles.filter(e=>e.uuid!==uuid)
+      }
+    }));
   };
   const selectClass = (id) => {};
   return (
@@ -35,7 +40,7 @@ export default function AnnotationLabels({labelClass}) {
         className="flex h-[calc(100vh-478px)] flex-col gap-2 overflow-y-auto"
         onClick={() => selectClass('id')}
       >
-        {rectangles.filter(ele=>ele.imageId==selectedImageId)
+        {rectangles
           .map((t, i) => (
             <div
               key={i}
@@ -52,7 +57,11 @@ export default function AnnotationLabels({labelClass}) {
                       const ind = rectangles.findIndex(ele=>ele.uuid==t.uuid);
                       const recCp = [...rectangles];
                       recCp[ind] = {...recCp[ind], title: labelClass.find(ele=>ele.id==e.target.value).name}
-                      setAllReacts(recCp)
+                      setAnnotationClasses(prev=>({...prev, [selectedImageId]:{
+                        ...prev[selectedImageId],
+                        rectangles: recCp,
+                        changed: true
+                      }}))
                       setAnnotMap(p=>({...p, [t.uuid]: e.target.value}))
                     }}
                   />

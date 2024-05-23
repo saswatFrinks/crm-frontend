@@ -126,3 +126,9 @@ export const DEFAULT_ASSEMBLY={
   primaryObjectClass: '',
   rois: [DEFAULT_ROI],
 }
+
+export const DEFAULT_ANNOTATION = {
+  imageId: '',
+  rectangles: [],
+  changed: false
+}

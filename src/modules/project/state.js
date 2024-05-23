@@ -118,3 +118,8 @@ export const lastActionNameAtom = atom({
   key: 'lastActionNameAtom',
   default: null,
 })
+
+export const annotationClassesAtom = atom({
+  key: 'annotationClassesAtom',
+  default: {}
+})
