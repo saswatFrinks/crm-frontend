@@ -41,7 +41,7 @@ export default function Configuration({ setLoading }) {
         setRois(configuration);
       } else {
         setRois(roiArr);
-        setClassAtom(roiArr);
+        // setClassAtom(roiArr);
       }
       setLoading(false);
     } catch (e) {
@@ -63,10 +63,11 @@ export default function Configuration({ setLoading }) {
 
     // setClasses(classArr);
     if (classAt.length != 0) {
+      console.log("classAtom:",classAt)
       setClasses(classAt);
     } else {
       setClasses(classArr);
-      setClassAtom(classArr);
+      setClassAtom([...classArr]);
     }
     // setClassAtom(classArr);
   };

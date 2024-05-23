@@ -34,6 +34,7 @@ export default function AddPlantModal({fetchAllPlants}) {
     },
     onSubmit: async (values) => {
       try {
+        if(Object.values(formik.errors).some(error => error.length > 0))return;
         console.log(values);
         await axiosInstance.post('/plant/create', {
           name: values.name,
@@ -41,8 +42,9 @@ export default function AddPlantModal({fetchAllPlants}) {
           organizationId: getOrganizationId(),
         });
         fetchAllPlants();
+        setOpenModal(false);
       } catch (error) {
-        toast.error(error.message);
+        toast.error(error?.response?.data?.data?.details);
       }
     },
   });
@@ -88,7 +90,6 @@ export default function AddPlantModal({fetchAllPlants}) {
           </Button>
           <Button size="xs" fullWidth={true} onClick={() => {
             formik.handleSubmit()
-            setOpenModal(false)
           }}>
             Confirm
           </Button>
