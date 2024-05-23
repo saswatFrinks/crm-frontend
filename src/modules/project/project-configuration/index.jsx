@@ -113,7 +113,9 @@ export default function ProjectConfiguration() {
       Object.keys(temp).map((item) => {
         const roiName = item;
         const obj = JSON.parse(temp[item]);
-        ret.push([roiName, 'All classes', obj['positive'], obj['negative']]);
+        if (obj && Object.keys(obj).length > 4) {
+          ret.push([roiName, 'All classes', obj['positive'], obj['negative']]);
+        }
         delete obj['positive'];
         delete obj['negative'];
         const tempObj = {};
@@ -212,11 +214,17 @@ export default function ProjectConfiguration() {
       <div className="p-10">
         <div className="mb-8 flex items-center justify-between">
           <h1 className=" text-2xl font-semibold">Project Configuration</h1>
-          <Button fullWidth={false} size="xs" disabled={selectedConfiguration.id === ""}>
+          <Button
+            fullWidth={false}
+            size="xs"
+            disabled={selectedConfiguration.id === ''}
+          >
             <div>
-            {selectedConfiguration.id ? 
-              (
-                <Link className="flex items-center gap-2" to={`${selectedConfiguration.objective.toLowerCase()}/${selectedConfiguration.id}`}>
+              {selectedConfiguration.id ? (
+                <Link
+                  className="flex items-center gap-2"
+                  to={`${selectedConfiguration.objective.toLowerCase()}/${selectedConfiguration.id}`}
+                >
                   <Setting /> {'Start Configuration'}
                 </Link>
               ) : (

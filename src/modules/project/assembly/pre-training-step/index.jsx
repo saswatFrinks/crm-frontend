@@ -83,14 +83,20 @@ export default function PreTrainingStep() {
           Object.keys(temp).map((item) => {
             const roiName = roiMap[item];
             const obj = temp[item];
-            ret.push([
-              roiName,
-              'All classes',
-              obj['positive'],
-              obj['negative'],
-            ]);
-            delete obj['positive'];
-            delete obj['negative'];
+            if (obj && Object.keys(obj).length > 4) {
+              ret.push([
+                roiName,
+                'All classes',
+                obj['positive'],
+                obj['negative'],
+              ]);
+            }
+            try {
+              delete obj['positive'];
+              delete obj['negative'];
+            } catch (e) {
+              console.error('could not delete positive negative');
+            }
             const tempObj = {};
             Object.keys(obj).map((innerVal) => {
               const values = innerVal.split('_');
