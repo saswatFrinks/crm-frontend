@@ -12,6 +12,7 @@ const MapCameraIp = ({formRef}) => {
   const [addInstance, setAddInstance] = useRecoilState(addInstanceAtom);
   const [data, setData] = React.useState([]);
   const [cameraIp, setCameraIp] = React.useState(addInstance?.mapCameraIp?.cameraIps || []);
+  const [errors, setErrors] = React.useState([]);
   const [loaders, setLoaders] = React.useState([]);
 
   const setLoader = (index, flag) => {
@@ -41,6 +42,11 @@ const MapCameraIp = ({formRef}) => {
           data,
           cameraIps: newCameraIps
         }
+      })
+      setErrors(prev => {
+        const newErrors = [...prev];
+        newErrors[index] = selectedCameraId ? '' : `Please map camera IP ${index+1}`;
+        return newErrors;
       })
     } catch (error) {
       toast.error(error?.response?.data?.data?.message);
@@ -109,6 +115,7 @@ const MapCameraIp = ({formRef}) => {
     if(addInstance?.mapCameraIp?.cameraIps?.length === 0){
       setCameraIp(Array.from({length: data?.length}, () => null));
       setLoaders(Array.from({length: data?.length}, () => false));
+      setErrors(Array.from({length: data?.length}, () => ''))
     }
   }, [data])
 
@@ -121,8 +128,18 @@ const MapCameraIp = ({formRef}) => {
     }
   })
 
+  const validateForm = () => {
+    const formErrors = [...errors];
+    console.log({cameraIp})
+    cameraIp.forEach((ip, index) => {
+      formErrors[index] = !ip ? `Please map camera IP ${index+1}` : ''
+    })
+    return formErrors;
+  }
+
   const handleSubmit = () => {
-    if(cameraIp.some(ip => (ip == null)))throw new Error('Please Select All Camera IP')
+    setErrors(validateForm());
+    if(validateForm().some(error => error !== ''))return null;
     setAddInstance({
       ...addInstance,
       mapCameraIp: {
@@ -170,6 +187,7 @@ const MapCameraIp = ({formRef}) => {
                       onChange = {(e) => {
                         onChangeCameraIp(e, index, dataItem?.cameraPositionId);
                       }}
+                      errorMessage = {errors[index]}
                     /> {loaders[index] && 'Loading...'}
                   </td>
                 </tr>

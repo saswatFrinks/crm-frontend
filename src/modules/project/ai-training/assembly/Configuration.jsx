@@ -131,7 +131,7 @@ export default function Configuration({ setLoading }) {
       console.log('here');
       setLoading(false);
     } catch (e) {
-      toast.error(e);
+      toast.error(e?.response?.data?.data?.message);
       setLoading(false);
     }
   };

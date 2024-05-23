@@ -49,7 +49,8 @@ const Instances = () => {
   const handleNext = async () => {
     try {
       if(childRefs[step-1].current){
-        await childRefs[step-1].current.handleSubmit();
+        const res = await childRefs[step-1].current.handleSubmit();
+        if(res === null)return;
       }
       setStep((t) => {
         if (t == 5) {
@@ -59,7 +60,7 @@ const Instances = () => {
         return t + 1;
       });
     } catch (error) {
-      toast.error(error.message)
+      toast.error(error?.message)
     }
   };
 
@@ -121,13 +122,15 @@ const Instances = () => {
           instanceId: id
         }
       });
+      fetchAllInstances();
     } catch (error){
       toast.error(error?.response?.data?.data?.message)
     }
   }
 
-  const downloadInstance = async (instanceId, instanceName) => {
+  const downloadInstance = async (instanceId, instanceName, isActive) => {
     try {
+      if(!isActive)return;
       setDownloadLoader(true);
       const res = await axiosInstance.get('/instance/download', {
         params: {
@@ -233,10 +236,12 @@ const Instances = () => {
                       <td className="px-6 py-4">{instance?.instances?.id}</td>
                       <td className="px-6 py-4">
                         <span 
-                          onClick={() => downloadInstance(instance?.instances?.id, instance?.instances?.name)}
-                          className='cursor-pointer'
+                          onClick={() => downloadInstance(instance?.instances?.id, instance?.instances?.name, instance?.instances?.isActive)}
+                          className={`${instance?.instances?.isActive ? 'cursor-pointer' : ''}`}
                         >
-                          <Download />
+                          <Download 
+                            disabled={!instance?.instances?.isActive}
+                          />
                         </span>
                       </td>
                       <td className="px-6 py-4">

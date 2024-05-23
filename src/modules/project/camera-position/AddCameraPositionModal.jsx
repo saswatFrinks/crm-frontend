@@ -47,7 +47,7 @@ export default function AddCameraPositionModal({fetchAllCameraPosition, editPosi
       try {
         addCapturePostion(values);
       } catch (error) {
-        toast.error(error.message);
+        toast.error(error?.response?.data?.data?.message);
       }
     },
   });

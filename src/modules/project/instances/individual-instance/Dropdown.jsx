@@ -29,18 +29,18 @@ const Dropdown = ({data, selectedModels, classColors}) => {
         <td></td>
         <td className='border border-gray-300'>
           <div className="flex flex-col items-start gap-4 my-2 px-4">
-            {roiData.name}
+            {roiData?.name}
             <div className="flex items-center gap-4 flex-wrap">
-              {roiData.classes.map((id) => {
-                return <Chip color={classColors.get(id).color}>{classColors.get(id).name}</Chip>
+              {roiData?.classes?.map((id) => {
+                return <Chip color={classColors.get(id)?.color}>{classColors.get(id)?.name}</Chip>
               })}
             </div>
           </div>
         </td>
         <td className='border border-gray-300'>
           <div className="flex flex-col items-center gap-4 my-2 p-2">
-            {data.classes.map((classData) => {
-              return <Chip color={classColors.get(classData.id).color}>{classColors.get(classData.id).name}</Chip>
+            {data?.classes?.map((classData) => {
+              return <Chip color={classColors.get(classData.id)?.color}>{classColors.get(classData.id)?.name}</Chip>
             })}
           </div>
         </td>

@@ -5,10 +5,15 @@ import Heading from '@/shared/layouts/main/heading';
 import Button from '@/shared/ui/Button';
 import Radio from '@/shared/ui/Radio';
 import React from 'react';
-import { Link, useLocation, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
 import { assemblyAtom } from '../state';
 import { selectedConfigurationAtom } from '../project-configuration/state';
+import Modal from '@/shared/ui/Modal';
+import WarningModal from './WarningModal';
+import { modalAtom } from '@/shared/states/modal.state';
+import toast from 'react-hot-toast';
+import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader';
 
 const columns = [
   '',
@@ -17,7 +22,7 @@ const columns = [
   'Camera Configuration',
   'Objective',
   'Dataset',
-  'Configuration Status',
+  'Annotation Status',
 ];
 
 export default function Annotation() {
@@ -25,7 +30,12 @@ export default function Annotation() {
   const [selectedConfiguration, setSelectedConfiguration] = useRecoilState(selectedConfigurationAtom)
   const [configurations, setConfigurations] = React.useState([]);
   const [selectedDataset, setSelectedDataset] = React.useState(null);
+  const [loader, setLoader] = React.useState(false);
+  const [isHovered, setIsHovered] = React.useState(false);
+  const [warningIndex, setWarningIndex] = React.useState(null);
+  const [open, setOpen] = useRecoilState(modalAtom);
   const location = useLocation();
+  const navigate = useNavigate();
 
   // const [configurations, setConfigurations] = React.useState([
   //   { id: 1, status: 'Pending' },
@@ -34,22 +44,75 @@ export default function Annotation() {
 
   const getConfigurations = async () => {
     try {
-      const res = await axiosInstance.get('/configuration/list', {
+      const res = await axiosInstance.get('/annotation/list', {
         params: {
           projectId: params.projectId,
         },
       });
       setConfigurations(res.data.data)
     } catch (error) {
-      
+      toast.error(error?.response?.data?.data?.message)
     }
   }
 
+  const getImagesFromDataset = async () => {
+    try {
+      setLoader(true);
+      const response = await axiosInstance.get('/dataset/allImages', {
+        params: {
+          folderId: selectedDataset
+        }
+      });
+
+      const images = await response?.data?.data;
+      return images.length > 0;
+    } catch(error) {
+      toast.error(error?.response?.data?.data?.message)
+    } finally {
+      setLoader(false);
+    }
+  }
+
+  const startConfiguration = async () => {
+    const status = selectedConfiguration.status.toLocaleLowerCase();
+    if(!selectedDataset){
+      setWarningIndex(0);
+      setOpen(true);
+      return;
+    }else{
+      const hasImages = await getImagesFromDataset();
+      if(!hasImages){
+        setWarningIndex(1);
+        setOpen(true);
+        return;
+      }
+    }
+    
+    navigate(`annotation-job/${selectedConfiguration.id}/${selectedDataset}`)
+  }
+
   React.useEffect(() => {
+    setSelectedConfiguration({
+      id: '',
+      objective: 'Assembly',
+      status: '',
+      analysisStatus: ''
+    })
     getConfigurations();
   }, [])
   return (
     <>
+      <Modal>
+        <WarningModal 
+          warningIndex = {warningIndex}
+          configId = {selectedConfiguration.id}
+        />
+      </Modal>
+
+      {loader && (
+        <ProjectCreateLoader title='Fetching dataset details'/>
+      )}
+
       <Heading
         subcontent={
           <>
@@ -72,19 +135,27 @@ export default function Annotation() {
       <div className="p-10">
         <div className="mb-8 flex items-center justify-between">
           <h1 className=" text-2xl font-semibold">Annotation</h1>
-          <Button fullWidth={false} size="xs">
-            {(selectedConfiguration.id && selectedDataset) ? (
-              <Link className="flex items-center gap-2" to={`annotation-job/${selectedConfiguration.id}/${selectedDataset}`}>
-                <Setting />
-                Start Annotation
-              </Link>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Setting />
-                Start Annotation
+          <div 
+            className="relative"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+          >
+            <Button 
+              fullWidth={false} 
+              size="xs" 
+              className="flex items-center gap-2" 
+              disabled={!selectedConfiguration.id || selectedConfiguration?.status?.toLowerCase() === 'pending'}
+              onClick={startConfiguration}
+            >
+              <Setting />
+              Start Annotation
+            </Button>
+            {isHovered && (selectedConfiguration?.status?.toLowerCase() === 'pending') && (
+              <div className="w-[200px] absolute bottom-10 left-1/2 transform -translate-x-1/2 bg-black text-white py-2 px-4 rounded-md text-sm z-10">
+                Please complete the configuration for this in previous step.
               </div>
             )}
-          </Button>
+          </div>
         </div>
 
         <div className="placeholder:*: relative shadow-md sm:rounded-lg">
@@ -118,7 +189,9 @@ export default function Annotation() {
                           setSelectedDataset(config.datasetId);
                           setSelectedConfiguration({
                             id: config.id,
-                            objective: config.objective
+                            objective: config.objective,
+                            status: config.status,
+                            analysisStatus: config.analysisStatus
                           })
                         }}
                       />
@@ -129,11 +202,12 @@ export default function Annotation() {
                     <td className="px-6 py-4">{config.objective}</td>
                     <td className="px-6 py-4">{config.datasetName}</td>
                     <td className="px-6 py-4">
-                      <span
-                        className={`${config.status == 'Pending' ? 'text-red-500' : 'text-green-500'}`}
-                      >
-                        {config.status}
-                      </span>
+                      {config.count && <span
+                          className={`${config.annotated != config.count ? 'text-red-500' : 'text-green-500'}`}
+                        >
+                          {config.annotated == config.count ? 'Completed': 'Incomplete'}: &nbsp;&nbsp;<b>{config.annotated} / {config.count}</b>
+                        </span>
+                      }
                     </td>
                   </tr>
                 );

@@ -5,6 +5,8 @@ export const selectedConfigurationAtom = atom({
   default: {
     id: '',
     objective: 'Assembly',
+    status: '',
+    analysisStatus: ''
   },
 });
 
