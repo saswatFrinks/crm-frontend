@@ -34,7 +34,7 @@ import { cloneDeep } from 'lodash';
 export default function InspectionParameterStep(props) {
   // type: moving | stationary {{ASSEMBLY_CONFIG}}
   const { type = ASSEMBLY_CONFIG.STATIONARY } = props;
-  console.log(type)
+  // console.log(type)
   const param = useParams();
   
   const setModalState = useSetRecoilState(modalAtom);
@@ -60,7 +60,8 @@ export default function InspectionParameterStep(props) {
           projectId: param.projectId,
         }
       })
-      setClassOptions(classes.data.data)
+    console.log("configuration:",selectedConfiguration)
+    setClassOptions(classes.data.data)
     } catch (error) {
       
     }
@@ -68,7 +69,7 @@ export default function InspectionParameterStep(props) {
 
   useEffect(()=>{
     getClasses()
-    console.log(selectedConfiguration)
+    console.log("configuration:",selectedConfiguration)
   },[])
 
   useEffect(()=>{
@@ -76,6 +77,7 @@ export default function InspectionParameterStep(props) {
       return
     }
     let tempRois = cloneDeep(configuration.rois)
+    console.log("confRois:",configuration.rois)
     if(tempRois[0].parts[0].class === ''){
       tempRois[0].parts[0].class = classOptions[0].id
       tempRois[0].parts[0].className = classOptions[0].name
@@ -149,7 +151,7 @@ export default function InspectionParameterStep(props) {
   const deleteRoi = () => {
     let roiId = null;
     setConfiguration((t) =>{
-      console.log(t);
+      console.log("deleting roi:",t);
       const ret = t.rois.filter((k) => !k.checked);
       roiId = t.rois.find(ele=>ele.checked)?.id
       return {
@@ -166,7 +168,7 @@ export default function InspectionParameterStep(props) {
     return `obj-${id}`;
   };
 
-  console.log(rectangles)
+  console.log("rects:",rectangles)
 
   const handleClickLabel = (id) => {
     setIsEditing(true);

@@ -113,7 +113,7 @@ export default function ProjectConfiguration() {
       Object.keys(temp).map((item) => {
         const roiName = item;
         const obj = JSON.parse(temp[item]);
-        ret.push([roiName, 'Overall', obj['positive'], obj['negative']]);
+        ret.push([roiName, 'All classes', obj['positive'], obj['negative']]);
         delete obj['positive'];
         delete obj['negative'];
         const tempObj = {};
