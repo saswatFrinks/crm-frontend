@@ -83,7 +83,7 @@ export default function PreTrainingStep() {
           Object.keys(temp).map((item) => {
             const roiName = roiMap[item];
             const obj = temp[item];
-            ret.push([roiName, 'Overall', obj['positive'], obj['negative']]);
+            ret.push([roiName, 'All classes', obj['positive'], obj['negative']]);
             delete obj['positive'];
             delete obj['negative'];
             const tempObj = {};
