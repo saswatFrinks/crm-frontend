@@ -44,7 +44,7 @@ export default function Annotation() {
 
   const getConfigurations = async () => {
     try {
-      const res = await axiosInstance.get('/configuration/list', {
+      const res = await axiosInstance.get('/annotation/list', {
         params: {
           projectId: params.projectId,
         },
@@ -203,11 +203,12 @@ export default function Annotation() {
                     <td className="px-6 py-4">{config.objective}</td>
                     <td className="px-6 py-4">{config.datasetName}</td>
                     <td className="px-6 py-4">
-                      <span
-                        className={`${config.status == 'Pending' ? 'text-red-500' : 'text-green-500'}`}
-                      >
-                        {config.status}
-                      </span>
+                      {config.count && <span
+                          className={`${config.annotated != config.count ? 'text-red-500' : 'text-green-500'}`}
+                        >
+                          {config.annotated == config.count ? 'Completed': 'Incomplete'}: &nbsp;&nbsp;<b>{config.annotated} / {config.count}</b>
+                        </span>
+                      }
                     </td>
                   </tr>
                 );
