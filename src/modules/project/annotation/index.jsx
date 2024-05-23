@@ -31,6 +31,7 @@ export default function Annotation() {
   const [configurations, setConfigurations] = React.useState([]);
   const [selectedDataset, setSelectedDataset] = React.useState(null);
   const [loader, setLoader] = React.useState(false);
+  const [isHovered, setIsHovered] = React.useState(false);
   const [description, setDescription] = React.useState('');
   const [open, setOpen] = useRecoilState(modalAtom);
   const location = useLocation();
@@ -96,7 +97,8 @@ export default function Annotation() {
   React.useEffect(() => {
     setSelectedConfiguration({
       id: '',
-      objective: 'Assembly'
+      objective: 'Assembly',
+      status: ''
     })
     getConfigurations();
   }, [])
@@ -135,16 +137,27 @@ export default function Annotation() {
       <div className="p-10">
         <div className="mb-8 flex items-center justify-between">
           <h1 className=" text-2xl font-semibold">Annotation</h1>
-          <Button 
-            fullWidth={false} 
-            size="xs" 
-            className="flex items-center gap-2" 
-            disabled = {!selectedConfiguration.id}
-            onClick = {startConfiguration}
+          <div 
+            className="relative"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
           >
-            <Setting />
-            Start Annotation
-          </Button>
+            <Button 
+              fullWidth={false} 
+              size="xs" 
+              className="flex items-center gap-2" 
+              disabled={!selectedConfiguration.id || selectedConfiguration?.status?.toLowerCase() === 'pending'}
+              onClick={startConfiguration}
+            >
+              <Setting />
+              Start Annotation
+            </Button>
+            {isHovered && (selectedConfiguration?.status?.toLowerCase() === 'pending') && (
+              <div className="w-[200px] absolute bottom-10 left-1/2 transform -translate-x-1/2 bg-black text-white py-2 px-4 rounded-md text-sm z-10">
+                Please complete the configuration for this in previous step.
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="placeholder:*: relative shadow-md sm:rounded-lg">
@@ -178,7 +191,8 @@ export default function Annotation() {
                           setSelectedDataset(config.datasetId);
                           setSelectedConfiguration({
                             id: config.id,
-                            objective: config.objective
+                            objective: config.objective,
+                            status: config.status
                           })
                         }}
                       />
