@@ -140,8 +140,8 @@ export default function UploadImageStep() {
   };
 
   const uploadImage = async (type, index, typeIndex) => {
+    const imageNum = getImageNumber(index, typeIndex, type);
     try {
-      const imageNum = getImageNumber(index, typeIndex, type);
       if(!selectedFiles[imageNum] || imageLoader[imageNum] || imageRemoveLoader[imageNum])return;
       const formData = new FormData();
       formData.append('file', selectedFiles[imageNum]);
