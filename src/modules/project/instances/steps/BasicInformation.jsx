@@ -202,7 +202,14 @@ const BasicInformation = ({project, formRef, editInstanceId = null}) => {
         instanceId
       });
     } catch (error) {
-      throw new Error(error?.response ? error?.response?.data?.data?.details : error?.message)
+      let errorMessage = error?.response ? error?.response?.data?.data?.details : error?.message;
+      const regex = /"cameraIps\[(\d+)\].cameraIp" must be a valid ip address/;
+      const match = errorMessage?.match(regex);
+      if (match) {
+        const cameraIndex = parseInt(match[1], 10) + 1;
+        errorMessage = errorMessage?.replace(`"cameraIps[${match[1]}].cameraIp"`, `Camera IP ${cameraIndex}`);
+      }
+      throw new Error(errorMessage)
     } finally {
       setLoader(false);
     }
