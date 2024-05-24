@@ -1,6 +1,3 @@
-import Input from '@/shared/ui/Input';
-import Label from '@/shared/ui/Label';
-import TextArea from '@/shared/ui/TextArea';
 import React from 'react';
 import { useRecoilState } from 'recoil';
 import { stepAtom } from './state';
@@ -11,13 +8,13 @@ import ModelConfiguration from './ModelConfiguration';
 import Finish from './Finish';
 import TimeLine from './TimeLine';
 
-export default function BuildNTrainDrawer() {
+export default function BuildNTrainDrawer({formRefs}) {
   const [step, setStep] = useRecoilState(stepAtom);
   const [loading, setLoading] = React.useState(false);
 
   const stepObj = {
-    1: <BasicInformation setLoading={setLoading} />,
-    2: <Configuration setLoading={setLoading} />,
+    1: <BasicInformation setLoading={setLoading} formRef={formRefs[0]} />,
+    2: <Configuration setLoading={setLoading} formRef={formRefs[1]} />,
     3: <DataSet setLoading={setLoading} />,
     4: <ModelConfiguration setLoading={setLoading} />,
     5: <Finish setLoading={setLoading} />,

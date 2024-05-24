@@ -23,7 +23,7 @@ const statusEnum = {
 };
 
 export default function PreTrainingStep() {
-  const columns = ['ROI', '', 'Positive', 'Negative'];
+  const columns = ['ROI', 'Images with', 'Positive', 'Negative'];
   const [loader, setLoader] = useState(null);
   const [starter, setStarter] = useState(false);
   const [info, setInfo] = useState({});
@@ -39,10 +39,10 @@ export default function PreTrainingStep() {
     const res = await axiosInstance.get('/configuration/rois', {
       params: { configurationId: params.configurationId },
     });
-    const resp=JSON.parse(res.data.data.data)
+    const resp = JSON.parse(res.data.data.data);
     resp.map((configItem) => {
-      console.log("configItem:",configItem)
-      tempRoiMap[configItem.id]=configItem.name
+      console.log('configItem:', configItem);
+      tempRoiMap[configItem.id] = configItem.name;
     });
     setRoiMap({ ...tempRoiMap });
     const tempClassMap = {};
@@ -62,7 +62,7 @@ export default function PreTrainingStep() {
       setStarter(true);
     } catch (e) {
       console.error('Error in pre training helper:', e);
-      toast.error(e);
+      toast.error(e?.response?.data?.data?.message);
     }
   };
 
@@ -83,17 +83,32 @@ export default function PreTrainingStep() {
           Object.keys(temp).map((item) => {
             const roiName = roiMap[item];
             const obj = temp[item];
-            ret.push([roiName, 'Overall', obj['positive'], obj['negative']]);
-            delete obj['positive'];
-            delete obj['negative'];
+            if (obj && Object.keys(obj).length > 4) {
+              ret.push([
+                roiName,
+                'All classes',
+                obj['positive'],
+                obj['negative'],
+              ]);
+            }
+            try {
+              delete obj['positive'];
+              delete obj['negative'];
+            } catch (e) {
+              console.error('could not delete positive negative');
+            }
             const tempObj = {};
+            let totalPositive = 0;
+            let totalNegative = 0;
             Object.keys(obj).map((innerVal) => {
               const values = innerVal.split('_');
               const currVal = tempObj[values[0]] || {};
               tempObj[values[0]] = { ...currVal, [values[1]]: obj[innerVal] };
             });
             Object.keys(tempObj).map((finalKey) => {
-              console.log('finalKey:', finalKey);
+              // console.log('finalKey:', finalKey);
+              totalPositive += Number(tempObj[finalKey]['positive']);
+              totalNegative += Number(tempObj[finalKey]['negative']);
               ret.push([
                 roiName,
                 classMap[finalKey] || 'Invalid class ID',
@@ -101,6 +116,9 @@ export default function PreTrainingStep() {
                 tempObj[finalKey]['negative'],
               ]);
             });
+            if (obj && Object.keys(obj).length > 4) {
+              ret.push([roiName, 'Total', '', totalPositive + totalNegative]);
+            }
           });
           console.log('ret:', ret);
           setInfo([...ret]);
@@ -128,11 +146,11 @@ export default function PreTrainingStep() {
     console.log('loader:', loader);
   }, [loader]);
 
-  useEffect(()=>{
-    if(starter){
-      startSSE()
+  useEffect(() => {
+    if (starter) {
+      startSSE();
     }
-  },[starter])
+  }, [starter]);
 
   return (
     <>

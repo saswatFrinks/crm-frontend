@@ -22,6 +22,13 @@ const BasicInformation = ({project, formRef, editInstanceId = null}) => {
     teamId: addInstance?.basic?.teamId || '',
     cameraIps: addInstance?.basic?.cameraIps || []
   })
+  const defaultErrors = {
+    instanceName: '',
+    plantId: '',
+    teamId: '',
+    cameraIps: []
+  }
+  const [errors, setErrors] = useState(defaultErrors)
 
   const fetchAllPlants = async () => {
     const res = await axiosInstance.get('/plant/getList', {
@@ -122,16 +129,52 @@ const BasicInformation = ({project, formRef, editInstanceId = null}) => {
           ...prev,
           cameraIps: ips
         }
+      });
+      setErrors(prev => {
+        const ipErrors = Array.from({length: project?.cameraCount}, () => (''));
+        return {
+          ...prev,
+          cameraIps: ipErrors
+        }
       })
     }
   }, [project])
 
+  const validateForm = () => {
+    const errors = defaultErrors;
+    errors.cameraIps = [...errors.cameraIps];
+    if(!formData.instanceName){
+      errors.instanceName = 'Instance name is required'
+    }
+    if(!formData.plantId){
+      errors.plantId = 'Plant Name is required'
+    }
+    if(!formData.teamId){
+      errors.teamId = 'Team name is required'
+    }
+    formData.cameraIps.forEach((ip, index) => {
+      if(!ip.cameraIp){
+        errors.cameraIps[index] = `Camera IP ${index+1} is required`
+      }
+    })
+    return errors;
+  }
+
+  const hasErrors = (errors) => {
+    if(Object.values(errors).some(error => error.length > 0))return true;
+    if(errors?.cameraIps?.some(error => error.length > 0))return true;
+    return false;
+  }
+
   const handleSubmit = async () => {
     try {
+      const errors = validateForm();
+      setErrors(errors);
       setLoader(true);
-      if(!formData.instanceName || !formData.plantId || formData.cameraIps.some(ip => ip.cameraIp.trim().length === 0)){
-        throw new Error('All fields are required')
-      }
+      // if(!formData.instanceName || !formData.plantId || formData.cameraIps.some(ip => ip.cameraIp.trim().length === 0) || hasErrors(errors)){
+      //   throw new Error('All fields are required')
+      // }
+      if(hasErrors(errors))return null;
       let data = {
         name: formData.instanceName,
         projectId: params.projectId,
@@ -159,7 +202,14 @@ const BasicInformation = ({project, formRef, editInstanceId = null}) => {
         instanceId
       });
     } catch (error) {
-      throw new Error(error?.response ? error?.response?.data?.data?.message : error?.message)
+      let errorMessage = error?.response ? error?.response?.data?.data?.details : error?.message;
+      const regex = /"cameraIps\[(\d+)\].cameraIp" must be a valid ip address/;
+      const match = errorMessage?.match(regex);
+      if (match) {
+        const cameraIndex = parseInt(match[1], 10) + 1;
+        errorMessage = errorMessage?.replace(`"cameraIps[${match[1]}].cameraIp"`, `Camera IP ${cameraIndex}`);
+      }
+      throw new Error(errorMessage)
     } finally {
       setLoader(false);
     }
@@ -191,8 +241,14 @@ const BasicInformation = ({project, formRef, editInstanceId = null}) => {
                 ...prev,
                 instanceName: e.target.value
               }))
+              setErrors(error => {
+                const newErrors = {...error};
+                newErrors.instanceName = e.target.value ? '' : 'Instance name is required';
+                return newErrors;
+              })
             }}
             value={formData.instanceName}
+            errorMessage={errors.instanceName}
           />
         </div>
         <div>
@@ -206,8 +262,14 @@ const BasicInformation = ({project, formRef, editInstanceId = null}) => {
                 ...prev,
                 plantId: e.target.value
               }))
+              setErrors(error => {
+                const newErrors = {...error};
+                newErrors.plantId = e.target.value ? '' : 'Plant name is required';
+                return newErrors;
+              })
             }}
             value = {formData.plantId}
+            errorMessage={errors.plantId}
           />
         </div>
         <div>
@@ -221,8 +283,14 @@ const BasicInformation = ({project, formRef, editInstanceId = null}) => {
                 ...prev,
                 teamId: e.target.value
               }))
+              setErrors(error => {
+                const newErrors = {...error};
+                newErrors.teamId = e.target.value ? '' : 'Team name is required';
+                return newErrors;
+              })
             }}
             value = {formData.teamId}
+            errorMessage={errors.teamId}
           />
         </div>
         {formData.cameraIps.map((cameraIp, index) => (
@@ -244,9 +312,18 @@ const BasicInformation = ({project, formRef, editInstanceId = null}) => {
                     cameraIps: newIps
                   }
                 })
+                setErrors(error => {
+                  const newErrors = [...error.cameraIps];
+                  newErrors[index] = e.target.value ? '' : `Camera IP ${index+1} is required`;
+                  return {
+                    ...error,
+                    cameraIps: newErrors
+                  };
+                })
               }}
               value={formData.cameraIps[index]?.cameraIp || ''}
               pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
+              errorMessage={errors.cameraIps[index]}
             />
           </div>
         ))}

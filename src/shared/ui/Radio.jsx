@@ -15,7 +15,7 @@ export default function Radio(props) {
   } = props;
 
   const checkbox = tv({
-    base: 'w-6 h-6 rounded-full flex items-center justify-center cursor-pointer',
+    base: 'w-6 h-6 rounded-full flex items-center justify-center border-[#ccc] cursor-pointer drop-shadow hover:drop-shadow-xl',
     variants: {
       color: {
         primary: 'text-white',

@@ -26,7 +26,7 @@ const columns = [
   'Pre-training Analysis',
 ];
 
-const preTrainingColumns = ['ROI', '', 'Positive', 'Negative'];
+const preTrainingColumns = ['ROI', 'Images with', 'Positive', 'Negative'];
 
 const preAnalysisStatusMap = [
   {
@@ -114,17 +114,23 @@ export default function ProjectConfiguration() {
       Object.keys(temp).map((item) => {
         const roiName = item;
         const obj = JSON.parse(temp[item]);
-        ret.push([roiName, 'Overall', obj['positive'], obj['negative']]);
+        if (obj && Object.keys(obj).length > 4) {
+          ret.push([roiName, 'All classes', obj['positive'], obj['negative']]);
+        }
         delete obj['positive'];
         delete obj['negative'];
         const tempObj = {};
+        let totalPositive = 0;
+        let totalNegative = 0;
         Object.keys(obj).map((innerVal) => {
           const values = innerVal.split('_');
           const currVal = tempObj[values[0]] || {};
           tempObj[values[0]] = { ...currVal, [values[1]]: obj[innerVal] };
         });
         Object.keys(tempObj).map((finalKey) => {
-          console.log(finalKey);
+          // console.log(finalKey);
+          totalPositive += Number(tempObj[finalKey]['positive']);
+          totalNegative += Number(tempObj[finalKey]['negative']);
           ret.push([
             roiName,
             classNameMap[finalKey] || 'Invalid class ID',
@@ -132,6 +138,9 @@ export default function ProjectConfiguration() {
             tempObj[finalKey]['negative'],
           ]);
         });
+        if (obj && Object.keys(obj).length > 4) {
+          ret.push([roiName, 'Total', '', totalPositive + totalNegative]);
+        }
       });
       console.log('ret:', ret);
       setPreTrainingData([...ret]);
@@ -213,11 +222,18 @@ export default function ProjectConfiguration() {
       <div className="p-10">
         <div className="mb-8 flex items-center justify-between">
           <h1 className=" text-2xl font-semibold">Project Configuration</h1>
-          <Button fullWidth={false} size="xs" disabled={selectedConfiguration.id === ""}>
+          <Button
+            fullWidth={false}
+            size="xs"
+            disabled={selectedConfiguration.id === ''}
+          >
             <div>
-            {selectedConfiguration.id ? 
-              (
-                <Link className="flex items-center gap-2" to={`${selectedConfiguration.objective.toLowerCase()}/${selectedConfiguration.id}`}>
+              {selectedConfiguration.id ? (
+                <Link
+                  state={location.state}
+                  className="flex items-center gap-2"
+                  to={`${selectedConfiguration.objective.toLowerCase()}/${selectedConfiguration.id}`}
+                >
                   <Setting /> {'Start Configuration'}
                 </Link>
               ) : (

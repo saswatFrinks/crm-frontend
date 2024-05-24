@@ -1,19 +1,21 @@
 import { Link, NavLink, useLocation, useParams } from 'react-router-dom';
 import logo from '@/assets/logo_min.svg';
 import storageService from '@/core/storage';
+import { useState } from 'react';
 
 export default function Sidebar() {
   const { pathname } = useLocation();
   const params = useParams();
   // const {name} = JSON.parse(storageService.get('user'));
   const location = useLocation();
-  // console.log(location);
+  const [hover, setHover] = useState(null);
+  // console.log("hi",location);
 
   const menus = [
     {
       to: `/project/${params.projectId}`,
       pathname: 'project',
-      name: "Project Build",
+      name: 'Build',
       state: { projectName: location.state?.projectName },
       icon: (active) => (
         <svg
@@ -36,7 +38,7 @@ export default function Sidebar() {
     {
       to: `/configuration/${params.projectId}`,
       pathname: 'configuration',
-      name: "Configurations",
+      name: 'Configurations',
       state: { projectName: location.state?.projectName },
       icon: (active) => (
         <svg
@@ -73,7 +75,7 @@ export default function Sidebar() {
     {
       to: `/annotation/${params.projectId}`,
       pathname: 'annotation',
-      name: "Annotations",
+      name: 'Annotations',
       state: { projectName: location.state?.projectName },
       icon: (active) => (
         <svg
@@ -96,7 +98,7 @@ export default function Sidebar() {
     {
       to: `/ai-training/${params.projectId}`,
       pathname: 'ai-training',
-      name: "AI Model Trainings",
+      name: 'AI Model Trainings',
       state: { projectName: location.state?.projectName },
       icon: (active) => (
         <svg
@@ -119,7 +121,7 @@ export default function Sidebar() {
     {
       to: `instances/${params.projectId}`,
       pathname: 'instances',
-      name: "Instances",
+      name: 'Instances',
       state: { projectName: location.state?.projectName },
       icon: (active) => (
         <svg
@@ -152,6 +154,12 @@ export default function Sidebar() {
             <NavLink
               to={t.to}
               state={t.state}
+              onMouseEnter={() => {
+                setHover(i);
+              }}
+              onMouseLeave={() => {
+                setHover(null);
+              }}
               className={({ isActive }) => {
                 const clx = isActive
                   ? 'active bg-f-primary text-white hover:bg-f-primary hover:text-white'
@@ -163,7 +171,11 @@ export default function Sidebar() {
                 {t.icon(pathname.includes(t.pathname))}
               </div>
             </NavLink>
-            <span className="absolute left-full top-1/2 ml-2 -translate-y-1/2 transform rounded-md bg-f-primary px-2 py-1 text-sm text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+            <span
+              style={hover == i ? { opacity: 1 } : { opacity: 0 }}
+              className="absolute left-full top-1/2 ml-2 -translate-y-1/2 transform rounded-md bg-f-primary px-2 py-1 
+              text-sm text-white opacity-0 transition-opacity duration-300 z-50"
+            >
               {t.name}
             </span>
           </li>

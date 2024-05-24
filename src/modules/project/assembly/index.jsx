@@ -250,6 +250,7 @@ export default function Assembly() {
             console.log('roi id not present');
             roiMap[roiId] = {
               id: i,
+              identity:roiId,
               checked: false,
               status: STATUS.FINISH,
               open: true,
@@ -364,6 +365,7 @@ export default function Assembly() {
         }
       });
       return {
+        id:roi?.identity || '',
         name: `ROI ${index}`,
         x1,
         x2,

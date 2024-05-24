@@ -8,7 +8,7 @@ export default function TimeLine(props) {
   const [timelines, setTimelines] = React.useState(
     props?.timelines || [
       'Basic',
-      'Configuration & Classes',
+      'Configurations & Classes',
       'Datasets',
       'Model Configuration',
       'Finish',
