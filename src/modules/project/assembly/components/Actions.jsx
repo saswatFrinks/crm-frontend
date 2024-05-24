@@ -9,12 +9,15 @@ import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 
 import { ACTION_NAMES, IMAGE_STATUS, RECTANGLE_TYPE, STATUS } from '@/core/constants';
 import { assemblyAtom, currentRectangleIdAtom, currentRoiIdAtom, editingAtom, imageStatusAtom, lastActionNameAtom, rectanglesAtom, rectanglesTypeAtom, selectedRoiSelector, stageAtom } from '../../state';
+import { useState } from 'react';
 // import { editingRectAtom } from '../state';
 
 export default function Actions({ cancel, submit }) {
   const setStage = useSetRecoilState(stageAtom);
 
   const [imageStatus, setImageStatus] = useRecoilState(imageStatusAtom);
+
+  const [isHovered, setIsHovered] = useState('');
 
   const [isEditing, setIsEditing] = useRecoilState(editingAtom);
   const currentRoiId = useRecoilValue(currentRoiIdAtom);
@@ -108,21 +111,21 @@ export default function Actions({ cancel, submit }) {
     //   canAction: true,
     // },
     {
-      title: 'Fit To Center',
+      title: 'Fit to frame',
       icon: FitToCenter,
       action: handleFitToCenter,
       active: false,
       canAction: true,
     },
     {
-      title: 'Fit 1:1',
+      title: 'Default Zoom',
       icon: OneIsToOne,
       action: handleOneToOne,
       active: false,
       canAction: true,
     },
     {
-      title: 'box',
+      title: 'Rectangular Selection',
       icon: Box,
       action: handleDrawBox,
       active: imageStatus.draw,
@@ -145,14 +148,22 @@ export default function Actions({ cancel, submit }) {
     <>
       <ul className="flex items-center gap-6 px-4">
         {actions.map((t) => (
-          <li
-            key={t.title}
-            className={`flex cursor-pointer select-none flex-col items-center p-2 ${t.active ? 'text-f-primary' : ''} ${t.canAction ? '' : 'cursor-not-allowed opacity-30'}`}
-            onClick={t?.action}
-          >
-            <t.icon active={t.active} />
-            {/* {t.title} */}
-          </li>
+          <div key={t.title} className="relative">
+            <li
+              className={`flex cursor-pointer select-none flex-col items-center p-2 ${t.active ? 'text-f-primary' : ''} ${t.canAction ? '' : 'cursor-not-allowed opacity-30'}`}
+              onClick={t?.action}
+              onMouseEnter={() => setIsHovered(t.title)}
+              onMouseLeave={() => setIsHovered('')}
+            >
+              <t.icon active={t.active} />
+              {/* {t.title} */}
+            </li>
+            {isHovered === t.title && (
+              <div className="absolute bottom-12 left-1/2 transform w-auto -translate-x-1/2 bg-f-primary text-white py-2 px-4 rounded-md text-sm z-10">
+                {t.title}
+              </div>
+            )}
+          </div>
         ))}
       </ul>
       {isEditing && (
