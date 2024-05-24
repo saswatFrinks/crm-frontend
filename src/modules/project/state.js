@@ -123,3 +123,8 @@ export const annotationClassesAtom = atom({
   key: 'annotationClassesAtom',
   default: {}
 })
+
+export const labelEditedAtom = atom({
+  key: 'labelEditedAtom',
+  default: {}
+})

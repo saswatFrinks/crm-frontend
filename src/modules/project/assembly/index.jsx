@@ -22,7 +22,7 @@ import Actions from './components/Actions';
 import { useParams } from 'react-router-dom';
 
 import { editingRectAtom, loadedLabelsAtom, stepAtom } from './state';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axiosInstance from '@/core/request/aixosinstance';
 import {
   annotationMapAtom,
@@ -30,6 +30,7 @@ import {
   currentRectangleIdAtom,
   currentRoiIdAtom,
   editingAtom,
+  labelEditedAtom,
   lastActionNameAtom,
   rectanglesAtom,
   rectanglesTypeAtom,
@@ -68,6 +69,8 @@ export default function Assembly() {
   const setLastAction = useSetRecoilState(lastActionNameAtom);
   const [rectangles, setRectangles] = useRecoilState(rectanglesAtom);
   const setLabelsLoaded = useSetRecoilState(loadedLabelsAtom);
+  const [labelsEdited, setLabelsEdited] = useRecoilState(labelEditedAtom);
+  const [roisLoaded, setRoisLoaded] = useState(false);
 
   const getProject = async () => {
     try {
@@ -92,7 +95,9 @@ export default function Assembly() {
 
   const updateAnnotation = async () => {
     const imgMap = {};
+    if(Object.keys(labelEditedAtom).length==0) return;
     annotationRects.forEach((rect) => {
+      if(!labelsEdited[rect.imageId]) return;
       const classNo = annotationMap[rect.uuid];
       const height = (rect.height).toFixed(4);
       const width = (rect.width).toFixed(4);
@@ -118,7 +123,7 @@ export default function Assembly() {
     formData.append('imageIds', imageIds);
     if (!imageIds.length) {
       toast.success('No chanegs to update');
-      return;
+      return true;
     }
     try {
       const data = await axiosInstance.post(
@@ -126,6 +131,7 @@ export default function Assembly() {
         formData
       );
       toast.success('Labels uploaded');
+      setLabelsEdited({});
       return data.data?.success;
     } catch (e) {
       toast.error(
@@ -203,6 +209,7 @@ export default function Assembly() {
   };
 
   const getRois = async () => {
+    if(roisLoaded) return true;
     try {
       const roiData = await axiosInstance.get('/configuration/classes', {
         params: {
@@ -313,9 +320,13 @@ export default function Assembly() {
     } catch (e) {
       return false;
     }
+    finally{
+      setRoisLoaded(true)
+    }
   };
 
   useEffect(() => {
+    setLabelsEdited({});
     getProject();
   }, []);
 
@@ -413,7 +424,6 @@ export default function Assembly() {
     rect.imageId && rect.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL && imageIdStore.add(rect.imageId);
   })
   const isAllImagesLabeled = imageIdStore.size == 10;
-  console.log(isAllImagesLabeled);
 
   return (
     <>

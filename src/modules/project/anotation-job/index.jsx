@@ -17,6 +17,8 @@ import { getRandomHexColor } from '@/util/util';
 import { ACTION_NAMES, BASE_RECT, DEFAULT_ANNOTATION, RECTANGLE_TYPE } from '@/core/constants';
 import toast from 'react-hot-toast';
 import { v4 } from 'uuid';
+import Modal, { ModalBody, ModalFooter, ModalHeader } from '@/shared/ui/Modal';
+import { modalAtom } from '@/shared/states/modal.state';
 
 export default function AnnotationJob() {
   const {datasetId, projectId, configurationId} = useParams();
@@ -33,11 +35,12 @@ export default function AnnotationJob() {
   const [annotationLoadeFlag, setAnnotationLoadedFlag] = useState({})
   const [annotationMap, setAnnotationMap] = useRecoilState(annotationMapAtom);
   const labelRef = React.useRef(labelClass);
-  const [rois, setRois] = React.useState(false)
+  const [rois, setRois] = React.useState([])
   const nav = useNavigate()
   const [annotationClasses, setAnnotationClasses] = useRecoilState(annotationClassesAtom)
   const selectedClassId = useRecoilValue(labelClassAtom)
   const setSelectedPloyId = useSetRecoilState(currentRectangleIdAtom)
+  const [modalOpen, setModalOpen] = useRecoilState(modalAtom);
 
   const getImageUrl = (id) => {
     return `${import.meta.env.VITE_BASE_API_URL}/dataset/image?imageId=${id}`
@@ -201,6 +204,7 @@ export default function AnnotationJob() {
   }
 
   React.useEffect(()=>{
+    setAnnotationClasses({})
     setStep(2);
     setRectangles([]);
     getAllImages();
@@ -300,6 +304,7 @@ export default function AnnotationJob() {
 
   const udpateAndExit = async () => {
     await updateAnnotation()
+    setModalOpen(false);
     nav('..', {relative: 'route'});
   }
 
@@ -312,6 +317,20 @@ export default function AnnotationJob() {
   console.log(rectangles, annotationMap);
 
   return (
+  <>
+    {
+      modalOpen && 
+        <Modal>
+          <ModalHeader>You have unsaved changes</ModalHeader>
+          <ModalBody>You have unsaved local changes. The data will be lost if not saved. Do you want to exit?</ModalBody>
+          <ModalFooter>
+            <div className='flex flex-row gap-4 justify-end'>
+              <Button size='sm' color="success" fullWidth={false} onClick={udpateAndExit}>Save and exit</Button>
+              <Button size='sm' color='danger' fullWidth={false} onClick={()=>{setModalOpen(false);nav('..', {relative: 'route'});}} >Dont save</Button>
+            </div>
+          </ModalFooter>
+        </Modal>
+    }
     <div className="grid h-screen grid-cols-12">
       <div className="col-span-3 grid grid-rows-12 border-r-[1px] border-black">
         <div className="row-span-11  bg-white flex flex-col">
@@ -328,8 +347,8 @@ export default function AnnotationJob() {
           </div>
         </div>
         <div className="row-span-1 flex items-center gap-2 border-t-[1px] border-black bg-white px-6">
-          <Button variant="flat" size="xs" onClick={udpateAndExit}>
-            Save & Exit
+          <Button variant="flat" size="xs" onClick={()=>setModalOpen(true)}>
+            Exit
           </Button>
           <Button size="xs" onClick={updateAnnotation}>Save</Button>
         </div>
@@ -379,5 +398,6 @@ export default function AnnotationJob() {
         </div>
       </div>
     </div>
+  </>
   );
 }

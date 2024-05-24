@@ -203,10 +203,8 @@ export default function Annotation() {
                     <td className="px-6 py-4">{config.objective}</td>
                     <td className="px-6 py-4">{config.datasetName}</td>
                     <td className="px-6 py-4">
-                      {config.count && <span
-                          className={`${config.annotated != config.count ? 'text-red-500' : 'text-green-500'}`}
-                        >
-                          {config.annotated == config.count ? 'Completed': 'Incomplete'}: &nbsp;&nbsp;<b>{config.annotated} / {config.count}</b>
+                      {config.count && <span>
+                          <b className='flex justify-center'>{config.annotated} / {config.count}</b>
                         </span>
                       }
                     </td>

@@ -4,23 +4,26 @@ import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Edit, Trash } from 'react-feather';
 import Select from '@/shared/ui/Select';
 import {
+  actionStatusAtom,
   annotationMapAtom,
   assemblyAtom,
   currentRectangleIdAtom,
   editingAtom,
   labelClassAtom,
+  labelEditedAtom,
+  lastActionNameAtom,
   rectanglesAtom,
   rectanglesTypeAtom,
   selectedFileAtom,
   selectedRoiSelector,
   uploadedFileListAtom,
 } from '../../state';
-import { BASE_RECT, RECTANGLE_TYPE } from "@/core/constants";
+import { ACTION_NAMES, BASE_RECT, RECTANGLE_TYPE } from "@/core/constants";
 import Button from '@/shared/ui/Button';
 import axiosInstance from '@/core/request/aixosinstance';
 import { useParams } from 'react-router-dom';
 import { getRandomHexColor } from '@/util/util';
-import { loadedLabelsAtom } from '../state';
+import { loadedLabelsAtom, stepAtom } from '../state';
 import Pagination from '@/shared/ui/Pagination';
 import { v4 } from 'uuid';
 
@@ -54,14 +57,18 @@ export default function LabelImage({save}) {
   const [loadedLabelData, setLoadedLabelData] = useRecoilState(loadedLabelsAtom)
   const params = useParams();
   const labelsRef = React.useRef(labelClasses);
+  const [labelEdited, setLabelsEdited] = useRecoilState(labelEditedAtom);
+  const actionName = useRecoilValue(lastActionNameAtom)
+  const step = useRecoilValue(stepAtom);
 
   const selectedLabelRef = React.useRef(selectedLabel);
 
-  const removeRectangle = (uuid) => {
+  const removeRectangle = (uuid,imageId) => {
     setRectangle((t) => t.filter((k) => k.uuid !== uuid));
     const temp = {...annotationMap}
     delete temp[uuid]
     setAnnotationMap(temp)
+    setLabelsEdited(prev=>({...prev, [imageId]: true}));
   };
 
   useEffect(()=>{
@@ -113,6 +120,12 @@ export default function LabelImage({save}) {
       setSelectedFile(images[curIndex-1])
     }
   }
+
+  React.useEffect(()=>{
+    if(actionName==ACTION_NAMES.SELECTED && step==2){
+      setLabelsEdited(prev=>({...prev, [selectedImage.id]: true}));
+    }
+  }, [actionName])
 
   React.useEffect(() => {
     let annotations = []
@@ -236,15 +249,16 @@ export default function LabelImage({save}) {
                     recCp[ind] = {...recCp[ind], title: labelClasses.find(ele=>ele.id==e.target.value).name}
                     setRectangle(recCp)
                     setAnnotationMap({...annotationMap, [t.uuid]: e.target.value})
+                    setLabelsEdited(prev=>({...prev, [t.imageId]: true}));
                   }}
                 />
               </div>
             </div>
-            <Edit size={18} className='cursor-pointer mr-4' onClick={()=>setSelectedPloyId(t.uuid)}/>
+            <Edit size={18} className='cursor-pointer mr-4' onClick={()=>{setSelectedPloyId(t.uuid);setLabelsEdited(prev=>({...prev, [t.imageId]: true}))}}/>
             <Trash
               size={18}
               className="cursor-pointer"
-              onClick={() => removeRectangle(t.uuid)}
+              onClick={() => removeRectangle(t.uuid, t.imageId)}
             />
           </div>
         )}
