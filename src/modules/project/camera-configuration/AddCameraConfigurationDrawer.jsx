@@ -164,6 +164,7 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
           placeholder="Enter Capture Order"
           type="number"
           name="order"
+          min="0"
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
           value={formik.values.order}
