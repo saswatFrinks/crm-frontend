@@ -9,13 +9,13 @@ export default function Sidebar() {
   // const {name} = JSON.parse(storageService.get('user'));
   const location = useLocation();
   const [hover, setHover] = useState(null);
-  console.log("hi",location);
+  // console.log("hi",location);
 
   const menus = [
     {
       to: `/project/${params.projectId}`,
       pathname: 'project',
-      name: 'Project Build',
+      name: 'Build',
       state: { projectName: location.state?.projectName },
       icon: (active) => (
         <svg
@@ -173,7 +173,8 @@ export default function Sidebar() {
             </NavLink>
             <span
               style={hover == i ? { opacity: 1 } : { opacity: 0 }}
-              className="absolute left-full top-1/2 ml-2 -translate-y-1/2 transform rounded-md bg-f-primary px-2 py-1 text-sm text-white opacity-0 transition-opacity duration-300"
+              className="absolute left-full top-1/2 ml-2 -translate-y-1/2 transform rounded-md bg-f-primary px-2 py-1 
+              text-sm text-white opacity-0 transition-opacity duration-300 z-50"
             >
               {t.name}
             </span>
