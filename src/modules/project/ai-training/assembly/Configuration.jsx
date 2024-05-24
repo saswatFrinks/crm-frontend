@@ -264,7 +264,7 @@ export default function Configuration({ setLoading, formRef }) {
                           <>
                             <Chip key={className} color={`color-${index + 1}`}>
                               {className}
-                            </Chip>{numberOfClass > 1 && <span>{`x${numberOfClass}`}</span>}
+                            </Chip>{numberOfClass > 1 && <span className='font-medium'>{`x${numberOfClass}`}</span>}
                           </>
                         );
                       })}
