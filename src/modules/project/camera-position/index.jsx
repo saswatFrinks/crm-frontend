@@ -86,7 +86,7 @@ export default function CameraPosition() {
             <Link
               to={`/project/${params.projectId}`}
               className="flex items-center gap-2"
-              state={location.state}
+              state={{...location.state}}
             >
               <ArrowRight />
               <span>{location.state.projectName}</span>
@@ -94,7 +94,7 @@ export default function CameraPosition() {
             <Link
               to={`/project/${params.projectId}/variant/${params.variantId}`}
               className="flex items-center gap-2"
-              state={location.state}
+              state={{...location.state}}
             >
               <ArrowRight />
               <span>{location.state.variantName}</span>

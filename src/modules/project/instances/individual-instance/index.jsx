@@ -176,7 +176,7 @@ const IndividualInstance = () => {
             <Link
               to={location.pathname}
               className="flex items-center gap-2"
-              state={{...location.state}}
+              state={location.state}
             >
               <ArrowRight />
               <span>{instance?.name || 'Instance Name'}</span>

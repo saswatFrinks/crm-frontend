@@ -127,6 +127,7 @@ export default function AiTrainingLayout() {
             <li key={t.to}>
               <NavLink
                 to={t.to}
+                state={location.state}
                 className={({ isActive }) => {
                   const clx = location.pathname.includes(t.to)
                     ? 'active bg-f-primary text-white hover:bg-f-primary hover:text-white'
