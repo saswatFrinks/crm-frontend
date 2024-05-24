@@ -326,7 +326,7 @@ export default function AnnotationJob() {
           <ModalFooter>
             <div className='flex flex-row gap-4 justify-end'>
               <Button size='sm' color="success" fullWidth={false} onClick={udpateAndExit}>Save and exit</Button>
-              <Button size='sm' color='danger' fullWidth={false} onClick={()=>{setModalOpen(false);nav('..', {relative: 'route'});}} >Dont save</Button>
+              <Button size='sm' color='danger' fullWidth={false} onClick={()=>{setModalOpen(false);nav('..', {relative: 'route'});}} >Discard and exit</Button>
             </div>
           </ModalFooter>
         </Modal>
