@@ -1,18 +1,42 @@
 import axiosInstance from '@/core/request/aixosinstance';
+import { modalAtom } from '@/shared/states/modal.state';
+import Button from '@/shared/ui/Button';
 import { ModalBody, ModalHeader } from '@/shared/ui/Modal';
 import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader';
 import React, { useEffect, useState } from 'react'
 import toast from 'react-hot-toast';
+import { Link, useLocation, useParams } from 'react-router-dom';
+import { useRecoilState } from 'recoil';
 
-const WarningModal = ({warningIndex, configId}) => {
+const WarningModal = ({warningIndex, configId, config}) => {
+  const params = useParams();
+  const location = useLocation();
   const [preTrainingData, setPreTrainingData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [open, setOpen] = useRecoilState(modalAtom);
+  const locationState= {
+    variantName: config.variant,
+    cameraPositionName: config.cameraPosition,
+    cameraConfigName: config.cameraConfig,
+    folderName: config?.datasetName
+  }
 
   const columns = ['', 'Positive', 'Negative'];
 
   const warnings = [
     'Please, first, create a dataset folder for this camera configuration from the Build flow of this project. Then, upload the positive & negative images in this newly created dataset folder for this configuration according to the pre-training analysis result for this camera configuration.',
     'Please upload the positive & negative images in the mentioned dataset folder, within the table column Dataset, for this configuration according to the pre-training analysis result for this camera configuration.'
+  ]
+
+  const buttons = [
+    {
+      name: 'Create Dataset Folder',
+      to: `/project/${params.projectId}/variant/${config.variantId}/camera-position/${config.cameraPositionId}/camera-config/${config.cameraConfigId}`
+    }, 
+    {
+      name: 'Upload Images',
+      to: `/project/${params.projectId}/variant/${config.variantId}/camera-position/${config.cameraPositionId}/camera-config/${config.cameraConfigId}/folder/${config.datasetId}`
+    }
   ]
 
   const getValidationForConfiguration = async () => {
@@ -96,6 +120,20 @@ const WarningModal = ({warningIndex, configId}) => {
                   ))}
               </tbody>
             </table>
+            <div className='text-right mt-7'>
+              <Button
+                fullWidth={false}
+                size='xs'
+                onClick={() => setOpen(false)}
+              >
+                <Link
+                  to={buttons[warningIndex]?.to}
+                  state={{...location.state, ...locationState}}
+                >
+                  {buttons[warningIndex]?.name}
+                </Link>
+              </Button>
+            </div>
           </div>
         )}
       </ModalBody>

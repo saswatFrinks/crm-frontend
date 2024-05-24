@@ -106,6 +106,7 @@ export default function Annotation() {
         <WarningModal 
           warningIndex = {warningIndex}
           configId = {selectedConfiguration.id}
+          config = {selectedConfiguration}
         />
       </Modal>
 
@@ -173,7 +174,7 @@ export default function Annotation() {
               {configurations.map((config, index) => {
                 return (
                   <tr
-                    className="border-b odd:bg-white even:bg-[#C6C4FF]/10"
+                    className="odd:bg-white even:bg-[#C6C4FF]/10"
                     key={config.id}
                   >
                     <th
@@ -187,12 +188,7 @@ export default function Annotation() {
                         checked={selectedConfiguration.id===config.id && config.datasetId==selectedDataset}
                         onClick={(e) => {
                           setSelectedDataset(config.datasetId);
-                          setSelectedConfiguration({
-                            id: config.id,
-                            objective: config.objective,
-                            status: config.status,
-                            analysisStatus: config.analysisStatus
-                          })
+                          setSelectedConfiguration(config)
                         }}
                       />
                     </th>

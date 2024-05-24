@@ -134,8 +134,8 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
     initialValues: {
       name: projectToEdit?.name || '',
       description: projectToEdit?.description || '',
-      inspectionSpeed: projectToEdit?.inspectionSpeed || 10,
-      cameraCount: projectToEdit?.cameraCount || 5,
+      inspectionSpeed: projectToEdit?.inspectionSpeed || null,
+      cameraCount: projectToEdit?.cameraCount || null,
       isCameraFixed: projectToEdit ? (projectToEdit?.isCameraFixed ? "fixed" : "robo") : '',
       isItemFixed: projectToEdit ? (projectToEdit?.isItemFixed ? "stationary" : "moving") : '',
       inspectionType: projectToEdit ? projectToEdit.inspectionType : '',

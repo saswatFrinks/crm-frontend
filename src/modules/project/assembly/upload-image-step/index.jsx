@@ -177,10 +177,10 @@ export default function UploadImageStep() {
               {imagesWithTypes[image.key].map((img, i) => {
                 const imageNum = getImageNumber(index, i, image.key);
                 return <div className="flex items-center gap-3 my-2" key={imageNum}>
-                  {i + 1}.
                   {
                     images[imageNum] ? (
                       <div className='flex items-center gap-4'>
+                        {i + 1}.
                         <a 
                           href={`${import.meta.env.VITE_BASE_API_URL}/configurationImage/view?imageId=${images[imageNum].id}`} 
                           target='_blank'
@@ -200,6 +200,7 @@ export default function UploadImageStep() {
                     ) : (
                       <div>
                     <div className="flex items-center gap-3">
+                      {i + 1}.
                       <label className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-f-primary lg:px-10 sm:px-5 xs:px-1 py-2 text-white duration-100 hover:bg-f-secondary">
                         {selectedFiles[imageNum]?.name ? 'Change' : 'Choose'} Image
                         <input type="file" disabled={imageLoader[imageNum]} accept='.png' hidden onChange={(e) => {
@@ -224,7 +225,7 @@ export default function UploadImageStep() {
                       </label>}
                     </div>
                     {selectedFiles[imageNum]?.name && (
-                      <div className="m-1">
+                      <div className="m-1 ml-7">
                         {selectedFiles[imageNum].name}
                       </div>
                     )}
