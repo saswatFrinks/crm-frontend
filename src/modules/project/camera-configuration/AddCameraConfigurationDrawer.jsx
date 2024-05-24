@@ -60,7 +60,7 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
   const formik = useFormik({
     initialValues: {
       name: '',
-      order: null,
+      order: '',
       objectives: [],
     },
     validate: (values) => {
@@ -101,7 +101,8 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
 
         fetchAllCameraConfigs();
         closeDrawer();
-        formik.resetForm();
+        // formik.resetForm();
+        formik.setValues({'name': '', 'order': '', objectives: [...initialObjectives]})
       } catch (err) {
         toast.error(err.response.data.data.message);
       }
@@ -163,6 +164,7 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
           placeholder="Enter Capture Order"
           type="number"
           name="order"
+          min="0"
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
           value={formik.values.order}
