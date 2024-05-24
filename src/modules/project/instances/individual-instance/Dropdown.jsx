@@ -18,6 +18,7 @@ const Dropdown = ({data, selectedModels, classColors}) => {
 
   return (
     <>
+      <tr className="bg-white px-6 py-4"></tr>
       <tr className="bg-white">
         {columns.map((t) => (
           <th scope="col" className={`px-6 py-3 ${getAlignment(t)} ${t ? 'border border-gray-300 bg-[#E6E6E6]' : 'bg-white'}`} key={t}>
@@ -48,6 +49,7 @@ const Dropdown = ({data, selectedModels, classColors}) => {
         <td></td>
         <td></td>
       </tr>
+      <tr></tr>
     </>
   );
 };

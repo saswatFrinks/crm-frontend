@@ -6,16 +6,18 @@ import { useSetRecoilState } from 'recoil';
 import { modalAtom } from '@/shared/states/modal.state';
 import Modal from '@/shared/ui/Modal';
 import AddFolderModal from './AddFolderModal';
-import { Link, useLocation, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import axiosInstance from '@/core/request/aixosinstance';
 import { CiFileOn } from 'react-icons/ci';
 import Action from '@/modules/team-user/Action';
 import DeleteModal from '@/modules/team-user/DeleteModal';
 import toast from 'react-hot-toast';
+import Button from '@/shared/ui/Button';
 
 export default function DataSet() {
   const setModalState = useSetRecoilState(modalAtom);
   const params = useParams();
+  const navigate = useNavigate();
   const [folders, setFolders] = React.useState([]);
   const [action, setAction] = React.useState('add');
   const [editIndex, setEditIndex] = React.useState(0);
@@ -44,6 +46,10 @@ export default function DataSet() {
       toast.error(error.response.data.data.message);
     }
   };
+  
+  const goToConfig = () => {
+    navigate(`/configuration/${params.projectId}`)
+  }
 
   React.useEffect(() => {
     fetchAllFolders();
@@ -162,6 +168,13 @@ export default function DataSet() {
           })}
         </div>
       </div>
+      <Button
+        fullWidth={false}
+        className='absolute bottom-10 right-10'
+        onClick={goToConfig}
+      >
+        Finish this build configuration
+      </Button>
     </>
   );
 }

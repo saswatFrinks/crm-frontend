@@ -9,6 +9,7 @@ import { useRecoilState, useSetRecoilState } from 'recoil';
 import { classAtom, configurationAtom } from './state';
 import { getRoisAndClasses } from '@/algo/algo';
 import toast from 'react-hot-toast';
+import { removeDuplicates } from '@/util/util';
 
 export default function Configuration({ setLoading, formRef }) {
   const columns = [
@@ -17,11 +18,14 @@ export default function Configuration({ setLoading, formRef }) {
     'Camera Config',
     'ROI',
     'Classes',
+    ''
   ];
 
   const params = useParams();
   const [classes, setClasses] = useState([]);
   const [rois, setRois] = useState([]);
+  const [roiClasses, setRoiClasses] = useState([]);
+  const [classMap, setClassMap] = useState(new Map());
   const [configuration, setConfiguration] = useRecoilState(configurationAtom);
   const [classAt, setClassAtom] = useRecoilState(classAtom);
   const [error, setError] = useState('');
@@ -34,10 +38,23 @@ export default function Configuration({ setLoading, formRef }) {
           projectId: params.projectId,
         },
       });
+      let roiClass = [];
+      let roiClassCount = new Map();
       const roiArr = res.data.data.detection.map((obj) => {
-        // const roiClasses = 
+        let classCount = new Map();
+        obj.classes.forEach(clx => {
+          if(classCount.has(clx)){
+            classCount.set(clx, classCount.get(clx)+1);
+          }else{
+            classCount.set(clx, 1);
+          }
+        })
+        roiClassCount.set(obj.roi.id, classCount);
+        setClassMap(roiClassCount);
+        roiClass = [...roiClass, ...obj.classes];
         return { ...obj, check: false };
       });
+      setRoiClasses(roiClass);
       // setRois(roiArr);
       if (configuration.length != 0) {
         setRois(configuration);
@@ -74,7 +91,8 @@ export default function Configuration({ setLoading, formRef }) {
     // setClassAtom(classArr);
   };
 
-  const handleCheckbox = (id) => {
+  const handleCheckbox = (id, name) => {
+    if(!roiClasses.includes(name))return;
     const selectedEle = classes.filter((classObj) => classObj.id === id);
     console.log(selectedEle);
     if (selectedEle[0].check) {
@@ -181,7 +199,7 @@ export default function Configuration({ setLoading, formRef }) {
                 key={classObj.id}
                 onClick={() => {
                   console.log('here');
-                  handleCheckbox(classObj.id);
+                  handleCheckbox(classObj.id, classObj.name);
                 }}
               >
                 <Checkbox
@@ -192,7 +210,7 @@ export default function Configuration({ setLoading, formRef }) {
                   checked={classObj.check}
                   onChange={() => {}}
                 />
-                <Label htmlFor="class1" main={false}>
+                <Label htmlFor="class1" className={`${!roiClasses.includes(classObj.name) ? 'text-[#aaa]' : ''}`} main={false}>
                   {classObj.name}
                 </Label>
               </div>
@@ -210,7 +228,7 @@ export default function Configuration({ setLoading, formRef }) {
                 {columns.map((t) => (
                   <th
                     scope="col"
-                    className="whitespace-nowrap px-6 py-3"
+                    className='whitespace-nowrap py-3 px-6'
                     key={t}
                   >
                     {t}
@@ -219,7 +237,7 @@ export default function Configuration({ setLoading, formRef }) {
               </tr>
             </thead>
             <tbody>
-              {rois.map((roi, index) => {
+              {rois.map((roi) => {
                 return (
                   <tr
                     className="border-b odd:bg-white even:bg-[#C6C4FF]/10"
@@ -227,17 +245,9 @@ export default function Configuration({ setLoading, formRef }) {
                   >
                     <th
                       scope="row"
-                      className="whitespace-nowrap px-6 py-4 font-medium text-gray-900 "
+                      className="whitespace-nowrap px-6 py-4 font-normal text-gray-900 "
                     >
                       <div className="flex gap-2">
-                        <Checkbox
-                          id={roi.roi.id}
-                          checked={roi.check}
-                          onChange={() => {}}
-                          onClick={() => {
-                            handleROICheckbox(roi.roi.id);
-                          }}
-                        />
                         <Label htmlFor="class1" main={false}>
                           {roi.variant.name}
                         </Label>
@@ -245,16 +255,29 @@ export default function Configuration({ setLoading, formRef }) {
                     </th>
                     <td className="px-6 py-4">{roi.capturePosition.name}</td>
                     <td className="px-6 py-4">{roi.cameraConfig.name}</td>
-                    <td className="px-6 py-4">{roi.roi.name}</td>
+                    <td className="px-6 py-4 font-bold w-[5vw]">{roi.roi.name}</td>
                     {/* <td className={`px-6 py-4 ${statusObj['success']}`}>-</td> */}
-                    <td className="flex flex-wrap gap-2 px-6 py-4">
-                      {roi.classes.map((className, index) => {
+                    <td className="flex flex-wrap items-center gap-2 px-4 py-4">
+                      {removeDuplicates(roi.classes).map((className, index) => {
+                        const numberOfClass = classMap.get(roi.roi.id).get(className);
                         return (
-                          <Chip key={className} color={`color-${index + 1}`}>
-                            {className}
-                          </Chip>
+                          <>
+                            <Chip key={className} color={`color-${index + 1}`}>
+                              {className}
+                            </Chip>{numberOfClass > 1 && <span>{`x${numberOfClass}`}</span>}
+                          </>
                         );
                       })}
+                    </td>
+                    <td className='text-right'>
+                      <Checkbox
+                        id={roi.roi.id}
+                        checked={roi.check}
+                        onChange={() => {}}
+                        onClick={() => {
+                          handleROICheckbox(roi.roi.id);
+                        }}
+                      />
                     </td>
                   </tr>
                 );

@@ -1,4 +1,5 @@
 import axiosInstance from '@/core/request/aixosinstance';
+import Button from '@/shared/ui/Button';
 import { ModalBody, ModalHeader } from '@/shared/ui/Modal';
 import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader';
 import React, { useEffect, useState } from 'react'
@@ -14,6 +15,8 @@ const WarningModal = ({warningIndex, configId}) => {
     'Please, first, create a dataset folder for this camera configuration from the Build flow of this project. Then, upload the positive & negative images in this newly created dataset folder for this configuration according to the pre-training analysis result for this camera configuration.',
     'Please upload the positive & negative images in the mentioned dataset folder, within the table column Dataset, for this configuration according to the pre-training analysis result for this camera configuration.'
   ]
+
+  const buttons = ['Create Dataset Folder', 'Upload Images']
 
   const getValidationForConfiguration = async () => {
     try {
@@ -96,6 +99,14 @@ const WarningModal = ({warningIndex, configId}) => {
                   ))}
               </tbody>
             </table>
+            <div className='text-right'>
+              <Button
+                fullWidth={false}
+                size='xs'
+              >
+                {buttons[warningIndex]}
+              </Button>
+            </div>
           </div>
         )}
       </ModalBody>
