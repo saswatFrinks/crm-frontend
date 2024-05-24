@@ -93,6 +93,7 @@ export default function ProjectConfiguration() {
   };
 
   useEffect(() => {
+    
     getConfigurations();
     setRectangles([]);
     setSteps(0);
