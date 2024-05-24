@@ -3,9 +3,27 @@ import Label from '@/shared/ui/Label';
 import TextArea from '@/shared/ui/TextArea';
 import { useRecoilState } from 'recoil';
 import { modelInfoAtom } from './state';
+import { useState } from 'react';
+import { validateForm, validateFormField } from '../util';
 
-export default function BasicInformation() {
+export default function BasicInformation({formRef}) {
   const [modelInfo, setModelInfo] = useRecoilState(modelInfoAtom);
+  const [errors, setErrors] = useState({
+    modelName: '',
+    modelDescription: ''
+  });
+
+  const validateBasicForm = () => {
+    return validateForm(errors, setErrors, modelInfo);
+  }
+
+  const handleSubmit = () => {
+    const formErrors = validateBasicForm();
+    if(Object.values(formErrors).some(error => error !== ''))return false;
+    return true;
+  }
+
+  formRef.current = {handleSubmit}
 
   return (
     <>
@@ -27,22 +45,11 @@ export default function BasicInformation() {
           <Input
             placeholder="Enter model name"
             value={modelInfo.modelName}
-            onChange={(e) =>
+            onChange={(e) =>{
               setModelInfo({ ...modelInfo, modelName: e.target.value })
-            }
-          />
-        </div>
-        <div>
-          <Label required={true}>Model Key</Label>
-          <Input
-            placeholder="Enter model key"
-            type="number"
-            min="0"
-            defaultValue="0"
-            value={modelInfo.modelKey}
-            onChange={(e) =>
-              setModelInfo({ ...modelInfo, modelKey: e.target.value })
-            }
+              validateFormField('modelName', e.target.value, setErrors)
+            }}
+            errorMessage={errors?.modelName}
           />
         </div>
         <div>
@@ -51,9 +58,11 @@ export default function BasicInformation() {
             placeholder="Enter model description"
             rows={6}
             value={modelInfo.modelDescription}
-            onChange={(e) =>
+            onChange={(e) =>{
               setModelInfo({ ...modelInfo, modelDescription: e.target.value })
-            }
+              validateFormField('modelDescription', e.target.value, setErrors)
+            }}
+            errorMessage={errors?.modelDescription}
           />
         </div>
       </form>

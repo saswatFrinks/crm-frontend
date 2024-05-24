@@ -7,7 +7,7 @@ export const stepAtom = atom({
 
 export const modelInfoAtom = atom({
   key: 'modelInfoAtom',
-  default: { modelName: '', modelDescription: '', modelKey: 0 },
+  default: { modelName: '', modelDescription: ''},
 });
 
 // export const modelIdAtom = atom({

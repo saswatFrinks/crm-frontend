@@ -10,7 +10,7 @@ import { classAtom, configurationAtom } from './state';
 import { getRoisAndClasses } from '@/algo/algo';
 import toast from 'react-hot-toast';
 
-export default function Configuration({ setLoading }) {
+export default function Configuration({ setLoading, formRef }) {
   const columns = [
     'Variant',
     'Camera Position',
@@ -24,6 +24,7 @@ export default function Configuration({ setLoading }) {
   const [rois, setRois] = useState([]);
   const [configuration, setConfiguration] = useRecoilState(configurationAtom);
   const [classAt, setClassAtom] = useRecoilState(classAtom);
+  const [error, setError] = useState('');
 
   const fetchAllRois = async () => {
     setLoading(true);
@@ -34,6 +35,7 @@ export default function Configuration({ setLoading }) {
         },
       });
       const roiArr = res.data.data.detection.map((obj) => {
+        // const roiClasses = 
         return { ...obj, check: false };
       });
       // setRois(roiArr);
@@ -108,6 +110,7 @@ export default function Configuration({ setLoading }) {
     setClassAtom(newClasses);
     setRois(newRois);
     setConfiguration([...newRois]);
+    validate(newClasses)
   };
 
   const handleSelect = (frontEle) => {
@@ -122,6 +125,7 @@ export default function Configuration({ setLoading }) {
     setClassAtom([...newClasses]);
     setRois([...newRois]);
     setConfiguration([...newRois]);
+    validate(newClasses)
   };
 
   const helper = async () => {
@@ -135,6 +139,22 @@ export default function Configuration({ setLoading }) {
       setLoading(false);
     }
   };
+
+  const validate = (formClasses) => {
+    let formError = '';
+    if(formClasses.every(clx => clx.check === false)){
+      formError = 'Please select atleast one class to continue.'
+    }
+    setError(formError)
+    return formError;
+  }
+
+  const handleSubmit = () => {
+    const formError = validate(classes);
+    return formError ? false : true;
+  }
+
+  formRef.current = {handleSubmit}
 
   React.useEffect(() => {
     helper();
@@ -152,7 +172,7 @@ export default function Configuration({ setLoading }) {
       </p>
 
       <div className="flex flex-col gap-4">
-        <p>Select classes to be trained in this AI model:</p>
+        <p>Select the classes you wish to train this AI model for:</p>
         <div className="flex gap-4">
           {classes.map((classObj) => {
             return (
@@ -182,7 +202,7 @@ export default function Configuration({ setLoading }) {
       </div>
 
       <div className="flex flex-col gap-4">
-        <p>Select classes to be trained in this AI model:</p>
+        <p>Select from the following ROI configurations you wish to build this AI model for:</p>
         <div className="placeholder:*: relative shadow-md sm:rounded-lg">
           <table className="w-full text-left text-sm text-gray-500 rtl:text-right ">
             <thead className="bg-white text-sm uppercase text-gray-700 ">
@@ -242,6 +262,9 @@ export default function Configuration({ setLoading }) {
             </tbody>
           </table>
         </div>
+        {error && (
+          <p className="text-sm text-red-500">{error}</p>
+        )}
       </div>
     </div>
   );

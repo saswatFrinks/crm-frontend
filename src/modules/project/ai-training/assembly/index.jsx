@@ -1,7 +1,7 @@
 import Button from '@/shared/ui/Button';
 import Chip from '@/shared/ui/Chip';
 import Drawer from '@/shared/ui/Drawer';
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { FaPlus } from 'react-icons/fa';
 import BuildNTrainDrawer from './BuildNTrainDrawer';
 import { useRecoilState, useSetRecoilState } from 'recoil';
@@ -41,9 +41,12 @@ export default function AIAssembly() {
   const datasets = useRecoilState(datasetAtom);
   const augmentations = useRecoilState(augmentationsAtom);
   const modelInfo = useRecoilState(modelInfoAtom);
+  
+  const formRefs = Array.from({length: 5}, () => useRef(null));
 
   const handleNext = () => {
     setStep((t) => {
+      if(formRefs[t-1]?.current?.handleSubmit() != true)return t;
       if (t == 5) return t;
       return t + 1;
     });
@@ -282,7 +285,9 @@ export default function AIAssembly() {
           </div>
         }
       >
-        <BuildNTrainDrawer />
+        <BuildNTrainDrawer 
+          formRefs = {formRefs}
+        />
       </Drawer>
       {/* </Toaster> */}
     </>
