@@ -229,6 +229,7 @@ export default function ProjectConfiguration() {
             <div>
               {selectedConfiguration.id ? (
                 <Link
+                  state={location.state}
                   className="flex items-center gap-2"
                   to={`${selectedConfiguration.objective.toLowerCase()}/${selectedConfiguration.id}`}
                 >

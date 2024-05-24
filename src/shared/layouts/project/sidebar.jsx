@@ -9,7 +9,7 @@ export default function Sidebar() {
   // const {name} = JSON.parse(storageService.get('user'));
   const location = useLocation();
   const [hover, setHover] = useState(null);
-  // console.log(location);
+  console.log("hi",location);
 
   const menus = [
     {
