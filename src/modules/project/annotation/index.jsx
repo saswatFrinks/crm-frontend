@@ -36,6 +36,7 @@ export default function Annotation() {
   const [open, setOpen] = useRecoilState(modalAtom);
   const location = useLocation();
   const navigate = useNavigate();
+  console.log(location);
 
   // const [configurations, setConfigurations] = React.useState([
   //   { id: 1, status: 'Pending' },
@@ -88,7 +89,7 @@ export default function Annotation() {
       }
     }
     
-    navigate(`annotation-job/${selectedConfiguration.id}/${selectedDataset}`)
+      navigate(`annotation-job/${selectedConfiguration.id}/${selectedDataset}`, {state: {...location.state}})
   }
 
   React.useEffect(() => {
