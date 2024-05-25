@@ -11,7 +11,7 @@ const MapCameraIp = ({formRef}) => {
   const params = useParams();
   const [addInstance, setAddInstance] = useRecoilState(addInstanceAtom);
   const [data, setData] = React.useState([]);
-  const [cameraIp, setCameraIp] = React.useState(addInstance?.mapCameraIp?.cameraIps || []);
+  const [cameraIp, setCameraIp] = React.useState([]);
   const [errors, setErrors] = React.useState([]);
   const [loaders, setLoaders] = React.useState([]);
 
@@ -70,7 +70,6 @@ const MapCameraIp = ({formRef}) => {
         cameraPositionName: d.capturePositionName,
         cameraPositionId: d.capturePositionId
       }))
-
       setAddInstance({
         ...addInstance,
         mappingData: responseData
@@ -91,16 +90,15 @@ const MapCameraIp = ({formRef}) => {
     });
 
     const cameraMappings = await res?.data?.data;
+    const newIps = Array.from(cameraIp);
     data?.forEach((d, index) => {
       const cpId = d?.cameraPositionId;
       const cameraId = cameraMappings?.find(mapping => {
         return mapping?.capture_position?.id === cpId
       });
-      const newIps = [...cameraIp];
       newIps[index] = cameraId?.camera?.id;
-      setCameraIp(newIps);
     })
-    
+    setCameraIp(newIps);
   }
 
   useEffect(() => {
@@ -112,7 +110,7 @@ const MapCameraIp = ({formRef}) => {
   }, [data])
 
   useEffect(() => {
-    if(addInstance?.mapCameraIp?.cameraIps?.length === 0){
+    if(cameraIp.length === 0){
       setCameraIp(Array.from({length: data?.length}, () => null));
       setLoaders(Array.from({length: data?.length}, () => false));
       setErrors(Array.from({length: data?.length}, () => ''))
@@ -129,8 +127,9 @@ const MapCameraIp = ({formRef}) => {
   })
 
   const validateForm = () => {
-    const formErrors = [...errors];
-    console.log({cameraIp})
+    const formErrors = errors.map((error, index) => {
+      return `Please map camera IP ${index+1}`
+    });
     cameraIp.forEach((ip, index) => {
       formErrors[index] = !ip ? `Please map camera IP ${index+1}` : ''
     })
