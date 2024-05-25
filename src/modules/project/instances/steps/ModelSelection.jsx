@@ -13,6 +13,7 @@ const ModelSelection = ({ formRef }) => {
   const [classColors, setClassColors] = useState(new Map());
   const [selectedModels, setSelectedModels] = useState(addInstance?.modelSelection?.modelRoiMap || new Map());
   const [dataLength, setDataLength] = useState(0);
+  const [errors, setErrors] = useState([]);
   const data = addInstance?.mappingData;
 
   const handleOpen = (index) => {
@@ -70,6 +71,7 @@ const ModelSelection = ({ formRef }) => {
       count += d?.models?.length !== 0 ? 1 : 0;
     })
     setDataLength(count);
+    setErrors(Array.from({length: data?.length}, () => ''))
   }, [data])
 
   const handleChangeModel = (key, value) => {
@@ -102,8 +104,28 @@ const ModelSelection = ({ formRef }) => {
     })
   }
 
+  const validate = () => {
+    const formErrors = Array.from(errors);
+    let flag = true;
+    data?.forEach((d, index) => {
+      formErrors[index] = d?.models?.length > 0 ? '' : 'Please train the models of this ROI to proceed further';
+      if(formErrors[index]){
+        setOpen(prev => {
+          prev[index] = true;
+          return prev;
+        });
+        flag = false;
+      }else{
+        flag = true;
+      }
+    })
+    setErrors(formErrors)
+    return flag;
+  }
+
   const handleSubmit = async () => {
     try {
+      if(!validate())return null;
       if (selectedModels?.size !== dataLength) throw new Error('Please Select Model of all the ROIs')
       const instanceIds = Array.from({ length: dataLength }, () => addInstance?.instanceId);
       const modelIds = [];
@@ -161,6 +183,7 @@ const ModelSelection = ({ formRef }) => {
             {open[index] &&
               (
                 <AccordionBody className='rounded-lg' style={{marginTop: '-16px'}}>
+                  {errors[index] && <p className="p-2 text-sm text-red-500">{errors[index]}</p>}
                   {modelData?.models?.map(model => (
                     <>
                       <div className='flex justify-between py-2 px-2 rounded-md mb-0.5' style={{ backgroundColor: '#F0F0FF' }}>

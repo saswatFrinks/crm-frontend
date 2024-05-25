@@ -15,8 +15,14 @@ const CameraConfig = ({formRef, configUploaded}) => {
   const [files, setFiles] = React.useState(addInstance?.cameraConfig?.files || []);
   const [uploaded, setUploaded] = React.useState([]);
   const [loader, setLoader] = React.useState(false);
-  const [configDetails, setConfigDetails] = React.useState(null);
+  const [configDetails, setConfigDetails] = React.useState(new Map())
+  const [modalConfig, setModalConfig] = React.useState(null);
+  const [errors, setErrors] = React.useState([]);
   const [open, setOpen] = useRecoilState(modalAtom);
+
+  const columns = ['Variant', 'Camera Position', 'Camera Config', 'Upload Camera Config File']
+
+  const headings = ['fps', 'gain', 'gamma', 'height', 'width', 'pin'];
 
   React.useEffect(() => {
     const cameraConfigData = addInstance?.mappingData?.map(d => ({
@@ -25,7 +31,9 @@ const CameraConfig = ({formRef, configUploaded}) => {
       cameraPositionName: d.capturePositionName,
       cameraPositionId: d.capturePositionId,
       cameraConfigName: d.cameraConfigName,
-      cameraConfigId: d.cameraConfigId
+      cameraConfigId: d.cameraConfigId,
+      roiName: d?.roiName,
+      roiId: d?.roiId
     }));
 
     const uniqueData = removeDuplicates(cameraConfigData);
@@ -39,9 +47,27 @@ const CameraConfig = ({formRef, configUploaded}) => {
     }
   }, [data])
 
+  const validate = () => {
+    const formErrors = [...errors];
+    let flag = true;
+    data?.forEach((d, index) => {
+      formErrors[index] = d?.roiId ? '' : `This Camera Config doesn't have any ROIs`;
+      flag = d?.roiId ? true : false;
+    })
+    setErrors(formErrors);
+    if(!flag)return false;
+
+    data?.forEach((d, index) => {
+      formErrors[index] = configDetails.get(d?.cameraConfigId) ? '' : (formErrors[index] ?? 'Please upload the camera config file');
+      flag = configDetails.get(d?.cameraConfigId) ? true : false;
+    })
+    setErrors(formErrors);
+    return flag;
+  }
+
   const handleSubmit = () => {
     try {
-      if(files.some(file => file == false))throw new Error('Please Upload all the files');
+      if(!validate())return null;
       setAddInstance({
         ...addInstance,
         cameraConfig: {
@@ -74,6 +100,7 @@ const CameraConfig = ({formRef, configUploaded}) => {
         newStatus[index] = true;
         return newStatus
       });
+      viewConfigDetails(cameraConfigId)
     } catch (error) {
       toast.error(error?.response?.data?.data);
     }
@@ -81,7 +108,6 @@ const CameraConfig = ({formRef, configUploaded}) => {
 
   const viewConfigDetails = async (configId) => {
     try {
-      setOpen(true);
       setLoader(true);
       const response = await axiosInstance.get('/cameraDetails/get-config', {
         params: {
@@ -89,8 +115,14 @@ const CameraConfig = ({formRef, configUploaded}) => {
           cameraConfigId: configId
         }
       });
+      const details = response?.data?.data;
 
-      setConfigDetails(response?.data?.data);
+      setConfigDetails((prev) => {
+        const isNull = headings.some(heading => details[heading] == null);
+        prev.set(configId, isNull ? null : details)
+        return prev;
+      });
+      setModalConfig(response?.data?.data)
     } catch (error) {
       toast.error(error?.response?.data?.data?.message);
     } finally {
@@ -98,9 +130,18 @@ const CameraConfig = ({formRef, configUploaded}) => {
     }
   }
 
-  const columns = ['Variant', 'Camera Position', 'Camera Config', 'Upload Camera Config File']
+  const getAllConfigs = async () => {
+    for(let i=0;i<data.length;i++){
+      await viewConfigDetails(data[i]?.cameraConfigId);
+    }
+  }
 
-  const headings = ['fps', 'gain', 'gamma', 'height', 'width', 'pin'];
+  React.useEffect(() => {
+    if(data.length > 0){
+      getAllConfigs();
+    }
+    setErrors(Array.from({length: data?.length}, () => ''))
+  }, [data])
 
   return (
     <div>
@@ -121,37 +162,45 @@ const CameraConfig = ({formRef, configUploaded}) => {
           <tbody>
             {data?.map((dataItem, index) => {
               return (
-                <tr
-                  className="border-b odd:bg-white even:bg-[#C6C4FF]/10"
-                  key={`${dataItem?.variantId}/${dataItem?.cameraPositionId}/${dataItem?.cameraConfigId}`}
-                >
-                  <td className="px-6 py-4">{dataItem?.variantName}</td>
-                  <td className="px-6 py-4">{dataItem?.cameraPositionName}</td>
-                  <td className="px-6 py-4">{dataItem?.cameraConfigName}</td>
-                  <td className="px-6 py-4 flex items-center gap-4">
-                    {files[index] && (
-                      <div>
-                        <label 
-                          className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-f-primary px-10 py-2 text-white duration-100 hover:bg-f-secondary"
-                          onClick={() => viewConfigDetails(dataItem?.cameraConfigId)}
-                        >
-                          View
-                        </label>
-                      </div>
-                    )}
-                    <label 
-                      className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-f-primary px-10 py-2 text-white duration-100 hover:bg-f-secondary"
-                    >
-                      <input type="file" hidden onChange={async (e) => {
-                        await handleConfigUpload(e.target.files[0], index, dataItem?.cameraConfigId);
-                        e.target.files = null;
-                        e.target.value = null;
-                      }}/>
-                      <Upload /> {files[index] ? 'Change' : 'Upload'}
-                    </label>
-                    {uploaded[index] && <CheckCircle />}
-                  </td>
-                </tr>
+                <>
+                  <tr
+                    className="border-b odd:bg-white even:bg-[#C6C4FF]/10"
+                    key={`${dataItem?.variantId}/${dataItem?.cameraPositionId}/${dataItem?.cameraConfigId}`}
+                  >
+                    <td className="px-6 py-4">{dataItem?.variantName}</td>
+                    <td className="px-6 py-4">{dataItem?.cameraPositionName}</td>
+                    <td className="px-6 py-4">{dataItem?.cameraConfigName}</td>
+                    <td className="px-6 py-4 flex items-center gap-4">
+                      {configDetails.get(dataItem?.cameraConfigId) && (
+                        <div>
+                          <label 
+                            className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-f-primary px-10 py-2 text-white duration-100 hover:bg-f-secondary"
+                            onClick={() => {
+                              viewConfigDetails(dataItem?.cameraConfigId)
+                              setOpen(true);
+                            }}
+                          >
+                            View
+                          </label>
+                        </div>
+                      )}
+                      <label 
+                        className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-f-primary px-10 py-2 text-white duration-100 hover:bg-f-secondary"
+                      >
+                        <input type="file" hidden onChange={async (e) => {
+                          await handleConfigUpload(e.target.files[0], index, dataItem?.cameraConfigId);
+                          e.target.files = null;
+                          e.target.value = null;
+                        }}/>
+                        <Upload /> {configDetails.get(dataItem?.cameraConfigId) ? 'Change' : 'Upload'}
+                      </label>
+                      {uploaded[index] && <CheckCircle />}
+                    </td>
+                  </tr>
+                  {(errors[index]) && <tr>
+                    <p className="p-2 text-xs text-red-500">{errors[index]}</p>
+                  </tr>}
+                </>
               );
             })}
             </tbody>
@@ -173,7 +222,7 @@ const CameraConfig = ({formRef, configUploaded}) => {
               </div>
               <div className="flex flex-col items-start gap-2">
                 {headings.map(heading => (
-                  <h3>{configDetails ? configDetails[heading] : null}</h3>
+                  <h3>{modalConfig ? modalConfig[heading] : null}</h3>
                 ))}
               </div>
             </div>
