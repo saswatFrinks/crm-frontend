@@ -89,22 +89,6 @@ export default function InspectionParameterStep(props) {
     handleSubmit: handleSubmit,
   };
 
-  // const validateMoving = (values) => {
-  //   let errorFound = false;
-  //   // const flowError = !values.productFlow ? 'Product Flow is required' : '';
-  //   const objectError = !values.productFlow ? 'Product Flow is required' : '';
-  //   const classError = !values.productFlow ? 'Product Flow is required' : '';
-  //   // if (flowError || classError || objectError) errorFound = true;
-  //   if (classError || objectError) errorFound = true;
-  //   setMovingErrors(...movingErrors, {
-  //     // productFlowError: flowError,
-  //     primaryObjectError: objectError,
-  //     primaryObjectClassError: classError,
-  //   });
-
-  //   return errorFound;
-  // };
-
   const validateMoving = (values) => {
     let errorFound = false;
     const flowError = !values.productFlow ? 'Product Flow is required' : '';
