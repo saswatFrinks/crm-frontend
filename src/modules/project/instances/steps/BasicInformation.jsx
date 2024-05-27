@@ -79,7 +79,7 @@ const BasicInformation = ({project, formRef, editInstanceId = null}) => {
         instanceName: data?.instance?.name,
         plantId: data?.instance?.plantId,
         teamId: data?.instance?.teamId,
-        cameraIps: data?.cameras
+        cameraIps: data?.cameras?.length > 0 ? data?.cameras : [...formData.cameraIps]
       }
       setAddInstance({
         ...addInstance,
@@ -115,7 +115,7 @@ const BasicInformation = ({project, formRef, editInstanceId = null}) => {
         instanceName: addInstance?.basic?.instanceName,
         plantId: addInstance?.basic?.plantId,
         teamId: addInstance?.basic?.teamId,
-        cameraIps: addInstance?.basic?.cameraIps
+        cameraIps: addInstance?.basic?.cameraIps?.length > 0 ? addInstance?.basic?.cameraIps : [...formData.cameraIps]
       }
       setFormData(formDataToEdit)
     }
