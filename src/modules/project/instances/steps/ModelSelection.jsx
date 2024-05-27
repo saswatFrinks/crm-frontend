@@ -72,6 +72,7 @@ const ModelSelection = ({ formRef }) => {
     })
     setDataLength(count);
     setErrors(Array.from({length: data?.length}, () => ''))
+    validate()
   }, [data])
 
   const handleChangeModel = (key, value) => {
@@ -108,7 +109,7 @@ const ModelSelection = ({ formRef }) => {
     const formErrors = Array.from(errors);
     let flag = true;
     data?.forEach((d, index) => {
-      formErrors[index] = d?.models?.length > 0 ? '' : 'Please train the models of this ROI to proceed further';
+      formErrors[index] = d?.models?.length > 0 ? '' : 'Please train at least one model for this ROI to proceed further';
       if(formErrors[index]){
         setOpen(prev => {
           prev[index] = true;
@@ -125,8 +126,10 @@ const ModelSelection = ({ formRef }) => {
 
   const handleSubmit = async () => {
     try {
-      if(!validate())return null;
-      if (selectedModels?.size !== dataLength) throw new Error('Please Select Model of all the ROIs')
+      if(!validate()){
+        if (dataLength === 0 || selectedModels?.size !== dataLength) throw new Error('Please Select Model of all the ROIs');
+        return null;
+      }
       const instanceIds = Array.from({ length: dataLength }, () => addInstance?.instanceId);
       const modelIds = [];
       const roiIds = [];
@@ -183,10 +186,10 @@ const ModelSelection = ({ formRef }) => {
             {open[index] &&
               (
                 <AccordionBody className='rounded-lg' style={{marginTop: '-16px'}}>
-                  {errors[index] && <p className="p-2 text-sm text-red-500">{errors[index]}</p>}
+                  {errors[index] && <p className="p-2 text-sm font-medium text-red-500 bg-[#F0F0FF] ml-4">{errors[index]}</p>}
                   {modelData?.models?.map(model => (
                     <>
-                      <div className='flex justify-between py-2 px-2 rounded-md mb-0.5' style={{ backgroundColor: '#F0F0FF' }}>
+                      <div className='flex justify-between py-2 px-2 rounded-md mb-0.5 bg-[#F0F0FF]'>
                         <div className="whitespace-nowrap font-medium text-gray-900 border-black">
                           <Radio
                             id={model?.id}
