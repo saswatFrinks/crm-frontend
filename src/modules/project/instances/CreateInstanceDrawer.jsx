@@ -36,8 +36,6 @@ const CreateInstanceDrawer = ({step, childRefs, editInstance = null}) => {
     }
   };
 
-  console.log({project})
-
   React.useEffect(() => {
     fetchProject()
   }, [])
