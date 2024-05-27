@@ -46,7 +46,7 @@ export default function AIAssembly() {
 
   const handleNext = () => {
     setStep((t) => {
-      if(formRefs[t-1]?.current?.handleSubmit() != true)return t;
+      if(formRefs[t-1].current && formRefs[t-1]?.current?.handleSubmit() != true)return t;
       if (t == 5) return t;
       return t + 1;
     });

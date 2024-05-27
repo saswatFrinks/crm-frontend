@@ -58,7 +58,7 @@ const CameraConfig = ({formRef, configUploaded}) => {
     if(!flag)return false;
 
     data?.forEach((d, index) => {
-      formErrors[index] = configDetails.get(d?.cameraConfigId) ? '' : (formErrors[index] ?? 'Please upload the camera config file');
+      formErrors[index] = configDetails.get(d?.cameraConfigId) ? '' : (formErrors[index] !== '' ? formErrors[index] : 'Please upload the camera config file');
       flag = configDetails.get(d?.cameraConfigId) ? true : false;
     })
     setErrors(formErrors);
@@ -198,7 +198,7 @@ const CameraConfig = ({formRef, configUploaded}) => {
                     </td>
                   </tr>
                   {(errors[index]) && <tr>
-                    <p className="p-2 text-xs text-red-500">{errors[index]}</p>
+                    <p className="p-2 text-sm font-medium text-red-500">{errors[index]}</p>
                   </tr>}
                 </>
               );
