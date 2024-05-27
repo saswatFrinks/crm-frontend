@@ -22,7 +22,7 @@ import Actions from './components/Actions';
 import { useParams } from 'react-router-dom';
 
 import { editingRectAtom, loadedLabelsAtom, stepAtom } from './state';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import axiosInstance from '@/core/request/aixosinstance';
 import {
   annotationMapAtom,
@@ -142,6 +142,8 @@ export default function Assembly() {
     }
   };
 
+  const nextRef = useRef();
+
   const handleNext = async () => {
     let t = step;
     if (!canGoNext) t = 0;
@@ -149,6 +151,9 @@ export default function Assembly() {
       await getRois();
       t++;
     } else if (t == 1) {
+      const res = await nextRef.current.handleSubmit();
+      console.log("res:",res);
+      if(res) return;
       t = (await prepareApiData()) ? t + 1 : t;
     } else if (t == 2) {
       t = (await updateAnnotation()) ? t + 1 : t;
@@ -203,7 +208,7 @@ export default function Assembly() {
 
   const stepObj = {
     0: <UploadImageStep />,
-    1: <InspectionParameterStep type={type} />,
+    1: <InspectionParameterStep type={type} nextRef = {nextRef}/>,
     2: <LabelImage save={updateAnnotation} />,
     3: <PreTrainingStep />,
   };
@@ -415,7 +420,8 @@ export default function Assembly() {
     } catch (e) {
       toast.error(
         e?.response?.data?.data?.message
-          ? `${e?.response?.data?.data?.message}. All fields are required`
+          // ? `${e?.response?.data?.data?.message}. All fields are required`
+          ? "All ROIs label are required!"
           : 'Failed'
       );
     }
