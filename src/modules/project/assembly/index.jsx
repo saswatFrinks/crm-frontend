@@ -95,12 +95,12 @@ export default function Assembly() {
 
   const updateAnnotation = async () => {
     const imgMap = {};
-    if(Object.keys(labelEditedAtom).length==0) return;
+    if (Object.keys(labelEditedAtom).length == 0) return;
     annotationRects.forEach((rect) => {
-      if(!labelsEdited[rect.imageId]) return;
+      if (!labelsEdited[rect.imageId]) return;
       const classNo = annotationMap[rect.uuid];
-      const height = (rect.height).toFixed(4);
-      const width = (rect.width).toFixed(4);
+      const height = rect.height.toFixed(4);
+      const width = rect.width.toFixed(4);
       const x = (rect.x + rect.width / 2).toFixed(4);
       const y = (rect.y + rect.height / 2).toFixed(4);
       if (imgMap[rect.imageId]) {
@@ -151,9 +151,11 @@ export default function Assembly() {
       await getRois();
       t++;
     } else if (t == 1) {
-      const res = await nextRef.current.handleSubmit();
-      console.log("res:",res);
-      if(res) return;
+      if (nextRef.current) {
+        const res = await nextRef.current.handleSubmit();
+        console.log('res:', res);
+        if (res) return;
+      }
       t = (await prepareApiData()) ? t + 1 : t;
     } else if (t == 2) {
       t = (await updateAnnotation()) ? t + 1 : t;
@@ -208,13 +210,13 @@ export default function Assembly() {
 
   const stepObj = {
     0: <UploadImageStep />,
-    1: <InspectionParameterStep type={type} nextRef = {nextRef}/>,
+    1: <InspectionParameterStep type={type} nextRef={nextRef} />,
     2: <LabelImage save={updateAnnotation} />,
     3: <PreTrainingStep />,
   };
 
   const getRois = async () => {
-    if(roisLoaded) return true;
+    if (roisLoaded) return true;
     try {
       const roiData = await axiosInstance.get('/configuration/classes', {
         params: {
@@ -225,14 +227,14 @@ export default function Assembly() {
       const temp = [...data];
       temp.length &&
         temp.map((item, index) => {
-          console.log("inside map:",item)
-          setConfiguration((prev)=>({
+          console.log('inside map:', item);
+          setConfiguration((prev) => ({
             ...prev,
             productFlow: item.configuration.direction,
           }));
           if (item.parts.isTracker) {
-            console.log("updating config")
-            setConfiguration((prev)=>({
+            console.log('updating config');
+            setConfiguration((prev) => ({
               ...prev,
               primaryObject: item.parts.name,
               primaryObjectClass: item.parts.classId,
@@ -241,7 +243,7 @@ export default function Assembly() {
             data.splice(index, 1);
           }
         });
-        console.log("data here:",data)
+      console.log('data here:', data);
       if (data.length) {
         const partsMap = {};
         const roiMap = {};
@@ -255,7 +257,7 @@ export default function Assembly() {
             console.log('roi id not present');
             roiMap[roiId] = {
               id: i,
-              identity:roiId,
+              identity: roiId,
               checked: false,
               status: STATUS.FINISH,
               open: true,
@@ -266,7 +268,7 @@ export default function Assembly() {
             const { x1, x2, y1, y2 } = conf.rois;
             console.log('before');
             const color = getRandomHexColor();
-            const uuid = v4()
+            const uuid = v4();
             rects.push({
               ...BASE_RECT,
               id: rois.length + i,
@@ -315,19 +317,18 @@ export default function Assembly() {
           rois: Object.values(roiMap),
         }));
         setRectangles((prev) => [...prev, ...rects]);
-          // if (configUpdateRequired) {
-          //   setConfiguration((prev) => ({
-          //     ...prev,
-          //     ...configUpdate,
-          //   }));
-          // }
+        // if (configUpdateRequired) {
+        //   setConfiguration((prev) => ({
+        //     ...prev,
+        //     ...configUpdate,
+        //   }));
+        // }
       }
       return true;
     } catch (e) {
       return false;
-    }
-    finally{
-      setRoisLoaded(true)
+    } finally {
+      setRoisLoaded(true);
     }
   };
 
@@ -359,18 +360,14 @@ export default function Assembly() {
       );
       rois.forEach((roiRect) => {
         if (roi.id == roiRect.roiId) {
-          x1 = parseFloat((roiRect.x).toFixed(4));
-          x2 = parseFloat(
-            (roiRect.x + roiRect.width).toFixed(4)
-          );
-          y1 = parseFloat((roiRect.y).toFixed(4));
-          y2 = parseFloat(
-            (roiRect.y + roiRect.height).toFixed(4)
-          );
+          x1 = parseFloat(roiRect.x.toFixed(4));
+          x2 = parseFloat((roiRect.x + roiRect.width).toFixed(4));
+          y1 = parseFloat(roiRect.y.toFixed(4));
+          y2 = parseFloat((roiRect.y + roiRect.height).toFixed(4));
         }
       });
       return {
-        id:roi?.identity || '',
+        id: roi?.identity || '',
         name: `ROI ${index}`,
         x1,
         x2,
@@ -420,17 +417,19 @@ export default function Assembly() {
     } catch (e) {
       toast.error(
         e?.response?.data?.data?.message
-          // ? `${e?.response?.data?.data?.message}. All fields are required`
-          ? "All ROIs label are required!"
+          ? // ? `${e?.response?.data?.data?.message}. All fields are required`
+            'All ROIs label are required!'
           : 'Failed'
       );
     }
   };
 
   let imageIdStore = new Set();
-  rectangles.forEach(rect=>{
-    rect.imageId && rect.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL && imageIdStore.add(rect.imageId);
-  })
+  rectangles.forEach((rect) => {
+    rect.imageId &&
+      rect.rectType == RECTANGLE_TYPE.ANNOTATION_LABEL &&
+      imageIdStore.add(rect.imageId);
+  });
   const isAllImagesLabeled = imageIdStore.size == 10;
 
   return (

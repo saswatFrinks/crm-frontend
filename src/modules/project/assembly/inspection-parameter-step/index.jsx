@@ -90,6 +90,7 @@ export default function InspectionParameterStep(props) {
   };
 
   const validateMoving = (values) => {
+    if(type !== ASSEMBLY_CONFIG.MOVING) return false;
     let errorFound = false;
     const flowError = !values.productFlow ? 'Product Flow is required' : '';
     const objectError = !values.primaryObject
