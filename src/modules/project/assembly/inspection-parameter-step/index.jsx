@@ -22,29 +22,39 @@ import {
   STATUS,
 } from '@/core/constants';
 
-import { assemblyAtom, currentRectangleIdAtom, currentRoiIdAtom, editingAtom, rectanglesAtom, selectedFileAtom } from '../../state';
+import {
+  assemblyAtom,
+  currentRectangleIdAtom,
+  currentRoiIdAtom,
+  editingAtom,
+  rectanglesAtom,
+  selectedFileAtom,
+} from '../../state';
 import ArrowUp from '@/shared/icons/ArrowUp';
 import DeleteObjectModal from './DeleteObjectModal';
 import DeleteRoiModal from './DeleteRoiModal';
 import axiosInstance from '@/core/request/aixosinstance';
 import { useParams } from 'react-router-dom';
-import { classOptionsAtom, selectedConfigurationAtom } from '../../project-configuration/state';
+import {
+  classOptionsAtom,
+  selectedConfigurationAtom,
+} from '../../project-configuration/state';
 import { cloneDeep } from 'lodash';
 
 export default function InspectionParameterStep(props) {
   // type: moving | stationary {{ASSEMBLY_CONFIG}}
-  const { type = ASSEMBLY_CONFIG.STATIONARY } = props;
+  const { type = ASSEMBLY_CONFIG.STATIONARY, nextRef } = props;
   // console.log(type)
   const param = useParams();
-  
+
   const setModalState = useSetRecoilState(modalAtom);
-  
+
   const setIsEditing = useSetRecoilState(editingAtom);
-  
+
   const [deleteModal, setDeleteModal] = React.useState('roi');
-  
+
   const [configuration, setConfiguration] = useRecoilState(assemblyAtom);
-  const selectedConfiguration = useRecoilValue(selectedConfigurationAtom)
+  const selectedConfiguration = useRecoilValue(selectedConfigurationAtom);
 
   // const [classOptions, setClassOptions] = useState([])
   const [classOptions, setClassOptions] = useRecoilState(classOptionsAtom);
@@ -53,39 +63,124 @@ export default function InspectionParameterStep(props) {
   const setSelectedRectId = useSetRecoilState(currentRectangleIdAtom);
   const [rectangles, setRectangles] = useRecoilState(rectanglesAtom);
 
-  const getClasses = async() => {
+  const [formData, setFormData] = useState(new Map());
+  const [errors, setErrors] = useState(new Map());
+
+  const [movingForm, setMovingForm] = useState({
+    productFlow: '',
+    primaryObject: '',
+    primaryObjectClass: '',
+  });
+  const [movingErrors, setMovingErrors] = useState({
+    productFlowError: '',
+    primaryObjectError: '',
+    primaryObjectClassError: '',
+  });
+
+  const handleSubmit = () => {
+    const res1 = validate(formData);
+    const res2 = validateMoving(movingForm);
+    return res1 || res2;
+  };
+
+  // console.log("movingForm:", movingForm)
+
+  nextRef.current = {
+    handleSubmit: handleSubmit,
+  };
+
+  // const validateMoving = (values) => {
+  //   let errorFound = false;
+  //   // const flowError = !values.productFlow ? 'Product Flow is required' : '';
+  //   const objectError = !values.productFlow ? 'Product Flow is required' : '';
+  //   const classError = !values.productFlow ? 'Product Flow is required' : '';
+  //   // if (flowError || classError || objectError) errorFound = true;
+  //   if (classError || objectError) errorFound = true;
+  //   setMovingErrors(...movingErrors, {
+  //     // productFlowError: flowError,
+  //     primaryObjectError: objectError,
+  //     primaryObjectClassError: classError,
+  //   });
+
+  //   return errorFound;
+  // };
+
+  const validateMoving = (values) => {
+    let errorFound = false;
+    const flowError = !values.productFlow ? 'Product Flow is required' : '';
+    const objectError = !values.primaryObject
+      ? 'Primary Object is required'
+      : '';
+    const classError = !values.primaryObjectClass
+      ? 'Primary Object Class is required'
+      : '';
+    if (flowError || objectError || classError) errorFound = true;
+    setMovingErrors({
+      productFlowError: flowError,
+      primaryObjectError: objectError,
+      primaryObjectClassError: classError,
+    });
+    return errorFound;
+  };
+
+  const validate = (values) => {
+    let errorFound = false;
+    const updatedErrors = new Map(errors);
+    console.log('configuration:', configuration);
+
+    configuration.rois.forEach((roi, roiIndex) => {
+      roi.parts.forEach((obj, objIndex) => {
+        const key = `${roiIndex}-${objIndex}`;
+        const nameError = !obj.objectName ? 'Object name is required' : '';
+        const classError = !obj.className ? 'Class is required' : '';
+        const qtyError = !obj.qty ? 'Object quantity is required' : '';
+        if (nameError || classError || qtyError) errorFound = true;
+
+        updatedErrors.set(key, {
+          name: nameError,
+          class: classError,
+          qty: qtyError,
+        });
+      });
+    });
+
+    setErrors(updatedErrors);
+    return errorFound;
+  };
+
+  const getClasses = async () => {
     try {
-      const classes = await axiosInstance.get("/class/list", {
+      const classes = await axiosInstance.get('/class/list', {
         params: {
           projectId: param.projectId,
-        }
-      })
-    console.log("configuration:",selectedConfiguration)
-    setClassOptions(classes.data.data)
-    } catch (error) {
-      
-    }
-  }
+        },
+      });
+      // console.log('configuration:', selectedConfiguration);
+      setClassOptions(classes.data.data);
+    } catch (error) {}
+  };
 
-  useEffect(()=>{
-    getClasses()
-    console.log("configuration:",selectedConfiguration)
-  },[])
+  useEffect(() => {
+    getClasses();
+    // console.log('configuration:', selectedConfiguration);
+  }, []);
 
-  useEffect(()=>{
-    if(!classOptions?.length>0){
-      return
+  useEffect(() => {
+    if (!classOptions?.length > 0) {
+      return;
     }
-    let tempRois = cloneDeep(configuration.rois)
-    console.log("confRois:",configuration.rois)
-    if(tempRois[0].parts[0].class === ''){
-      tempRois[0].parts[0].class = classOptions[0].id
-      tempRois[0].parts[0].className = classOptions[0].name
+    let tempRois = cloneDeep(configuration.rois);
+    // console.log('confRois:', configuration.rois);
+    if (tempRois[0].parts[0].class === '') {
+      tempRois[0].parts[0].class = classOptions[0].id;
+      tempRois[0].parts[0].className = classOptions[0].name;
     }
     setConfiguration({
-      ...configuration, rois: tempRois, id: selectedConfiguration.id
-    })
-  }, [classOptions])
+      ...configuration,
+      rois: tempRois,
+      id: selectedConfiguration.id,
+    });
+  }, [classOptions]);
 
   const addRoi = () => {
     setConfiguration((t) => ({
@@ -100,6 +195,7 @@ export default function InspectionParameterStep(props) {
       ],
     }));
   };
+  // console.log({formData})
 
   const addObject = (roiId) => {
     setConfiguration((config) => ({
@@ -150,17 +246,17 @@ export default function InspectionParameterStep(props) {
 
   const deleteRoi = () => {
     let roiId = null;
-    setConfiguration((t) =>{
-      console.log("deleting roi:",t);
+    setConfiguration((t) => {
+      // console.log('deleting roi:', t);
       const ret = t.rois.filter((k) => !k.checked);
-      roiId = t.rois.find(ele=>ele.checked)?.id
+      roiId = t.rois.find((ele) => ele.checked)?.id;
       return {
         ...t,
-        rois: ret
-      }
+        rois: ret,
+      };
     });
-    if(roiId){
-      setRectangles(rects=>rects.filter(rect=>rect.roiId !== roiId));
+    if (roiId) {
+      setRectangles((rects) => rects.filter((rect) => rect.roiId !== roiId));
     }
   };
 
@@ -168,14 +264,16 @@ export default function InspectionParameterStep(props) {
     return `obj-${id}`;
   };
 
-  console.log("rects:",rectangles)
+  // console.log('rects:', rectangles);
 
   const handleClickLabel = (id) => {
     setIsEditing(true);
     setCurrentRoiId(id);
-    let idx = rectangles.findIndex(rect=>rect.roiId == id && rect.rectType==RECTANGLE_TYPE.ROI);
-    if(idx>=0){
-      setSelectedRectId(rectangles[idx].uuid)
+    let idx = rectangles.findIndex(
+      (rect) => rect.roiId == id && rect.rectType == RECTANGLE_TYPE.ROI
+    );
+    if (idx >= 0) {
+      setSelectedRectId(rectangles[idx].uuid);
     }
     setConfiguration((t) => ({
       ...t,
@@ -228,8 +326,7 @@ export default function InspectionParameterStep(props) {
       });
     });
     return flag;
-  }
-
+  };
 
   const renderAssemblyHeading = () => {
     if (type == ASSEMBLY_CONFIG.MOVING) {
@@ -237,18 +334,21 @@ export default function InspectionParameterStep(props) {
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-4">
             <Label main={false}>Product Flow:</Label>
-
             <div className="flex items-center gap-2">
               <Radio
                 name="productFlow"
                 value={4}
                 checked={configuration.productFlow == 4}
-                onChange={(e) =>
+                onChange={(e) => {
                   setConfiguration((t) => ({
                     ...t,
                     productFlow: e.target.value,
-                  }))
-                }
+                  }));
+                  setMovingForm((form) => ({
+                    ...form,
+                    productFlow: e.target.value,
+                  }));
+                }}
               />
               <ArrowUp />
             </div>
@@ -257,12 +357,16 @@ export default function InspectionParameterStep(props) {
                 name="productFlow"
                 value={3}
                 checked={configuration.productFlow == 3}
-                onChange={(e) =>
+                onChange={(e) => {
                   setConfiguration((t) => ({
                     ...t,
                     productFlow: e.target.value,
-                  }))
-                }
+                  }));
+                  setMovingForm((form) => ({
+                    ...form,
+                    productFlow: e.target.value,
+                  }));
+                }}
               />
               <ArrowUp className="rotate-180" />
             </div>
@@ -271,12 +375,16 @@ export default function InspectionParameterStep(props) {
                 name="productFlow"
                 value={1}
                 checked={configuration.productFlow == 1}
-                onChange={(e) =>
+                onChange={(e) => {
                   setConfiguration((t) => ({
                     ...t,
                     productFlow: e.target.value,
-                  }))
-                }
+                  }));
+                  setMovingForm((form) => ({
+                    ...form,
+                    productFlow: e.target.value,
+                  }));
+                }}
               />
               <ArrowUp className="-rotate-90" />
             </div>
@@ -285,17 +393,23 @@ export default function InspectionParameterStep(props) {
                 name="productFlow"
                 value={2}
                 checked={configuration.productFlow == 2}
-                onChange={(e) =>
+                onChange={(e) => {
                   setConfiguration((t) => ({
                     ...t,
                     productFlow: e.target.value,
-                  }))
-                }
+                  }));
+                  setMovingForm((form) => ({
+                    ...form,
+                    productFlow: e.target.value,
+                  }));
+                }}
               />
               <ArrowUp className="rotate-90" />
             </div>
           </div>
-
+          <span className="text-sm text-red-500">
+            {movingErrors?.productFlowError}
+          </span>
           <div className="flex items-center gap-2">
             <Label main={false}>Primary Object:</Label>
             <div className="ml-16 w-44">
@@ -308,7 +422,12 @@ export default function InspectionParameterStep(props) {
                     ...t,
                     primaryObject: e.target.value,
                   }));
+                  setMovingForm((form) => ({
+                    ...form,
+                    primaryObject: e.target.value,
+                  }));
                 }}
+                errorMessage={movingErrors?.primaryObjectError}
               />
             </div>
           </div>
@@ -316,15 +435,22 @@ export default function InspectionParameterStep(props) {
           <div className="flex items-center gap-2">
             <Label main={false}>Primary Object Class:</Label>
             <div className="ml-8 w-44 max-w-xs">
-              <Select size="xs" placeholder="Select class" 
-              options={classOptions}
-              value={configuration.primaryObjectClass}
-              onChange={(e)=>{
-                setConfiguration((d) => ({
-                  ...d,
-                  primaryObjectClass: e.target.value
-                }));
-              }}
+              <Select
+                size="xs"
+                placeholder="Select class"
+                options={classOptions}
+                value={configuration.primaryObjectClass}
+                onChange={(e) => {
+                  setConfiguration((d) => ({
+                    ...d,
+                    primaryObjectClass: e.target.value,
+                  }));
+                  setMovingForm((form) => ({
+                    ...form,
+                    primaryObjectClass: e.target.value,
+                  }));
+                }}
+                errorMessage={movingErrors?.primaryObjectClassError}
               />
             </div>
           </div>
@@ -372,6 +498,32 @@ export default function InspectionParameterStep(props) {
     return <DeleteObjectModal handleSubmit={deleteObject} />;
   };
 
+  const handleObjectChange = (roiIndex, objIndex, key, value) => {
+    // const newConfig = { ...configuration };
+    // newConfig.rois[roiIndex].parts[objIndex][key] = value;
+    // setConfiguration(newConfig);
+
+    const newFormData = new Map(formData);
+    const fieldKey = `${roiIndex}-${objIndex}`;
+    const fieldData = newFormData.get(fieldKey) || {};
+    fieldData[key] = value;
+    newFormData.set(fieldKey, fieldData);
+    setFormData(newFormData);
+
+    const newErrors = new Map(errors);
+    const errorData = newErrors.get(fieldKey) || {};
+    console.log('value', value);
+    if (key === 'objectName' && value) {
+      errorData.name = '';
+    } else if (key === 'objectQty' && value) {
+      errorData.qty = '';
+    } else if (key === 'class' && value) {
+      errorData.class = '';
+    }
+    newErrors.set(fieldKey, errorData);
+    setErrors(newErrors);
+  };
+
   return (
     <>
       <Modal>{renderModal()}</Modal>
@@ -388,7 +540,7 @@ export default function InspectionParameterStep(props) {
                 value={t.id}
                 checked={t.checked}
                 onClick={() =>
-                    setConfiguration((configuration) => ({
+                  setConfiguration((configuration) => ({
                     ...configuration,
                     rois: configuration.rois.map((k) => ({
                       ...k,
@@ -412,20 +564,18 @@ export default function InspectionParameterStep(props) {
                 </Button>
               </div>
               <div className="flex w-[320px] items-center gap-4">
-                {
-                  checkIsObjectChecked() && (
-                    <Button
-                      size="tiny"
-                      variant="border"
-                      color="danger"
-                      onClick={openDeleteModal}
-                    >
-                      <div className="flex items-center justify-center gap-2">
-                        <Trash size={18} /> Delete object
-                      </div>
-                    </Button>
-                  )
-                }
+                {checkIsObjectChecked() && (
+                  <Button
+                    size="tiny"
+                    variant="border"
+                    color="danger"
+                    onClick={openDeleteModal}
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      <Trash size={18} /> Delete object
+                    </div>
+                  </Button>
+                )}
                 <Button
                   size="tiny"
                   variant="border"
@@ -486,23 +636,40 @@ export default function InspectionParameterStep(props) {
                           <Input
                             placeholder="Enter object name"
                             size="xs"
-                            value={configuration.rois[i].parts[objIndex].objectName}
+                            value={
+                              configuration.rois[i].parts[objIndex].objectName
+                            }
                             onChange={(e) => {
                               setConfiguration((d) => ({
                                 ...d,
                                 rois: d.rois.map((roi, locRIdx) => {
-                                  if(locRIdx!=i) return roi
-                                  return{
-                                  ...roi,
-                                  parts: roi.parts.map((obj, locOIdx) => {
-                                    if(locOIdx!=objIndex) return obj
-                                    return{
-                                    ...obj,
-                                    objectName: e.target.value,
-                                  }}),
-                                }}),
+                                  if (locRIdx != i) return roi;
+                                  return {
+                                    ...roi,
+                                    parts: roi.parts.map((obj, locOIdx) => {
+                                      if (locOIdx != objIndex) return obj;
+                                      return {
+                                        ...obj,
+                                        objectName: e.target.value,
+                                      };
+                                    }),
+                                  };
+                                }),
                               }));
+                              handleObjectChange(
+                                t.id,
+                                objIndex,
+                                'objectName',
+                                e.target.value
+                              );
+                              // setFormData({
+                              //   ...formData,
+                              //   objectName: e.target.value,
+                              // });
                             }}
+                            errorMessage={
+                              errors.get(`${t.id}-${objIndex}`)?.name
+                            }
                           />
                         </div>
                       </div>
@@ -510,32 +677,46 @@ export default function InspectionParameterStep(props) {
                       <div className="flex items-center gap-2">
                         <Label main={false}>Select Class:</Label>
                         <div className="ml-11 w-44">
-                          <Select size="xs" placeholder="Select class" 
-                          value={configuration.rois[i].parts[objIndex].class}
-                          onChange={(e)=>{
-                            let temp = ''
-                            classOptions.forEach((opt)=>{
-                              if(opt.id===e.target.value){
-                                temp = opt.name
-                              }
-                            })
-                            setConfiguration((d) => ({
-                              ...d,
-                              rois: d.rois.map((roi, locRIdx) => {
-                                if(locRIdx!=i) return roi
-                                return{
-                                ...roi,
-                                parts: roi.parts.map((obj, locOIdx) => {
-                                  if(locOIdx!=objIndex) return obj
-                                  return{
-                                  ...obj,
-                                  class: e.target.value,
-                                  className: temp
-                                }}),
-                              }}),
-                            }));
-                          }}
-                          options={classOptions}/>
+                          <Select
+                            size="xs"
+                            placeholder="Select class"
+                            value={configuration.rois[i].parts[objIndex].class}
+                            onChange={(e) => {
+                              let temp = '';
+                              classOptions.forEach((opt) => {
+                                if (opt.id === e.target.value) {
+                                  temp = opt.name;
+                                }
+                              });
+                              setConfiguration((d) => ({
+                                ...d,
+                                rois: d.rois.map((roi, locRIdx) => {
+                                  if (locRIdx != i) return roi;
+                                  return {
+                                    ...roi,
+                                    parts: roi.parts.map((obj, locOIdx) => {
+                                      if (locOIdx != objIndex) return obj;
+                                      return {
+                                        ...obj,
+                                        class: e.target.value,
+                                        className: temp,
+                                      };
+                                    }),
+                                  };
+                                }),
+                              }));
+                              handleObjectChange(
+                                t.id,
+                                objIndex,
+                                'objectName',
+                                e.target.value
+                              );
+                            }}
+                            options={classOptions}
+                            errorMessage={
+                              errors.get(`${t.id}-${objIndex}`)?.class
+                            }
+                          />
                         </div>
                       </div>
 
@@ -544,21 +725,25 @@ export default function InspectionParameterStep(props) {
                         <div className="ml-2 w-44">
                           <Select
                             size="xs"
-                            value={configuration.rois[i].parts[objIndex].operation}
-                            onChange={(e)=>{
+                            value={
+                              configuration.rois[i].parts[objIndex].operation
+                            }
+                            onChange={(e) => {
                               setConfiguration((d) => ({
                                 ...d,
                                 rois: d.rois.map((roi, locRIdx) => {
-                                  if(locRIdx!=i) return roi
-                                  return{
-                                  ...roi,
-                                  parts: roi.parts.map((obj, locOIdx) => {
-                                    if(locOIdx!=objIndex) return obj
-                                    return{
-                                    ...obj,
-                                    operation: e.target.value,
-                                  }}),
-                                }}),
+                                  if (locRIdx != i) return roi;
+                                  return {
+                                    ...roi,
+                                    parts: roi.parts.map((obj, locOIdx) => {
+                                      if (locOIdx != objIndex) return obj;
+                                      return {
+                                        ...obj,
+                                        operation: e.target.value,
+                                      };
+                                    }),
+                                  };
+                                }),
                               }));
                             }}
                             placeholder="Select operation"
@@ -572,24 +757,41 @@ export default function InspectionParameterStep(props) {
                         <div className="ml-12 w-44">
                           <Input
                             placeholder="Enter object qty"
+                            type="number"
+                            min="0"
                             size="xs"
                             value={configuration.rois[i].parts[objIndex].qty}
                             onChange={(e) => {
                               setConfiguration((d) => ({
                                 ...d,
                                 rois: d.rois.map((roi, locRIdx) => {
-                                  if(locRIdx!=i) return roi
-                                  return{
-                                  ...roi,
-                                  parts: roi.parts.map((obj, locOIdx) => {
-                                    if(locOIdx!=objIndex) return obj
-                                    return{
-                                    ...obj,
-                                    qty: e.target.value,
-                                  }}),
-                                }}),
+                                  if (locRIdx != i) return roi;
+                                  return {
+                                    ...roi,
+                                    parts: roi.parts.map((obj, locOIdx) => {
+                                      if (locOIdx != objIndex) return obj;
+                                      return {
+                                        ...obj,
+                                        qty: e.target.value,
+                                      };
+                                    }),
+                                  };
+                                }),
                               }));
+                              handleObjectChange(
+                                t.id,
+                                objIndex,
+                                'objectQty',
+                                e.target.value
+                              );
+                              // setFormData({
+                              //   ...formData,
+                              //   objectQty: e.target.value,
+                              // });
                             }}
+                            errorMessage={
+                              errors.get(`${t.id}-${objIndex}`)?.qty
+                            }
                           />
                         </div>
                       </div>
@@ -603,16 +805,18 @@ export default function InspectionParameterStep(props) {
                               setConfiguration((d) => ({
                                 ...d,
                                 rois: d.rois.map((roi, locRIdx) => {
-                                  if(locRIdx!=i) return roi
-                                  return{
-                                  ...roi,
-                                  parts: roi.parts.map((obj, locOIdx) => {
-                                    if(locOIdx!=objIndex) return obj
-                                    return{
-                                    ...obj,
-                                    classify: e.target.value,
-                                  }}),
-                                }}),
+                                  if (locRIdx != i) return roi;
+                                  return {
+                                    ...roi,
+                                    parts: roi.parts.map((obj, locOIdx) => {
+                                      if (locOIdx != objIndex) return obj;
+                                      return {
+                                        ...obj,
+                                        classify: e.target.value,
+                                      };
+                                    }),
+                                  };
+                                }),
                               }));
                             }}
                           />
