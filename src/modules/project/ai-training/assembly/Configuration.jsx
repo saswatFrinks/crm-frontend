@@ -10,6 +10,7 @@ import { classAtom, configurationAtom } from './state';
 import { getRoisAndClasses } from '@/algo/algo';
 import toast from 'react-hot-toast';
 import { removeDuplicates } from '@/util/util';
+import { modalAtom } from '@/shared/states/modal.state';
 
 export default function Configuration({ setLoading, formRef }) {
   const columns = [
@@ -26,8 +27,11 @@ export default function Configuration({ setLoading, formRef }) {
   const [rois, setRois] = useState([]);
   const [roiClasses, setRoiClasses] = useState([]);
   const [classMap, setClassMap] = useState(new Map());
+  const [roiDataSets, setRoiDataSets] = useState(new Map());
+  const [datasetImages, setDatasetImages] = useState(new Map());
   const [configuration, setConfiguration] = useRecoilState(configurationAtom);
   const [classAt, setClassAtom] = useRecoilState(classAtom);
+  const [openModal, setOpenModal] = useRecoilState(modalAtom);
   const [error, setError] = useState('');
 
   const fetchAllRois = async () => {
@@ -49,7 +53,7 @@ export default function Configuration({ setLoading, formRef }) {
             classCount.set(clx, 1);
           }
         })
-        roiClassCount.set(obj.roi.id, classCount);
+        obj.roi && roiClassCount.set(obj.roi.id, classCount);
         setClassMap(roiClassCount);
         roiClass = [...roiClass, ...obj.classes];
         return { ...obj, check: false };
@@ -65,7 +69,8 @@ export default function Configuration({ setLoading, formRef }) {
       setLoading(false);
     } catch (e) {
       setLoading(false);
-      toast.error(JSON.stringify(e));
+      console.log(e);
+      toast.error(e?.response?.data?.data?.message);
     }
   };
 
@@ -158,6 +163,45 @@ export default function Configuration({ setLoading, formRef }) {
     }
   };
 
+  const getDatasets = async () => {
+    const datasets = new Map();
+    const roiLength = rois.length;
+    for(let i=0;i<roiLength;i++){
+      const cameraConfigId = rois[i]?.cameraConfig?.id;
+      const res = await axiosInstance.get('/dataset/folders', {
+        params: {
+          cameraConfigId
+        },
+      });
+      const datasetList = await res?.data?.data;
+      datasets.set(cameraConfigId, datasetList);
+    }
+    setRoiDataSets(datasets);
+  }
+
+  const getDatasetImages = async () => {
+    try {
+      const images = new Map();
+      for(let [key, value] of roiDataSets){
+        const datasetIds = value?.map(val => val.id);
+        const response = datasetIds?.length > 0 ? await axiosInstance.post('/dataset/count-annotated-images', {
+          datasetIds
+        }) : null;
+        if(response){
+          images.set(key, response?.data?.data?.annotatedImages)
+        }
+      }
+      setDatasetImages(images)
+    } catch (error) {
+      toast.error(error?.response?.data?.data?.message)
+    }
+  }
+
+  const showError = (error) => {
+    setError(error);
+    setOpenModal(true);
+  }
+
   const validate = (formClasses) => {
     let formError = '';
     if(formClasses.every(clx => clx.check === false)){
@@ -167,9 +211,31 @@ export default function Configuration({ setLoading, formRef }) {
     return formError;
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const formError = validate(classes);
-    return formError ? false : true;
+    if(formError)return false;
+    let checkedCameraConfigs = [];
+    rois.forEach(roi => {
+      if(roi.check && (!roiDataSets.has(roi.cameraConfig.id) || roiDataSets.get(roi.cameraConfig.id)?.length === 0)){
+        checkedCameraConfigs.push(roi.cameraConfig.name);
+      }
+    })
+    if(checkedCameraConfigs?.length > 0){
+      showError(`Please create a dataset folder for all the configs ${checkedCameraConfigs.join(', ')} and upload & annotate at least 1 image within them to be able to proceed to next step`)
+      return false;
+    }else{
+      checkedCameraConfigs = [];
+      rois.forEach(roi => {
+        if(roi.check && (!datasetImages.has(roi.cameraConfig.id) || !datasetImages.get(roi.cameraConfig.id))){
+          checkedCameraConfigs.push(roi.cameraConfig.name);
+        }
+      })
+      if(checkedCameraConfigs?.length > 0){
+        showError('Please upload & annotate at least 1 image within the dataset folders for each config to be able to proceed to next step')
+        return false;
+      }
+    }
+    return true;
   }
 
   formRef.current = {handleSubmit}
@@ -177,6 +243,14 @@ export default function Configuration({ setLoading, formRef }) {
   React.useEffect(() => {
     helper();
   }, []);
+
+  React.useEffect(() => {
+    if(rois.length > 0)getDatasets();
+  }, [rois])
+
+  React.useEffect(() => {
+    if(roiDataSets.size > 0)getDatasetImages();
+  }, [roiDataSets])
 
   return (
     <div className="flex flex-col gap-8">
@@ -255,23 +329,28 @@ export default function Configuration({ setLoading, formRef }) {
                     </th>
                     <td className="px-6 py-4">{roi.capturePosition.name}</td>
                     <td className="px-6 py-4">{roi.cameraConfig.name}</td>
-                    <td className="px-6 py-4 font-bold w-[5vw]">{roi.roi.name}</td>
+                    <td className="px-6 py-4 font-bold w-[5vw]">{roi?.roi?.name}</td>
                     {/* <td className={`px-6 py-4 ${statusObj['success']}`}>-</td> */}
-                    <td className="flex flex-wrap items-center gap-2 px-4 py-4">
-                      {removeDuplicates(roi.classes).map((className, index) => {
-                        const numberOfClass = classMap.get(roi.roi.id).get(className);
-                        return (
-                          <>
-                            <Chip key={className} color={`color-${index + 1}`}>
-                              {className}
-                            </Chip>{numberOfClass > 1 && <span className='font-medium'>{`x${numberOfClass}`}</span>}
-                          </>
-                        );
-                      })}
-                    </td>
+                    {roi?.roi ? (
+                      <td className="flex flex-wrap items-center gap-2 px-4 py-4">
+                        {removeDuplicates(roi.classes).map((className, index) => {
+                          const numberOfClass = classMap.get(roi.roi.id).get(className);
+                          return (
+                            <>
+                              <Chip key={className} color={`color-${index + 1}`}>
+                                {className}
+                              </Chip>{numberOfClass > 1 && <span className='font-medium'>{`x${numberOfClass}`}</span>}
+                            </>
+                          );
+                        })}
+                      </td>
+                    ) : (
+                      <td className="flex flex-wrap items-center gap-2 px-4 py-4"></td>
+                    )}
                     <td className='text-right'>
                       <Checkbox
-                        id={roi.roi.id}
+                        id={roi.roi?.id}
+                        disabled={!roi?.roi}
                         checked={roi.check}
                         onChange={() => {}}
                         onClick={() => {

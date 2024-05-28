@@ -215,7 +215,7 @@ export default function UploadImageStep() {
                       >
                         {
                           imageLoader[imageNum] ? (
-                            <>Loading...</>
+                            <>Uploading...</>
                           ) : (
                             <>
                               <Upload /> Upload

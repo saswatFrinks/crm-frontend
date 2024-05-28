@@ -130,6 +130,7 @@ const ModelSelection = ({ formRef }) => {
         if (dataLength === 0 || selectedModels?.size !== dataLength) throw new Error('Please Select Model of all the ROIs');
         return null;
       }
+      if (dataLength === 0 || selectedModels?.size !== dataLength) throw new Error('Please Select Model of all the ROIs');
       const instanceIds = Array.from({ length: dataLength }, () => addInstance?.instanceId);
       const modelIds = [];
       const roiIds = [];
