@@ -11,7 +11,7 @@ import { Link, useLocation, useParams } from 'react-router-dom';
 import { useSetRecoilState } from 'recoil';
 
 export default function Folder() {
-  const columns = ['S.No.', 'File Name', 'Date Created'];
+  const columns = ['S.No.', 'File Name', 'Date Created', 'Is Annotated'];
   const setModalState = useSetRecoilState(modalAtom);
   const params = useParams();
   const [datasetImages, setDatasetImages] = useState([]);
@@ -204,6 +204,10 @@ export default function Folder() {
                       {new Date(
                         Number(datasetImage.createdAt)
                       ).toLocaleString()}
+                    </td>
+
+                    <td className="px-6 py-4 text-sm font-medium">
+                      {datasetImage?.annotated ? 'True' : 'False'}
                     </td>
 
                     <td className="px-6 py-4">

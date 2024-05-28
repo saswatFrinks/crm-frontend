@@ -44,12 +44,17 @@ export default function AIAssembly() {
   
   const formRefs = Array.from({length: 5}, () => useRef(null));
 
-  const handleNext = () => {
-    setStep((t) => {
-      if(formRefs[t-1].current && formRefs[t-1]?.current?.handleSubmit() != true)return t;
-      if (t == 5) return t;
-      return t + 1;
-    });
+  const handleNext = async () => {
+    try {
+      const canProceed = await formRefs[step-1]?.current?.handleSubmit();
+      setStep((t) => {
+        if(formRefs[t-1]?.current && canProceed !== true)return t;
+        if (t == 5) return t;
+        return t + 1;
+      });
+    } catch (error) {
+      toast.error(error?.message)
+    }
   };
 
   const handleBack = () => {
@@ -131,7 +136,6 @@ export default function AIAssembly() {
         });
       const modelInfoObj = modelInfo[0];
       const data = {
-        modelKey: modelInfoObj.modelKey,
         name: modelInfoObj.modelName,
         comment: modelInfoObj.modelDescription,
         rois: roiList,
@@ -148,7 +152,7 @@ export default function AIAssembly() {
       console.error('Got error:', error);
       fetchModelsList();
       setLoading(false);
-      toast.error(JSON.stringify(error));
+      toast.error(error?.response?.data?.data?.message);
     }
   };
 

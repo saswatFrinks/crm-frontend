@@ -76,12 +76,6 @@ export default function Finish() {
       </div>
       <div>
         <label htmlFor="" className="font-semibold">
-          Model Key:
-        </label>
-        <span> {modelInfo.modelKey} </span>
-      </div>
-      <div>
-        <label htmlFor="" className="font-semibold">
           Model Description:
         </label>
         <span> {modelInfo.modelDescription} </span>
@@ -135,6 +129,7 @@ export default function Finish() {
           Following datasets will be used for training:
         </p>
         <div className="p-4">
+          <div className='text-lg border-b-[1px] text-right'>Annotated Images</div>
           {dataset.map((obj, i) => (
             <div key={obj.roi.id}>
               <div className="flex justify-between gap-2 border-b-[1px] py-2">
@@ -149,12 +144,17 @@ export default function Finish() {
                     className="flex flex-1 justify-between gap-2 py-2 ps-5"
                   >
                     <div className="flex-1">{folder.folderName}</div>
-                    <div className="flex-1">{`${folder.totalImages} image${folder?.totalImages == 1 ? '' : 's'}`}</div>
+                    <div className="flex-1"></div>
                     <div className="flex-1">
                       <p
                         className={`text-${folder.annotated ? 'green' : 'red'}-500`}
+                      ></p>
+                    </div>
+                    <div className="flex-1 text-right pr-4">
+                      <p
+                        className={`text-${folder.annotated ? 'green' : 'red'}-500`}
                       >
-                        Annotations {folder.annotated ? '' : 'in'}complete
+                        {`${folder?.annotatedImages}/${folder?.totalImages}`}
                       </p>
                     </div>
                   </div>

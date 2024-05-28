@@ -13,11 +13,11 @@ export default function BuildNTrainDrawer({formRefs}) {
   const [loading, setLoading] = React.useState(false);
 
   const stepObj = {
-    1: <BasicInformation setLoading={setLoading} formRef={formRefs[0]} />,
-    2: <Configuration setLoading={setLoading} formRef={formRefs[1]} />,
-    3: <DataSet setLoading={setLoading} />,
-    4: <ModelConfiguration setLoading={setLoading} />,
-    5: <Finish setLoading={setLoading} />,
+    1: <BasicInformation setLoading={setLoading} key={0} formRef={formRefs[0]} />,
+    2: <Configuration setLoading={setLoading} key={1} formRef={formRefs[1]} />,
+    3: <DataSet setLoading={setLoading} key={2} formRef={formRefs[2]} />,
+    4: <ModelConfiguration setLoading={setLoading} key={3} />,
+    5: <Finish setLoading={setLoading} key={4} />,
   };
 
   const handleNext = () => {
