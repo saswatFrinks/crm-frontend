@@ -93,7 +93,6 @@ export default function ProjectConfiguration() {
   };
 
   useEffect(() => {
-    
     getConfigurations();
     setRectangles([]);
     setSteps(0);
@@ -293,7 +292,8 @@ export default function ProjectConfiguration() {
                     </td>
                     <td className="px-6 py-4">
                       <span
-                        className={`text-${preAnalysisStatusMap[Number(config.analysisStatus)].color}-500`}
+                        className={`text-${preAnalysisStatusMap[Number(config.analysisStatus)].color}-500
+                         ${preAnalysisStatusMap[Number(config.analysisStatus)].disabled ? 'underLine' : ''}`}
                       >
                         <button
                           className={`color-${preAnalysisStatusMap[Number(config.analysisStatus)].color}-500`}

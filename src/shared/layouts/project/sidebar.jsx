@@ -143,7 +143,7 @@ export default function Sidebar() {
     },
   ];
   return (
-    <div className="fixed left-0 top-0 flex h-screen w-16 flex-col items-center  px-2 py-4 shadow-md">
+    <div className="fixed left-0 top-0 flex h-screen w-16 flex-col items-center  px-2 py-4 shadow-md" style={{ zIndex: 9999 }}>
       <Link to="/" className="mb-8">
         <img src={logo} alt="frink logo" width={200} />
       </Link>

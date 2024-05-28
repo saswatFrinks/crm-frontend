@@ -520,7 +520,7 @@ export default function InspectionParameterStep(props) {
         {configuration.rois.map((t, i) => (
           <div key={i}>
             <div className="mb-4 flex items-center gap-4">
-              <Checkbox
+              {type !== ASSEMBLY_CONFIG.MOVING && <Checkbox
                 id={t.id}
                 value={t.id}
                 checked={t.checked}
@@ -534,7 +534,7 @@ export default function InspectionParameterStep(props) {
                   }))
                 }
                 htmlFor={t.id}
-              />
+              />}
               <span>Roi {t.id}</span>
               <div className="flex-1">
                 <Button
@@ -743,7 +743,7 @@ export default function InspectionParameterStep(props) {
                           <Input
                             placeholder="Enter object qty"
                             type="number"
-                            min="0"
+                            min="1"
                             size="xs"
                             value={configuration.rois[i].parts[objIndex].qty}
                             onChange={(e) => {
