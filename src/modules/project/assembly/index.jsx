@@ -122,7 +122,7 @@ export default function Assembly() {
     formData.append('configurationId', configurationId);
     formData.append('imageIds', imageIds);
     if (!imageIds.length) {
-      toast.success('No chanegs to update');
+      toast.success('No changes to update');
       return true;
     }
     try {
