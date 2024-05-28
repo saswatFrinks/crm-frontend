@@ -310,7 +310,7 @@ export default function Configuration(props) {
                 }
                 htmlFor={t.id}
               />
-              <span>Roi {i + 1}</span>
+              <span>ROI {i + 1}</span>
               <div className="flex-1">
                 <Button
                   size="tiny"

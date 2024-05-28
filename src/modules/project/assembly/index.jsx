@@ -277,7 +277,7 @@ export default function Assembly() {
               imageId: images[0].id,
               rectType: RECTANGLE_TYPE.ROI,
               roiId: i,
-              title: 'ROI',
+              title: conf.rois.name,
               x: parseFloat(x1),
               y: parseFloat(y1),
               width: parseFloat(x2 - x1),

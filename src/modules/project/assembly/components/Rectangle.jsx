@@ -29,13 +29,14 @@ const Rectangle = ({
       shapeRef.current.height(shapeProps.height * effectiveScale);
     }
   }, [shapeProps, shapeRef])
+  // console.log("title: ",shapeProps.title)
 
   return (
     <React.Fragment>
         {shapeProps?.title && <Text
             x={(offset?.x || 0) + shapeProps.x * effectiveScale}
             y={(offset?.y || 0) + shapeProps.y * effectiveScale - 17}
-            text={`${shapeProps.id+1}. ${shapeProps?.title}`}
+            text={`${shapeProps?.title}`}
             fontSize={15}
             fill={shapeProps.fill}
         />}

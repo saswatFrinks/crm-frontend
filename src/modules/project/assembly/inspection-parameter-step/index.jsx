@@ -91,12 +91,13 @@ export default function InspectionParameterStep(props) {
 
   const validateMoving = (values) => {
     if(type !== ASSEMBLY_CONFIG.MOVING) return false;
+   
     let errorFound = false;
-    const flowError = !values.productFlow ? 'Product Flow is required' : '';
-    const objectError = !values.primaryObject
+    const flowError = (!values.productFlow && !configuration.productFlow) ? 'Product Flow is required' : '';
+    const objectError = (!values.primaryObject && !configuration.primaryObject)
       ? 'Primary Object is required'
       : '';
-    const classError = !values.primaryObjectClass
+    const classError = (!values.primaryObjectClass && !configuration.primaryObjectClass)
       ? 'Primary Object Class is required'
       : '';
     if (flowError || objectError || classError) errorFound = true;
@@ -430,10 +431,12 @@ export default function InspectionParameterStep(props) {
                     ...d,
                     primaryObjectClass: e.target.value,
                   }));
-                  setMovingForm((form) => ({
-                    ...form,
-                    primaryObjectClass: e.target.value,
-                  }));
+                  setMovingForm((form) => {
+                    return {
+                      ...form,
+                      primaryObjectClass: e.target.value,
+                    }
+                  });
                 }}
                 errorMessage={movingErrors?.primaryObjectClassError}
               />
@@ -535,7 +538,7 @@ export default function InspectionParameterStep(props) {
                 }
                 htmlFor={t.id}
               />}
-              <span>Roi {t.id}</span>
+              <span>ROI {t.id}</span>
               <div className="flex-1">
                 <Button
                   size="tiny"
