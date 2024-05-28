@@ -130,28 +130,28 @@ const Instances = () => {
 
   const downloadInstance = async (instanceId, instanceName, isActive) => {
     try {
-      if(!isActive)return;
-      setDownloadLoader(true);
-      const res = await axiosInstance.get('/instance/download', {
-        params: {
-          instanceId
-        }
-      })
-      const blob = new Blob([res.data], { type: 'text/plain' })
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = `${instanceName.toLowerCase().split(' ').join('_')}.sql`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-    } catch(error) {
-      toast.error(error?.response?.data?.data?.message);
+        if (!isActive) return;
+        setDownloadLoader(true);
+        const res = await axiosInstance.get('/instance/download', {
+            params: { instanceId },
+            responseType: 'blob'  // Ensure the response is treated as a blob
+        });
+
+        const blob = new Blob([res.data], { type: 'application/zip' }); // Set the correct MIME type for zip files
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `${instanceName.toLowerCase().split(' ').join('_')}.zip`; // Ensure the file extension is .zip
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        toast.error(error?.response?.data?.data?.message);
     } finally {
-      setDownloadLoader(false);
+        setDownloadLoader(false);
     }
-  }
+  };
 
   useEffect(() => {
     fetchAllInstances()
