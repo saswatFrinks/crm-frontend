@@ -86,6 +86,7 @@ const KonvaImageView = ({
     const pointerPosition = stage2.getPointerPosition();
 
     const stage = coverRef.current;
+    
 
     if (action.drawMode) {
       setAction((a) => ({ ...a, drawing: true }));
@@ -118,6 +119,7 @@ const KonvaImageView = ({
         title,
         uuid,
       });
+      
       setLastPolyId(uuid);
     } else {
       console.log('starting dragging here:', e.clientX);
@@ -341,7 +343,7 @@ const KonvaImageView = ({
         modified.push({ ...rect, x, y, width, height });
       });
     }
-    console.log(modified);
+    console.log("modiifed",modified);
     setScaledRectangles(modified);
   }, [rectangles, image?.width]);
 
@@ -355,6 +357,8 @@ const KonvaImageView = ({
       setLastAction(null);
     }
   }, [lastAction]);
+
+  
 
   return (
     <div

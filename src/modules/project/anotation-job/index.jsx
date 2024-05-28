@@ -169,6 +169,7 @@ export default function AnnotationJob() {
         const rects = []
         const roiMap = {}
         const classesSet = new Set();
+        console.log("data",{data})
         data?.forEach((conf, i)=>{
           const roiId = conf.rois.id;
           if(!roiMap[roiId]){
@@ -182,7 +183,7 @@ export default function AnnotationJob() {
                 imageId: null,
                 rectType: RECTANGLE_TYPE.ROI,
                 roiId:i,
-                title: `ROI_${i+1}`,
+                title: `ROI ${i}`,
                 x: parseFloat(x1),
                 y: parseFloat(y1),
                 width: parseFloat(x2-x1),
@@ -385,7 +386,7 @@ export default function AnnotationJob() {
                   }
                 }}
                 rectangles={annotationClasses[selectedImage.id] ? [...rois, ...annotationClasses[selectedImage.id].rectangles]: rois}
-                title={selectedClass?.name || 'Label'}
+                title={selectedClass?.name || 'Label' }
                 image={image}
                 imageId={selectedImage?.id}
               />
