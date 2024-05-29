@@ -30,14 +30,6 @@ const PredictedImage = ({canvasSize, shapeProps, url, threshold}) => {
     }
   };
 
-  // const modifiedProps = shapeProps.map(prop => ({
-  //   ...prop,
-  //   x: prop.x*image.width,
-  //   y: prop.y*image.height,
-  //   width: prop.width*image.width,
-  //   height: prop.height*image.height
-  // }))
-
   useEffect(() => {
     resetGraph()
   }, [image])
