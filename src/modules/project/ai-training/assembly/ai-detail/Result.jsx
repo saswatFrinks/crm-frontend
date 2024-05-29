@@ -25,15 +25,20 @@ export default function Result() {
 
   const [classes, setClasses] = useState([]);
 
-  const shapeProps = classes.map((classItem, index) => ({
-    ...classItem,
-    x: (classItem.x1+classItem.x2)/2,
-    y: (classItem.y1+classItem.y2)/2,
-    width: Math.abs(classItem.x1-classItem.x2),
-    height: Math.abs(classItem.y1-classItem.y2),
-    id: index,
-    title: `Class ${index+1}`,
-  }))
+  const cachedClasses = cachedImages?.get(images[page-1])?.parsedClasses;
+  const cachedImageUrl = cachedImages?.get(images[page-1])?.url;
+
+  const getFormattedBoxes = (boxes) => {
+    return boxes.map((classItem, index) => ({
+      ...classItem,
+      x: (classItem.x1+classItem.x2)/2,
+      y: (classItem.y1+classItem.y2)/2,
+      width: Math.abs(classItem.x1-classItem.x2),
+      height: Math.abs(classItem.y1-classItem.y2),
+      id: index,
+      title: `Class ${index+1}`,
+    }))
+  }
 
   const makeApiCallForImage = async (imageName) => {
     const res = await axiosInstance.get('/model/result-image-data', {
@@ -44,27 +49,27 @@ export default function Result() {
       responseType: 'arraybuffer'
     });
 
-    const parsedClasses = JSON.parse(res.headers['x-annotations'])
+    const parsedClasses = JSON.parse(res.headers['x-annotations']).map(classItem => ({
+      ...classItem,
+      stroke: getRandomHexColor()
+    }))
 
     const blob = new Blob([res.data], { type: 'image/png' });
     const url = window.URL.createObjectURL(blob);
     return {
       url,
-      parsedClasses
+      parsedClasses: getFormattedBoxes(parsedClasses)
     }
   }
 
   const getImageData = async (imageName) => {
     try {
       setImageLoader(true);
-  
-      const {parsedClasses, url} = await makeApiCallForImage(imageName);
-
-      setClasses(parsedClasses.map(classItem => ({
-        ...classItem,
-        stroke: getRandomHexColor()
-      })));
-      setCurrentImage(url);
+      const data = await makeApiCallForImage(imageName);
+      if(imageName === images[page-1]){
+        setClasses(data.parsedClasses)
+        setCurrentImage(data.url)
+      }
     } catch (error) {
       toast.error(error?.response?.data?.data?.message);
     } finally {
@@ -98,7 +103,7 @@ export default function Result() {
           if (img <= 0 || img > images.length || cachedImages.has(images[img-1])) continue;
           const imageName = images[img - 1];
           promises.push(makeApiCallForImage(imageName).then(data => {
-              cacheMap.set(imageName, data);
+            cacheMap.set(imageName, data);
           }));
       }
       
@@ -114,13 +119,10 @@ export default function Result() {
       if(!cachedImages.has(images[page-1])){
         getImageData(images[page-1])
       } else{
-        setClasses(
-          cachedImages?.get(images[page-1])?.parsedClasses.map(classItem => ({
-            ...classItem,
-            stroke: getRandomHexColor()
-          }))
-        )
-        setCurrentImage(cachedImages?.get(images[page-1])?.url)
+        const data = cachedImages.get(images[page-1])
+        setClasses(data.parsedClasses)
+        setCurrentImage(data.url)
+        setImageLoader(false);
       }
       cacheImages(page)
     }
@@ -165,7 +167,7 @@ export default function Result() {
               <div className="loading px-4 text-center" style={{width: canvasSize/2}}></div>
             ) : (
               <img
-                src={currentImage}
+                src={cachedImageUrl || currentImage}
                 style={{
                   maxWidth: canvasSize,
                   maxHeight: canvasSize
@@ -179,19 +181,28 @@ export default function Result() {
         <div
           className='flex flex-col items-center gap-4'
         >
-          {imageLoader ? (
-            <div
-              className='border-black flex items-center justify-center'
-              style={{
-                height: canvasSize,
-                width: canvasSize
-              }}
-            >
+          <div
+            className='border-black flex items-center justify-center'
+            style={{
+              height: canvasSize,
+              width: canvasSize
+            }}
+          >
+            {imageLoader ? (
               <div className="loading px-4 text-center" style={{width: canvasSize/2}}></div>
-            </div>
-          ) : (
-            <>{currentImage && <PredictedImage threshold={threshold} canvasSize={canvasSize} shapeProps={shapeProps} url={currentImage} />}</>
-          )}
+            ) : (
+              <>
+                {currentImage && (
+                  <PredictedImage 
+                    threshold={threshold} 
+                    canvasSize={canvasSize} 
+                    shapeProps={cachedClasses || classes} 
+                    url={cachedImageUrl || currentImage} 
+                  />
+                )}
+              </>
+            )}
+          </div>
           <div className='font-medium text-lg'>Prediction</div>
         </div>
       </div>
