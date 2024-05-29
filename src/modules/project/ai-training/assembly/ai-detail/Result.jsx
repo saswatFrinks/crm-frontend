@@ -1,4 +1,3 @@
-import Pagination from '@/shared/ui/Pagination';
 import Slider from '@/shared/ui/Slider';
 import RecallChart from './RecallChart';
 import MatrixChart from './MatrixChart';
@@ -8,7 +7,6 @@ import { useParams } from 'react-router-dom';
 import axiosInstance from '@/core/request/aixosinstance';
 import toast from 'react-hot-toast';
 import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader';
-import { Spinner } from '@material-tailwind/react';
 import { getRandomHexColor } from '@/util/util';
 import ResultPagination from '@/shared/ui/ResultPagination';
 
@@ -19,6 +17,8 @@ export default function Result() {
   const [page, setPage] = useState(1);
   const [images, setImages] = useState([]);
   const [currentImage, setCurrentImage] = useState(null);
+
+  const [cachedImages, setCachedImages] = useState(new Map());
 
   const [loader, setLoader] = useState(true);
   const [imageLoader, setImageLoader] = useState(false);
@@ -35,32 +35,35 @@ export default function Result() {
     title: `Class ${index+1}`,
   }))
 
-  const [filter, setFilter] = useState(shapeProps)
+  const makeApiCallForImage = async (imageName) => {
+    const res = await axiosInstance.get('/model/result-image-data', {
+      params: {
+        modelId: params.modelId,
+        name: imageName
+      },
+      responseType: 'arraybuffer'
+    });
 
-  useEffect(() => {
-    setFilter(shapeProps.filter(prop => threshold >= prop.threshold*100))
-  }, [threshold])
+    const parsedClasses = JSON.parse(res.headers['x-annotations'])
+
+    const blob = new Blob([res.data], { type: 'image/png' });
+    const url = window.URL.createObjectURL(blob);
+    return {
+      url,
+      parsedClasses
+    }
+  }
 
   const getImageData = async (imageName) => {
     try {
       setImageLoader(true);
-      const res = await axiosInstance.get('/model/result-image-data', {
-        params: {
-          modelId: params.modelId,
-          name: imageName
-        },
-        responseType: 'arraybuffer'
-      });
   
-      const parsedClasses = JSON.parse(res.headers['x-annotations'])
+      const {parsedClasses, url} = await makeApiCallForImage(imageName);
 
       setClasses(parsedClasses.map(classItem => ({
         ...classItem,
         stroke: getRandomHexColor()
       })));
-  
-      const blob = new Blob([res.data], { type: 'image/png' });
-      const url = window.URL.createObjectURL(blob);
       setCurrentImage(url);
     } catch (error) {
       toast.error(error?.response?.data?.data?.message);
@@ -86,17 +89,46 @@ export default function Result() {
     }
   }
 
+  const cacheImages = async (pageNum) => {
+    try {
+      const cacheMap = new Map(cachedImages);
+      const promises = [];
+      
+      for (let img = pageNum - 1; img <= pageNum + 1; img++) {
+          if (img <= 0 || img > images.length || cachedImages.has(images[img-1])) continue;
+          const imageName = images[img - 1];
+          promises.push(makeApiCallForImage(imageName).then(data => {
+              cacheMap.set(imageName, data);
+          }));
+      }
+      
+      await Promise.all(promises);
+      setCachedImages(cacheMap);
+    } catch (error) {
+      toast.error(error?.response?.data?.data?.message);
+    }
+  }
+
   useEffect(() => {
     if(images?.length > 0){
-      getImageData(images[page-1])
+      if(!cachedImages.has(images[page-1])){
+        getImageData(images[page-1])
+      } else{
+        setClasses(
+          cachedImages?.get(images[page-1])?.parsedClasses.map(classItem => ({
+            ...classItem,
+            stroke: getRandomHexColor()
+          }))
+        )
+        setCurrentImage(cachedImages?.get(images[page-1])?.url)
+      }
+      cacheImages(page)
     }
   }, [page, images])
 
   useEffect(() => {
     getModelData()
   }, [])
-
-  console.log({page})
 
   return (
     <div className="grid gap-4">
