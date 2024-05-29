@@ -2,7 +2,7 @@ import { Accordion, AccordionBody, AccordionHeader } from '@material-tailwind/re
 import React, { useEffect, useState } from 'react'
 import { useRecoilState } from 'recoil';
 import { addInstanceAtom } from '../state';
-import { removeDuplicates } from '@/util/util';
+import { removeDuplicates, setUniqueClassColors } from '@/util/util';
 import Chip from '@/shared/ui/Chip';
 import Radio from '@/shared/ui/Radio';
 import axiosInstance from '@/core/request/aixosinstance';
@@ -29,15 +29,7 @@ const ModelSelection = ({ formRef }) => {
       classesData = [...classesData, ...data?.classes]
     });
 
-    const uniqueClasses = removeDuplicates(classesData);
-    uniqueClasses.forEach((data, i) => {
-      classes.set(data?.id, {
-        name: data?.name,
-        color: `color-${(i % 10) + 1}`
-      })
-    })
-
-    setClassColors(classes);
+    setClassColors(setUniqueClassColors(classesData));
     setAddInstance({
       ...addInstance,
       colorClasses: classes

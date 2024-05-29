@@ -81,25 +81,35 @@ export default function AIDetail() {
         >
           AI Models
         </h1>{' '}
-        <ArrowRight /> <span>Model {modelInfo?.name}</span>
+        <ArrowRight /> <span className='font-medium text-lg'>Model {modelInfo?.name}</span>
       </div>
 
       <div className="border-b border-gray-200 text-center text-sm font-medium text-gray-500 dark:border-gray-700 dark:text-gray-400">
         <ul className="-mb-px flex flex-wrap">
-          {/* {tabs.map((t) => (
+          {tabs.map((t) => (
             <li key={t.fragment} className="me-2">
               <NavLink
                 to={t.fragment}
-                className={`${hash == t.fragment ? 'border-f-primary hover:border-f-primary' : 'border-transparent hover:border-gray-300'} inline-block rounded-t-lg border-b-2  p-4  hover:text-gray-600 dark:hover:text-gray-300`}
+                className={`${hash == t.fragment ? 'border-f-primary hover:border-f-primary' : 'border-transparent hover:border-gray-300'} text-lg inline-block rounded-t-lg border-b-2  p-4  hover:text-gray-600 dark:hover:text-gray-300`}
               >
                 {t.title}{' '}
               </NavLink>
             </li>
-          ))} */}
+          ))}
         </ul>
       </div>
 
-      <div className="p-4">{tabObj[hash]}</div>
+      <div className='bg-white'>
+        <div 
+          className="p-10"
+          style={{
+            width: '90%',
+            margin: '0 auto'
+          }}
+        >
+          {tabObj[hash]}
+        </div>
+      </div>
     </>
   );
 }

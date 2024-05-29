@@ -1,59 +1,54 @@
-import React from 'react';
-import { Line } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  ArcElement,
-  Tooltip,
-  Legend,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-} from 'chart.js';
-ChartJS.register(
-  ArcElement,
-  Tooltip,
-  Legend,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement
-);
+import axiosInstance from '@/core/request/aixosinstance';
+import React, { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
+import { useParams } from 'react-router-dom';
 
 export default function RecallChart() {
-  const data = {
-    labels: ['0.0', '0.2', '0.4', '0.6', '0.8', '1.0'],
-    datasets: [
-      {
-        label: 'Smooth Line Chart',
-        data: [1, 1, 1, 1, 1, 0],
-        fill: true,
-        tension: 0.4, // Adjust this value to control the smoothness of the line
-        backgroundColor: '#6B4EFF',
-        borderColor: '#6B4EFF',
-        borderWidth: 2,
-      },
-    ],
-  };
+  const params = useParams();
+  const [imageUrl, setImageUrl] = useState(null);
+  const [loader, setLoader] = useState(false);
+
+  const getPRCurve = async () => {
+    try{
+      console.log('in func')
+      setLoader(true);
+      const res = await axiosInstance.get('/model/pr-curve', {
+        params: {
+          modelId: params.modelId,
+        },
+        responseType: 'arraybuffer'
+      });
+
+      const blob = new Blob([res.data], { type: 'image/png' });
+      const url = window.URL.createObjectURL(blob);
+      setImageUrl(url);
+    } catch(error){
+      toast.error(error?.response?.data?.data?.message);
+    } finally{
+      setLoader(false);
+    }
+  }
+
+  useEffect(() => {
+    getPRCurve()
+  }, [])
 
   return (
-    <div>
-      {' '}
-      <Line
-        data={data}
-        options={{
-          scales: {
-            x: {
-              type: 'category',
-              position: 'bottom',
-            },
-            y: {
-              type: 'linear',
-              position: 'left',
-            },
-          },
-        }}
-      />
+    <div className="flex gap-4 items-center justify-center">
+      {loader ? (
+        <div className="loading px-4 text-center" style={{width: '20vw'}}></div>
+      ) : (
+        <>
+          {imageUrl && <img
+            src={imageUrl}
+            alt='Confusion Matrix'
+            style={{
+              width: '25vw',
+              height: 'auto'
+            }}
+          />}
+        </>
+      )}
     </div>
   );
 }

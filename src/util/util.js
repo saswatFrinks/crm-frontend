@@ -34,3 +34,17 @@ export const removeDuplicateFromArray = (arr, key) => {
   })
   return res;
 }
+
+export const setUniqueClassColors = (allClasses) => {
+  const classes = new Map();
+
+  const uniqueClasses = removeDuplicates(allClasses);
+  uniqueClasses.forEach((data, i) => {
+    classes.set((data?.id || data), {
+      name: data?.name || data,
+      color: `color-${(i % 10) + 1}`
+    })
+  })
+
+  return classes;
+}

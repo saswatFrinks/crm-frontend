@@ -221,6 +221,7 @@ const Instances = () => {
                         <Link 
                           to={`/instances/${params.projectId}/${instance?.instances?.isActive ? instance.instances.id : ''}`}
                           state={{...location.state, projectName: project?.name}}
+                          className={`${instance?.instances?.isActive ? 'underline text-f-primary' : ''} font-medium`}
                         >
                           {instance?.instances?.name}{'   '}
                           {!instance?.instances?.isActive && <sup className='text-[#FF1212] text-sm'>draft</sup>}
