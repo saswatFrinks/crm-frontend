@@ -463,11 +463,11 @@ export default function Assembly() {
 
           <div className=" flex justify-center border-t-[1px] border-gray-400 bg-white">
             <div className="flex max-w-md flex-1 items-center justify-center gap-4">
-              <Button size="xs" variant="border" onClick={() => navigate(-1)}>
+              <Button size="xs" variant="flat" onClick={() => navigate(-1)}>
                 Cancel
               </Button>
               {step > 0 && (
-                <Button size="xs" variant="flat" onClick={handlePrev}>
+                <Button size="xs" variant="border" onClick={handlePrev}>
                   Back
                 </Button>
               )}

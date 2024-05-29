@@ -65,9 +65,12 @@ export default function AIAssembly() {
   };
 
   const trainingStatus = {
-    0: { label: 'In progress', color: 'text-yellow-500' },
-    [-1]: { label: 'Failed', color: 'text-red-500' },
-    1: { label: 'Successful', color: 'text-green-500' },
+    0: { label: 'Initiated', color: 'text-yellow-500' },
+    1: { label: 'Files Downloaded', color: 'text-orange-500' },
+    2: { label: 'Training', color: 'text-gray-500' },
+    3: { label: 'Uploading', color: 'text-gray-500' },
+    4: { label: 'Completed', color: 'text-green-500' },
+    5: { label: 'Error', color: 'text-red-500' },
   };
 
   const columns = [

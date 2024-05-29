@@ -8,6 +8,8 @@ import Cross from '../icons/Cross'
 const ErrorModal = ({error}) => {
   const [open, setOpen] = useRecoilState(modalAtom);
 
+  if(!error)setOpen(false);
+
   return (
     <>
       <ModalHeader></ModalHeader>

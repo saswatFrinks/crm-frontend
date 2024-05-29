@@ -1,8 +1,7 @@
 import React from 'react';
-import { isSafari } from 'react-device-detect';
+import { Slider as TailwindSlider } from '@material-tailwind/react';
 
-export default function Slider({ title, id = 'range' }) {
-  const [value, setValue] = React.useState(50);
+export default function Slider({ title, id = 'range', value, setValue }) {
   return (
     <div className="flex w-full max-w-2xl items-center gap-4">
       <label
@@ -11,16 +10,11 @@ export default function Slider({ title, id = 'range' }) {
       >
         {title}
       </label>
-      <input
-        onChange={(e) => setValue(e.target.value)}
-        id={id}
-        type="range"
-        value={value}
-        className={`${
-          isSafari ? 'safari' : ''
-        } w-1/2 accent-f-primary [&::-webkit-slider-runnable-track]:h-[4px] [&::-webkit-slider-runnable-track]:appearance-none [&::-webkit-slider-runnable-track]:outline-0 [&::-webkit-slider-thumb]:-mt-[6px]`}
-      ></input>
-      <div className="font-semibold">{value}/100</div>
+      <TailwindSlider
+        value={value} 
+        onChange={(e) => { setValue(e.target.value) }}
+      />
+      <div className="font-semibold">{Math.round(value, 2)}/100</div>
     </div>
   );
 }

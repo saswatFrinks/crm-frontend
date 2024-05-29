@@ -2,10 +2,105 @@ import Pagination from '@/shared/ui/Pagination';
 import Slider from '@/shared/ui/Slider';
 import RecallChart from './RecallChart';
 import MatrixChart from './MatrixChart';
+import PredictedImage from './PredictedImage';
+import { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import axiosInstance from '@/core/request/aixosinstance';
+import toast from 'react-hot-toast';
+import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader';
+import { Spinner } from '@material-tailwind/react';
+import { getRandomHexColor } from '@/util/util';
+import ResultPagination from '@/shared/ui/ResultPagination';
 
 export default function Result() {
+  const canvasSize = 500;
+  const params = useParams();
+  const [threshold, setThreshold] = useState(50);
+  const [page, setPage] = useState(1);
+  const [images, setImages] = useState([]);
+  const [currentImage, setCurrentImage] = useState(null);
+
+  const [loader, setLoader] = useState(true);
+  const [imageLoader, setImageLoader] = useState(false);
+
+  const [classes, setClasses] = useState([]);
+
+  const shapeProps = classes.map((classItem, index) => ({
+    ...classItem,
+    x: (classItem.x1+classItem.x2)/2,
+    y: (classItem.y1+classItem.y2)/2,
+    width: Math.abs(classItem.x1-classItem.x2),
+    height: Math.abs(classItem.y1-classItem.y2),
+    id: index,
+    title: `Class ${index+1}`,
+  }))
+
+  const [filter, setFilter] = useState(shapeProps)
+
+  useEffect(() => {
+    setFilter(shapeProps.filter(prop => threshold >= prop.threshold*100))
+  }, [threshold])
+
+  const getImageData = async (imageName) => {
+    try {
+      setImageLoader(true);
+      const res = await axiosInstance.get('/model/result-image-data', {
+        params: {
+          modelId: params.modelId,
+          name: imageName
+        },
+        responseType: 'arraybuffer'
+      });
+  
+      const parsedClasses = JSON.parse(res.headers['x-annotations'])
+
+      setClasses(parsedClasses.map(classItem => ({
+        ...classItem,
+        stroke: getRandomHexColor()
+      })));
+  
+      const blob = new Blob([res.data], { type: 'image/png' });
+      const url = window.URL.createObjectURL(blob);
+      setCurrentImage(url);
+    } catch (error) {
+      toast.error(error?.response?.data?.data?.message);
+    } finally {
+      setImageLoader(false);
+    }
+  };
+
+  const getModelData = async () => {
+    try {
+      setLoader(true);
+      const response = await axiosInstance.get('/model/result-images-list', {
+        params: {
+          modelId: params.modelId,
+        }
+      });
+
+      setImages(response?.data?.data)
+    } catch (error) {
+      toast.error(error?.response?.data?.data?.message)
+    } finally {
+      setLoader(false);
+    }
+  }
+
+  useEffect(() => {
+    if(images?.length > 0){
+      getImageData(images[page-1])
+    }
+  }, [page, images])
+
+  useEffect(() => {
+    getModelData()
+  }, [])
+
+  console.log({page})
+
   return (
     <div className="grid gap-4">
+      {loader && <ProjectCreateLoader title='Fetching Images'/>}
       <ul className="flex gap-12">
         <li>Training Data: 120 images</li>
 
@@ -26,30 +121,54 @@ export default function Result() {
       </p>
 
       <div className="flex items-center justify-center gap-8">
-        <figure className="flex w-full max-w-lg flex-col items-center ">
-          <img
-            className="h-80 w-full border border-black"
-            src="/docs/images/examples/image-3@2x.jpg"
-            alt="image description"
-          />
-          <figcaption className=" mt-2 text-center">Original</figcaption>
-        </figure>
+        <div className="w-full max-w-lg flex flex-col items-center gap-4">
+          <div
+            className='border-black flex items-center justify-center'
+            style={{
+              height: canvasSize,
+              width: canvasSize
+            }}
+          >
+            {imageLoader ? (
+              <div className="loading px-4 text-center" style={{width: canvasSize/2}}></div>
+            ) : (
+              <img
+                src={currentImage}
+                style={{
+                  maxWidth: canvasSize,
+                  maxHeight: canvasSize
+                }}
+              />
+            )}
+          </div>
+          <div className='font-medium text-lg'>Actual</div>
+        </div>
 
-        <figure className="flex w-full max-w-lg flex-col items-center ">
-          <img
-            className="h-80 w-full border border-black"
-            src="/docs/images/examples/image-3@2x.jpg"
-            alt="image description"
-          />
-          <figcaption className="mt-2 text-center ">Prediction</figcaption>
-        </figure>
+        <div
+          className='flex flex-col items-center gap-4'
+        >
+          {imageLoader ? (
+            <div
+              className='border-black flex items-center justify-center'
+              style={{
+                height: canvasSize,
+                width: canvasSize
+              }}
+            >
+              <div className="loading px-4 text-center" style={{width: canvasSize/2}}></div>
+            </div>
+          ) : (
+            <>{currentImage && <PredictedImage threshold={threshold} canvasSize={canvasSize} shapeProps={shapeProps} url={currentImage} />}</>
+          )}
+          <div className='font-medium text-lg'>Prediction</div>
+        </div>
       </div>
 
-      <Pagination />
+      <ResultPagination page={page} setPage={setPage} total={images?.length} />
 
       <div className="flex flex-col items-center gap-4">
-        <Slider title={'Confidence Threshold:'} id="confidence" />
-        <Slider title={'IOU Threshold:'} id="iou" />
+        <Slider title={'Confidence Threshold:'} id="confidence" value={threshold} setValue={setThreshold} />
+        {/* <Slider title={'IOU Threshold:'} id="iou" /> */}
       </div>
 
       <h3 className="text-2xl font-semibold">Training Results</h3>
