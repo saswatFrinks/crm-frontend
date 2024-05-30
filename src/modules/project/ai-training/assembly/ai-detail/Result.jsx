@@ -100,11 +100,11 @@ export default function Result() {
       const promises = [];
       
       for (let img = pageNum - 1; img <= pageNum + 1; img++) {
-          if (img <= 0 || img > images.length || cachedImages.has(images[img-1])) continue;
-          const imageName = images[img - 1];
-          promises.push(makeApiCallForImage(imageName).then(data => {
-            cacheMap.set(imageName, data);
-          }));
+        if (img <= 0 || img > images.length || cachedImages.has(images[img-1])) continue;
+        const imageName = images[img - 1];
+        promises.push(makeApiCallForImage(imageName).then(data => {
+          cacheMap.set(imageName, data);
+        }));
       }
       
       await Promise.all(promises);
