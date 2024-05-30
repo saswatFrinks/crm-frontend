@@ -10,6 +10,8 @@ import {
   classAtom,
   configurationAtom,
   datasetAtom,
+  defaultAugmentationAtom,
+  defaultModelInfoAtom,
   // modelIdAtom,
   modelInfoAtom,
   stepAtom,
@@ -35,12 +37,13 @@ export default function AIAssembly() {
   const [loading, setLoading] = React.useState(false);
   const [step, setStep] = useRecoilState(stepAtom);
   // const setModelId = useSetRecoilState(modelIdAtom);
-  const configuration = useRecoilState(configurationAtom);
+  const [configuration, setConfiguration] = useRecoilState(configurationAtom);
   // const classes = useRecoilState(classAtom);
   // const rois = useRecoilState();
-  const datasets = useRecoilState(datasetAtom);
-  const augmentations = useRecoilState(augmentationsAtom);
-  const modelInfo = useRecoilState(modelInfoAtom);
+  const [classAt, setClassAtom] = useRecoilState(classAtom);
+  const [datasets, setDatasets] = useRecoilState(datasetAtom);
+  const [augmentations, setAugmentations] = useRecoilState(augmentationsAtom);
+  const [modelInfo, setModelInfo] = useRecoilState(modelInfoAtom);
   
   const formRefs = Array.from({length: 5}, () => useRef(null));
 
@@ -81,8 +84,18 @@ export default function AIAssembly() {
     'Classes',
   ];
 
+  const resetForm = () => {
+    setConfiguration([]);
+    setDatasets([]);
+    setClassAtom([]);
+    setAugmentations(defaultAugmentationAtom);
+    setModelInfo(defaultModelInfoAtom);
+  }
+
   const closeDrawer = () => {
     setOpenDrawer(false);
+    resetForm();
+    setStep(1);
   };
 
   const openDrawer = () => {
