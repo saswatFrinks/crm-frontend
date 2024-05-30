@@ -23,11 +23,6 @@ export default function Result() {
   const [imageLoader, setImageLoader] = useState(false);
   const [imageLoader2, setImageLoader2] = useState(false);
 
-  const [classes, setClasses] = useState([]);
-
-  const [cachedClasses, setCachedClasses] = useState(null);
-  const [cachedImageUrl, setCachedImageUrl] = useState(null);
-
   const abortControllerRef = useRef(null);
   const cacheAbortControllerRef = Array.from({length: 5}, () => useRef(null));
 
@@ -97,8 +92,6 @@ export default function Result() {
         prev.set(imageName, data);
         return prev;
       })
-      setCachedClasses(data.parsedClasses);
-      setCachedImageUrl(data.url);
     } catch (error) {
       const isAborted = error?.config?.signal?.aborted;
       if(!isAborted)toast.error(error?.response?.data?.data?.message);
@@ -145,13 +138,14 @@ export default function Result() {
   }
 
   const deleteOlderCaches = (pageNum) => {
-    const persistRange = [pageNum-5, pageNum+5];
+    const persistRange = [pageNum-4, pageNum-3, pageNum+3, pageNum+4];
     let cacheAfterDelete = new Map(cachedImages);
     persistRange.forEach(index => {
       if(index > 1 && index < images.length && cacheAfterDelete.size > 10){
         deleteBlob(images[index-1], cacheAfterDelete);
       }
     })
+    setCachedImages(cacheAfterDelete);
     return cacheAfterDelete;
   }
 
@@ -197,10 +191,9 @@ export default function Result() {
     if(images?.length > 0){
       const data = cachedImages.get(images[page-1])
       if(data){
+        console.log('data', data, page)
         checkBlobURLValidity(data.url).then(isValid => {
           if (isValid) {
-            setCachedClasses(data.parsedClasses);
-            setCachedImageUrl(data.url);
             setImageLoader(false);
             setImageLoader2(false);
           } else {
@@ -220,6 +213,13 @@ export default function Result() {
 
   useEffect(() => {
     getModelData()
+
+    return () => {
+      cachedImages.forEach((value, key) => {
+        URL.revokeObjectURL(value.url);
+      });
+      setCachedImages(new Map());
+    }
   }, [])
 
   return (
@@ -257,7 +257,7 @@ export default function Result() {
               <div className="loading px-4 text-center" style={{width: canvasSize/2}}></div>
             ) : (
               <img
-                src={cachedImageUrl}
+                src={cachedImages.get(images[page-1])?.url}
                 style={{
                   maxWidth: canvasSize,
                   maxHeight: canvasSize
@@ -282,12 +282,12 @@ export default function Result() {
               <div className="loading px-4 text-center" style={{width: canvasSize/2}}></div>
             ) : (
               <>
-                {(cachedImageUrl) && (
+                {(cachedImages.get(images[page-1])?.url) && (
                   <PredictedImage 
                     threshold={threshold} 
                     canvasSize={canvasSize} 
-                    shapeProps={cachedClasses || classes} 
-                    url={cachedImageUrl} 
+                    shapeProps={cachedImages.get(images[page-1])?.parsedClasses} 
+                    url={cachedImages.get(images[page-1])?.url} 
                   />
                 )}
               </>
