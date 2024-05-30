@@ -14,18 +14,12 @@ const PredictedImage = ({canvasSize, shapeProps, url, threshold}) => {
       const cover = coverRef.current;
       const { width, height } = cover.getBoundingClientRect();
 
-      console.log('cover', width, height);
-
       let scale = Math.min(width / image.width, height / image.height);
-      console.log('Image: ', image.width, image.height);
-      console.log('scale: ', scale);
 
       const originX = (canvasSize - image.width * scale) / 2;
       const originY = (canvasSize - image.height * scale) / 2;
       const cords = { x: originX, y: originY };
-      console.log('Initial', cords);
       setOrigin({ ...cords, scale: scale });
-      // console.log(cords)
       return cords;
     }
   };
@@ -33,8 +27,6 @@ const PredictedImage = ({canvasSize, shapeProps, url, threshold}) => {
   useEffect(() => {
     resetGraph()
   }, [image])
-
-  console.log({shapeProps})
 
   if(!image?.width)return <></> 
 
@@ -64,8 +56,10 @@ const PredictedImage = ({canvasSize, shapeProps, url, threshold}) => {
               y={origin?.y}
             />
             {shapeProps.map(prop => {
-              if((prop.threshold*100) > Number(threshold))return <></>
-              return <React.Fragment>
+              if((prop.threshold*100) < Number(threshold))return <></>
+              return <React.Fragment
+                key={prop.id}
+              >
                 {prop?.title && <Text
                     x={(origin?.x || 0) + prop.x1 * image.width * origin?.scale}
                     y={(origin?.y || 0) + prop.y1 * image.height * origin?.scale - 17}

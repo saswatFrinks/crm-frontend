@@ -14,15 +14,6 @@ import {
 export default function AiTrainingLayout() {
   const params = useParams();
 
-  const makeApiCall = async () => {
-    const data = await axiosInstance.get(`magic/${params.id}`);
-    console.log(data.data);
-  };
-
-  useEffect(() => {
-    makeApiCall();
-  }, []);
-
   const location = useLocation();
 
   const menus = [

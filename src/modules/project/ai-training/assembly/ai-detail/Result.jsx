@@ -1,14 +1,12 @@
-import Pagination from '@/shared/ui/Pagination';
 import Slider from '@/shared/ui/Slider';
 import RecallChart from './RecallChart';
 import MatrixChart from './MatrixChart';
 import PredictedImage from './PredictedImage';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import axiosInstance from '@/core/request/aixosinstance';
 import toast from 'react-hot-toast';
 import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader';
-import { Spinner } from '@material-tailwind/react';
 import { getRandomHexColor } from '@/util/util';
 import ResultPagination from '@/shared/ui/ResultPagination';
 
@@ -18,54 +16,98 @@ export default function Result() {
   const [threshold, setThreshold] = useState(50);
   const [page, setPage] = useState(1);
   const [images, setImages] = useState([]);
-  const [currentImage, setCurrentImage] = useState(null);
+
+  const [cachedImages, setCachedImages] = useState(new Map());
 
   const [loader, setLoader] = useState(true);
   const [imageLoader, setImageLoader] = useState(false);
+  const [imageLoader2, setImageLoader2] = useState(false);
 
   const [classes, setClasses] = useState([]);
 
-  const shapeProps = classes.map((classItem, index) => ({
-    ...classItem,
-    x: (classItem.x1+classItem.x2)/2,
-    y: (classItem.y1+classItem.y2)/2,
-    width: Math.abs(classItem.x1-classItem.x2),
-    height: Math.abs(classItem.y1-classItem.y2),
-    id: index,
-    title: `Class ${index+1}`,
-  }))
+  const [cachedClasses, setCachedClasses] = useState(null);
+  const [cachedImageUrl, setCachedImageUrl] = useState(null);
 
-  const [filter, setFilter] = useState(shapeProps)
+  const abortControllerRef = useRef(null);
+  const cacheAbortControllerRef = Array.from({length: 5}, () => useRef(null));
 
-  useEffect(() => {
-    setFilter(shapeProps.filter(prop => threshold >= prop.threshold*100))
-  }, [threshold])
+  const getFormattedBoxes = (boxes) => {
+    return boxes.map((classItem, index) => ({
+      ...classItem,
+      x: (classItem.x1+classItem.x2)/2,
+      y: (classItem.y1+classItem.y2)/2,
+      width: Math.abs(classItem.x1-classItem.x2),
+      height: Math.abs(classItem.y1-classItem.y2),
+      id: index,
+      title: `Class ${index+1}`,
+    }))
+  }
+
+  const makeApiCallForImage = async (imageName, signal = null) => {
+    const config = {
+      params: {
+        modelId: params.modelId,
+        name: imageName
+      },
+      responseType: 'arraybuffer',
+    };
+  
+    if (signal) {
+      config.signal = signal;
+    }
+  
+    const res = await axiosInstance.get('/model/result-image-data', config);
+
+    const parsedClasses = JSON.parse(res.headers['x-annotations']).map(classItem => ({
+      ...classItem,
+      stroke: getRandomHexColor()
+    }))
+
+    const blob = new Blob([res.data], { type: 'image/png' });
+    const url = window.URL.createObjectURL(blob);
+    return {
+      url,
+      parsedClasses: getFormattedBoxes(parsedClasses)
+    }
+  }
 
   const getImageData = async (imageName) => {
+    let index;
     try {
-      setImageLoader(true);
-      const res = await axiosInstance.get('/model/result-image-data', {
-        params: {
-          modelId: params.modelId,
-          name: imageName
-        },
-        responseType: 'arraybuffer'
-      });
-  
-      const parsedClasses = JSON.parse(res.headers['x-annotations'])
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
 
-      setClasses(parsedClasses.map(classItem => ({
-        ...classItem,
-        stroke: getRandomHexColor()
-      })));
-  
-      const blob = new Blob([res.data], { type: 'image/png' });
-      const url = window.URL.createObjectURL(blob);
-      setCurrentImage(url);
+      abortControllerRef.current = new AbortController();
+      const { signal } = abortControllerRef.current;
+
+      if(imageLoader === false){
+        index = 0;
+        setImageLoader(true);
+      }else if(imageLoader2 === false){
+        index = 1;
+        setImageLoader2(true);
+      }
+      const data = await makeApiCallForImage(imageName, signal);
+
+      if (signal.aborted) {
+        return;
+      }
+      setCachedImages(prev => {
+        prev.set(imageName, data);
+        return prev;
+      })
+      setCachedClasses(data.parsedClasses);
+      setCachedImageUrl(data.url);
     } catch (error) {
-      toast.error(error?.response?.data?.data?.message);
+      const isAborted = error?.config?.signal?.aborted;
+      if(!isAborted)toast.error(error?.response?.data?.data?.message);
     } finally {
-      setImageLoader(false);
+      if(index === 0){
+        setImageLoader(false);
+      }else if(index === 1){
+        setImageLoader2(false);
+      }
     }
   };
 
@@ -86,17 +128,99 @@ export default function Result() {
     }
   }
 
+  const checkBlobURLValidity = (blobURL) => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(true);
+      img.onerror = () => resolve(false);
+      img.src = blobURL;
+    });
+  };
+
+  const deleteBlob = (imageName, imageCache) => {
+    if(imageCache.has(imageName)){
+      URL.revokeObjectURL(imageCache.get(imageName).url);
+      imageCache.delete(imageName);
+    }
+  }
+
+  const deleteOlderCaches = (pageNum) => {
+    const persistRange = [pageNum-5, pageNum+5];
+    let cacheAfterDelete = new Map(cachedImages);
+    persistRange.forEach(index => {
+      if(index > 1 && index < images.length && cacheAfterDelete.size > 10){
+        deleteBlob(images[index-1], cacheAfterDelete);
+      }
+    })
+    return cacheAfterDelete;
+  }
+
+  const cacheImages = async (pageNum) => {
+    try {
+      const cacheAfterDelete = deleteOlderCaches(pageNum);
+      const cacheMap = new Map(cacheAfterDelete);
+      const promises = [];
+
+      cacheAbortControllerRef.forEach(r => {
+        if (r.current) {
+          r.current.abort();
+        }
+      })
+      
+      for (let img = pageNum - 2; img <= pageNum + 2; img++) {
+        let idx = img - (pageNum-2);
+        cacheAbortControllerRef[idx].current = new AbortController();
+        const { signal } = cacheAbortControllerRef[idx].current;
+        let isUrlValid = false;
+        if(cacheMap.has(images[img-1])){
+          isUrlValid = await checkBlobURLValidity(cacheMap.get(images[img-1])?.url);
+        }
+        if (img <= 0 || img > images.length || isUrlValid) continue;
+        const imageName = images[img - 1];
+        promises.push(makeApiCallForImage(imageName, signal).then(data => {
+          if (signal.aborted) {
+            return;
+          }
+          cacheMap.set(imageName, data);
+        }));
+      }
+      
+      await Promise.all(promises);
+      setCachedImages(cacheMap);
+    } catch (error) {
+      const isAborted = error?.config?.signal?.aborted;
+      if(!isAborted)toast.error(error?.response?.data?.data?.message);
+    }
+  }
+
   useEffect(() => {
     if(images?.length > 0){
-      getImageData(images[page-1])
+      const data = cachedImages.get(images[page-1])
+      if(data){
+        checkBlobURLValidity(data.url).then(isValid => {
+          if (isValid) {
+            setCachedClasses(data.parsedClasses);
+            setCachedImageUrl(data.url);
+            setImageLoader(false);
+            setImageLoader2(false);
+          } else {
+            setCachedImages(prev => {
+              prev.delete(images[page-1]);
+              return prev;
+            })
+            getImageData(images[page-1]);
+          }
+        });
+      }else{
+        getImageData(images[page-1]);
+      }
+      cacheImages(page);
     }
   }, [page, images])
 
   useEffect(() => {
     getModelData()
   }, [])
-
-  console.log({page})
 
   return (
     <div className="grid gap-4">
@@ -129,11 +253,11 @@ export default function Result() {
               width: canvasSize
             }}
           >
-            {imageLoader ? (
+            {(imageLoader || imageLoader2) ? (
               <div className="loading px-4 text-center" style={{width: canvasSize/2}}></div>
             ) : (
               <img
-                src={currentImage}
+                src={cachedImageUrl}
                 style={{
                   maxWidth: canvasSize,
                   maxHeight: canvasSize
@@ -141,26 +265,35 @@ export default function Result() {
               />
             )}
           </div>
-          <div className='font-medium text-lg'>Actual</div>
+          <div className='font-medium text-xl'>Actual</div>
         </div>
 
         <div
           className='flex flex-col items-center gap-4'
         >
-          {imageLoader ? (
-            <div
-              className='border-black flex items-center justify-center'
-              style={{
-                height: canvasSize,
-                width: canvasSize
-              }}
-            >
+          <div
+            className='border-black flex items-center justify-center'
+            style={{
+              height: canvasSize,
+              width: canvasSize
+            }}
+          >
+            {(imageLoader || imageLoader2) ? (
               <div className="loading px-4 text-center" style={{width: canvasSize/2}}></div>
-            </div>
-          ) : (
-            <>{currentImage && <PredictedImage threshold={threshold} canvasSize={canvasSize} shapeProps={shapeProps} url={currentImage} />}</>
-          )}
-          <div className='font-medium text-lg'>Prediction</div>
+            ) : (
+              <>
+                {(cachedImageUrl) && (
+                  <PredictedImage 
+                    threshold={threshold} 
+                    canvasSize={canvasSize} 
+                    shapeProps={cachedClasses || classes} 
+                    url={cachedImageUrl} 
+                  />
+                )}
+              </>
+            )}
+          </div>
+          <div className='font-medium text-xl'>Prediction</div>
         </div>
       </div>
 
