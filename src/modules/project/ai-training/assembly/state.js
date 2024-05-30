@@ -5,9 +5,11 @@ export const stepAtom = atom({
   default: 1,
 });
 
+export const defaultModelInfoAtom = { modelName: '', modelDescription: ''};
+
 export const modelInfoAtom = atom({
   key: 'modelInfoAtom',
-  default: { modelName: '', modelDescription: ''},
+  default: defaultModelInfoAtom,
 });
 
 // export const modelIdAtom = atom({
@@ -24,16 +26,18 @@ export const modelInfoAtom = atom({
 //   },
 // });
 
+export const defaultAugmentationAtom = {
+  HorizontalFlip: false,
+  VerticalFlip: false,
+  Rotate: false,
+  GaussianBlur: false,
+  RandomCrop: false,
+  RandomBrightnessContrast: false,
+}
+
 export const augmentationsAtom = atom({
   key: 'augmentations',
-  default: {
-    HorizontalFlip: false,
-    VerticalFlip: false,
-    Rotate: false,
-    GaussianBlur: false,
-    RandomCrop: false,
-    RandomBrightnessContrast: false,
-  },
+  default: defaultAugmentationAtom,
 });
 
 export const configurationAtom = atom({
