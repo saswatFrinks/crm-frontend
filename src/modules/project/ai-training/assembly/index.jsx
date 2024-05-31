@@ -139,7 +139,6 @@ export default function AIAssembly() {
   const startTraining = async () => {
     console.log('starting training');
     setLoading(true);
-    console.log({configuration})
     try {
       const roiList = configuration
         .filter((configItem) => {
