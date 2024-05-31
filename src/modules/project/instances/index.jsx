@@ -241,7 +241,7 @@ const Instances = () => {
                           className={`${!instance?.instances?.deletedAt ? 'cursor-pointer' : ''}`}
                         >
                           <Download 
-                            disabled={!instance?.instances?.isActive}
+                            disabled={instance?.instances?.deletedAt}
                           />
                         </span>
                       </td>
