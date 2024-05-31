@@ -164,12 +164,12 @@ export default function Result() {
               return;
             }
             cacheMap.set(imageName, data);
+            setCachedImages(cacheMap);
           }));
         }
       }
       
       await Promise.all(promises);
-      setCachedImages(cacheMap);
     } catch (error) {
       const isAborted = error?.config?.signal?.aborted;
       if(!isAborted)toast.error(error?.response?.data?.data?.message);
