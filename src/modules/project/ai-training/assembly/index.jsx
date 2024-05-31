@@ -140,18 +140,18 @@ export default function AIAssembly() {
     console.log('starting training');
     setLoading(true);
     try {
-      const roiList = configuration[0]
+      const roiList = configuration
         .filter((configItem) => {
           return configItem.check;
         })
         .map((filteredConfigItem) => {
           return filteredConfigItem.roi.id;
         });
-      const augmentationList = Object.keys(augmentations[0]).filter((key) => {
-        return augmentations[0][key];
+      const augmentationList = Object.keys(augmentations).filter((key) => {
+        return augmentations[key];
       });
       const datasetList = [];
-      datasets[0]
+      datasets
         .filter((datasetItem) => {
           return datasetItem.check;
         })
@@ -164,7 +164,7 @@ export default function AIAssembly() {
               datasetList.push(folderItem.id);
             });
         });
-      const modelInfoObj = modelInfo[0];
+      const modelInfoObj = modelInfo;
       const data = {
         name: modelInfoObj.modelName,
         comment: modelInfoObj.modelDescription,
