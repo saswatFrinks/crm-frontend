@@ -100,6 +100,21 @@ export const uploadedFileListAtom = atom({
   default: [],
 });
 
+export const cachedFileListAtom = atom({
+  key: 'cachedFileListAtom',
+  default: []
+})
+
+export const annotationCacheAtom = atom({
+  key: 'annotationCacheAtom',
+  default: new Map()
+})
+
+export const cacheLoaderAtom = atom({
+  key: 'cacheLoaderAtom',
+  default: new Map()
+})
+
 export const selectedFileAtom = atom({
   key: 'selectedFileAtom',
   default: null,

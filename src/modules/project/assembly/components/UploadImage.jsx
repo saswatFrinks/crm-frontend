@@ -2,12 +2,13 @@ import { useContainerSize } from '@/shared/hooks/useContainerSize';
 import { useMouseWheel } from '@/modules/project/assembly/hooks/useMouseWheel';
 import BigImage from '@/shared/icons/BigImage';
 import Upload from '@/shared/icons/Upload';
-import React from 'react';
+import React, { useState } from 'react';
 import { Stage, Layer, Image, Text, Line as LineShape } from 'react-konva';
 import useImage from 'use-image';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import {
   assemblyAtom,
+  cachedFileListAtom,
   currentRectangleIdAtom,
   currentRoiIdAtom,
   dragAtom,
@@ -29,9 +30,12 @@ import ImageList from '../label-image-step/ImageList';
 import { editingRectAtom, stepAtom } from '../state';
 import { RECTANGLE_TYPE } from '@/core/constants';
 import KonvaImageView from './KonvaImageView';
+import toast from 'react-hot-toast';
+import axiosInstance from '@/core/request/aixosinstance';
 
 export default function UploadImage() {
   const [file, setFile] = React.useState(null);
+  const [imageLoading, setImageLoading] = useState(Array.from({length: 10}, () => false));
 
   const rectType = useRecoilValue(rectanglesTypeAtom)
 
@@ -39,7 +43,11 @@ export default function UploadImage() {
 
   const step = useRecoilValue(stepAtom);
 
-  const selectedFile = useRecoilValue(selectedFileAtom);
+  const [selectedFile, setSelectedFile] = useRecoilState(selectedFileAtom);
+
+  const [uploadedFileList, setUploadedFileList] = useRecoilState(uploadedFileListAtom);
+
+  const [cachedFileList, setCachedFileList] = useRecoilState(cachedFileListAtom);
 
   const [image] = useImage(file);
 
@@ -54,11 +62,60 @@ export default function UploadImage() {
     seletectedLabel? `${seletectedLabel.name} ${1+rectangles.reduce((p,c)=>{return c.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL && c.imageId==selectedFile.id ? p+1: p}, 0)}`
     : undefined
 
+  const selectedIndex = uploadedFileList.findIndex(f => f.id === selectedFile?.id);
+
+  const cacheImages = async () => {
+    try {
+      const cacheMap = [...cachedFileList];
+      let flag = false;
+      for(let i=0;i<uploadedFileList.length;i++){
+        const imageId = uploadedFileList[i]?.id;
+        const config = {
+          params: {
+            imageId
+          },
+          responseType: 'arraybuffer',
+        };
+        const isExists = cacheMap.find(img => img.id === imageId);
+        if(isExists || uploadedFileList[i]?.url?.startsWith('blob'))continue;
+        flag = true;
+        console.log('called')
+        setImageLoading((prev) => {
+          prev[i] = true;
+          return prev;
+        });
+      
+        const res = await axiosInstance.get('/configurationImage/view', config);
+        const blob = new Blob([res.data], { type: 'image/png' });
+        const url = window.URL.createObjectURL(blob);
+        cacheMap.push({
+          ...uploadedFileList[i],
+          url
+        });
+        if(imageId === selectedFile?.id){
+          setSelectedFile({
+            ...uploadedFileList[i],
+            url
+          })
+        }
+        setImageLoading((prev) => {
+          prev[i] = false;
+          return prev;
+        });
+      }
+      if(flag)setUploadedFileList(cacheMap);
+      setCachedFileList(cacheMap);
+    } catch (error) {
+      console.log({error})
+      toast.error(error?.response?.data?.data?.message)
+      setImageLoading(Array.from({length: 10}, () => false))
+    }
+  }
+
   React.useEffect(() => {
     if (selectedFile?.url) {
       setFile(selectedFile?.url);
     }
-    console.log(selectedFile)
   }, [selectedFile?.id, selectedFile]);
 
   const updateRectangles = (rects) => {
@@ -68,6 +125,10 @@ export default function UploadImage() {
   React.useEffect(()=>{
     setRectType(RECTANGLE_TYPE.ROI)
   },[])
+
+  React.useEffect(() => {
+    cacheImages();
+  }, [uploadedFileList])
 
   return (
     <div
@@ -86,11 +147,20 @@ export default function UploadImage() {
         </>
       ) : null}
 
-      {file &&
-      [1, 2, 3].includes(step) &&
-      image?.width ?
-      <KonvaImageView image={image} onDrawStop={updateRectangles} rectangles={rectangles} title={roiName} imageId={selectedFile.id}/> 
-      : null}
+      {((selectedIndex > -1 && imageLoading[selectedIndex]) && step !== 0) ? (
+        <div className="h-full w-[30%] flex flex-col gap-4 items-center justify-center">
+          <div className="text-xl font-medium">Loading Image</div>
+          <div className="loading px-4 text-center"></div>
+        </div>
+      ) : (
+        <>
+          {file &&
+          [1, 2, 3].includes(step) &&
+          image?.width ?
+          <KonvaImageView image={image} onDrawStop={updateRectangles} rectangles={rectangles} title={roiName} imageId={selectedFile.id}/> 
+          : null}
+        </>
+      )}
     </div>
   );
 }

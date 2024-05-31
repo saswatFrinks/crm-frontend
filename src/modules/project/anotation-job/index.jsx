@@ -7,12 +7,12 @@ import AnnotationLabels from './AnnotationLabels';
 import Actions from '../assembly/components/Actions';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import { stepAtom } from '../assembly/state';
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import KonvaImageView from '../assembly/components/KonvaImageView';
 import axiosInstance from '@/core/request/aixosinstance';
 import { useNavigate, useParams } from 'react-router-dom';
 import useImage from 'use-image';
-import { annotationClassesAtom, annotationMapAtom, assemblyAtom, currentRectangleIdAtom, editingAtom, labelClassAtom, lastActionNameAtom, rectanglesAtom, selectedFileAtom, uploadedFileListAtom } from '../state';
+import { annotationCacheAtom, annotationClassesAtom, annotationMapAtom, assemblyAtom, cacheLoaderAtom, currentRectangleIdAtom, editingAtom, labelClassAtom, lastActionNameAtom, rectanglesAtom, selectedFileAtom, uploadedFileListAtom } from '../state';
 import { getRandomHexColor } from '@/util/util';
 import { ACTION_NAMES, BASE_RECT, DEFAULT_ANNOTATION, RECTANGLE_TYPE } from '@/core/constants';
 import toast from 'react-hot-toast';
@@ -34,6 +34,8 @@ export default function AnnotationJob() {
   const [annotatedCount, setAnnotatedCount] = useState(0);
   const [annotationLoadeFlag, setAnnotationLoadedFlag] = useState({})
   const [annotationMap, setAnnotationMap] = useRecoilState(annotationMapAtom);
+  const loaders = useRecoilValue(cacheLoaderAtom);
+  const [cachedImages, setCachedImages] = useRecoilState(annotationCacheAtom)
   const labelRef = React.useRef(labelClass);
   const [rois, setRois] = React.useState([])
   const nav = useNavigate()
@@ -41,6 +43,8 @@ export default function AnnotationJob() {
   const selectedClassId = useRecoilValue(labelClassAtom)
   const setSelectedPloyId = useSetRecoilState(currentRectangleIdAtom)
   const [modalOpen, setModalOpen] = useRecoilState(modalAtom);
+
+  const cacheRef = useRef(null);
 
   const getImageUrl = (id) => {
     return `${import.meta.env.VITE_BASE_API_URL}/dataset/image?imageId=${id}`
@@ -315,7 +319,18 @@ export default function AnnotationJob() {
     }
   }, [annotationClasses, selectedImage])
 
-  console.log(rectangles, annotationMap);
+  React.useEffect(() => {
+    return () => {
+      cacheRef.current.forEach((value, key) => {
+        URL.revokeObjectURL(value.url);
+      });
+      setCachedImages(new Map());
+    }
+  }, [])
+
+  React.useEffect(()=>{
+    cacheRef.current = cachedImages
+  }, [cachedImages])
 
   return (
   <>
@@ -363,34 +378,43 @@ export default function AnnotationJob() {
               maxHeight: '91.65vh'
             }}
           >
-            {file && image?.width &&
-              <KonvaImageView 
-                onDrawStop={(rects)=>{
-                  console.log('rect updated');
-                  const annots = rects.filter(rect=>rect.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL);
-                  setAnnotationClasses(prev=>({...prev, [selectedImage.id]: {
-                    ...prev[selectedImage.id],
-                    rectangles: annots,
-                    changed: true
-                  }}))
-                  let annotations = annots.filter(e=>annotationMap[e.uuid]==undefined);
-                  if(annotations.length){
-                    setAnnotationMap(prev=>{
-                      const updates = {}
-                      annotations.forEach(annot=>{
-                        updates[annot.uuid] = selectedClassId.id
-                      })
-                      return {...prev, ...updates}
-                    })
-                    setSelectedPloyId(annotations[0].uuid)
-                  }
-                }}
-                rectangles={annotationClasses[selectedImage.id] ? [...rois, ...annotationClasses[selectedImage.id].rectangles]: rois}
-                title={selectedClass?.name || 'Label' }
-                image={image}
-                imageId={selectedImage?.id}
-              />
-            }
+            {loaders.get(selectedImage?.id) ? (
+              <div className="h-full w-[30%] flex flex-col gap-4 items-center justify-center">
+                <div className="text-xl font-medium">Loading Image</div>
+                <div className="loading px-4 text-center"></div>
+              </div>
+            ) : (
+              <>
+                {file && image?.width &&
+                  <KonvaImageView 
+                    onDrawStop={(rects)=>{
+                      console.log('rect updated');
+                      const annots = rects.filter(rect=>rect.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL);
+                      setAnnotationClasses(prev=>({...prev, [selectedImage.id]: {
+                        ...prev[selectedImage.id],
+                        rectangles: annots,
+                        changed: true
+                      }}))
+                      let annotations = annots.filter(e=>annotationMap[e.uuid]==undefined);
+                      if(annotations.length){
+                        setAnnotationMap(prev=>{
+                          const updates = {}
+                          annotations.forEach(annot=>{
+                            updates[annot.uuid] = selectedClassId.id
+                          })
+                          return {...prev, ...updates}
+                        })
+                        setSelectedPloyId(annotations[0].uuid)
+                      }
+                    }}
+                    rectangles={annotationClasses[selectedImage.id] ? [...rois, ...annotationClasses[selectedImage.id].rectangles]: rois}
+                    title={selectedClass?.name || 'Label' }
+                    image={image}
+                    imageId={selectedImage?.id}
+                  />
+                }
+              </>
+            )}
           </div>
         </div>
 

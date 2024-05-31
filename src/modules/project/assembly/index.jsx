@@ -48,6 +48,8 @@ export default function Assembly() {
 
   const { projectId, configurationId } = useParams();
 
+  const [uploadedFileList, setUploadedFileList] = useRecoilState(uploadedFileListAtom);
+
   const [type, setType] = useState(ASSEMBLY_CONFIG.STATIONARY);
   const [configuration, setConfiguration] = useRecoilState(assemblyAtom);
 
@@ -335,6 +337,13 @@ export default function Assembly() {
   useEffect(() => {
     setLabelsEdited({});
     getProject();
+
+    return () => {
+      uploadedFileList.forEach((value) => {
+        URL.revokeObjectURL(value.url);
+      });
+      setUploadedFileList([]);
+    }
   }, []);
 
   const prepareApiData = async () => {
