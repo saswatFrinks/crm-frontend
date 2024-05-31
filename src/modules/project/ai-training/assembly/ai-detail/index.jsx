@@ -6,6 +6,7 @@ import Result from './Result';
 import Detail from './Detail';
 import React, { useEffect } from 'react';
 import axiosInstance from '@/core/request/aixosinstance';
+import Evaluation from './Evaluation';
 
 export default function AIDetail() {
   const { hash } = useLocation();
@@ -58,6 +59,10 @@ export default function AIDetail() {
       fragment: '#result',
     },
     {
+      title: 'Evaluation Results',
+      fragment: '#evaluation',
+    },
+    {
       title: 'Model Details',
       fragment: '#detail',
     },
@@ -68,6 +73,7 @@ export default function AIDetail() {
     '#detail': (
       <Detail modelInfo={modelInfo} datasets={datasets} loader={loader} />
     ),
+    '#evaluation': <Evaluation />
   };
 
   return (

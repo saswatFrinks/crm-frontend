@@ -58,7 +58,7 @@ const PredictedImage = ({canvasSize, shapeProps, url, threshold}) => {
             {shapeProps.map(prop => {
               if((prop.threshold*100) < Number(threshold))return <></>
               return <React.Fragment
-                key={prop.id}
+                key={`${prop.id}`}
               >
                 {prop?.title && <Text
                     x={(origin?.x || 0) + prop.x1 * image.width * origin?.scale}
