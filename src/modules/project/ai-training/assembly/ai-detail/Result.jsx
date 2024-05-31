@@ -38,60 +38,43 @@ export default function Result() {
     }))
   }
 
-  const makeApiCallForImage = async (imageName, signal = null) => {
-    const config = {
-      params: {
-        modelId: params.modelId,
-        name: imageName
-      },
-      responseType: 'arraybuffer',
-    };
-  
-    if (signal) {
-      config.signal = signal;
-    }
-  
-    const res = await axiosInstance.get('/model/result-image-data', config);
-
-    const parsedClasses = JSON.parse(res.headers['x-annotations']).map(classItem => ({
-      ...classItem,
-      stroke: getRandomHexColor()
-    }))
-
-    const blob = new Blob([res.data], { type: 'image/png' });
-    const url = window.URL.createObjectURL(blob);
-    return {
-      url,
-      parsedClasses: getFormattedBoxes(parsedClasses)
-    }
-  }
-
-  const getImageData = async (imageName) => {
+  const makeApiCallForImage = async (imageName, signal, pageNum = null) => {
     let index;
     try {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
+      const config = {
+        params: {
+          modelId: params.modelId,
+          name: imageName
+        },
+        responseType: 'arraybuffer',
+      };
+    
+      if (signal) {
+        config.signal = signal;
       }
-
-      abortControllerRef.current = new AbortController();
-      const { signal } = abortControllerRef.current;
-
-      if(imageLoader === false){
-        index = 0;
-        setImageLoader(true);
-      }else if(imageLoader2 === false){
-        index = 1;
-        setImageLoader2(true);
+      if(pageNum !== null){
+        if(imageLoader === false){
+          index = 0;
+          setImageLoader(true);
+        }else if(imageLoader2 === false){
+          index = 1;
+          setImageLoader2(true);
+        }
       }
-      const data = await makeApiCallForImage(imageName, signal);
-
-      if (signal.aborted) {
-        return;
+    
+      const res = await axiosInstance.get('/model/result-image-data', config);
+  
+      const parsedClasses = JSON.parse(res.headers['x-annotations']).map(classItem => ({
+        ...classItem,
+        stroke: getRandomHexColor()
+      }))
+  
+      const blob = new Blob([res.data], { type: 'image/png' });
+      const url = window.URL.createObjectURL(blob);
+      return {
+        url,
+        parsedClasses: getFormattedBoxes(parsedClasses)
       }
-      setCachedImages(prev => {
-        prev.set(imageName, data);
-        return prev;
-      })
     } catch (error) {
       const isAborted = error?.config?.signal?.aborted;
       if(!isAborted)toast.error(error?.response?.data?.data?.message);
@@ -102,7 +85,7 @@ export default function Result() {
         setImageLoader2(false);
       }
     }
-  };
+  }
 
   const getModelData = async () => {
     try {
@@ -171,12 +154,18 @@ export default function Result() {
         }
         if (img <= 0 || img > images.length || isUrlValid) continue;
         const imageName = images[img - 1];
-        promises.push(makeApiCallForImage(imageName, signal).then(data => {
-          if (signal.aborted) {
-            return;
-          }
+        if(img === pageNum && !isUrlValid){
+          const data = await makeApiCallForImage(imageName, signal, pageNum);
           cacheMap.set(imageName, data);
-        }));
+          setCachedImages(cacheMap);
+        }else{
+          promises.push(makeApiCallForImage(imageName, signal).then(data => {
+            if (signal.aborted) {
+              return;
+            }
+            cacheMap.set(imageName, data);
+          }));
+        }
       }
       
       await Promise.all(promises);
@@ -201,11 +190,8 @@ export default function Result() {
               prev.delete(images[page-1]);
               return prev;
             })
-            getImageData(images[page-1]);
           }
         });
-      }else{
-        getImageData(images[page-1]);
       }
       cacheImages(page);
     }

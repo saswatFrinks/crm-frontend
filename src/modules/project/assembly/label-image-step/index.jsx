@@ -7,6 +7,7 @@ import {
   actionStatusAtom,
   annotationMapAtom,
   assemblyAtom,
+  cachedFileListAtom,
   currentRectangleIdAtom,
   editingAtom,
   labelClassAtom,
@@ -46,7 +47,9 @@ export default function LabelImage({save}) {
   const selectedImage = useRecoilValue(selectedFileAtom);
   const setIsEditing = useSetRecoilState(editingAtom);
   
-  const images = useRecoilValue(uploadedFileListAtom);
+  const images = useRecoilValue(cachedFileListAtom);
+
+  console.log({images});
 
   const [selectedFile, setSelectedFile] = useRecoilState(selectedFileAtom)
   const [rectangles, setRectangle] = useRecoilState(rectanglesAtom);
