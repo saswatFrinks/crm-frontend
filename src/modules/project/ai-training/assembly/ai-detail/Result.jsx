@@ -114,8 +114,8 @@ export default function Result() {
   };
 
   const deleteBlob = (imageName, imageCache) => {
-    if(imageCache.has(imageName)){
-      URL.revokeObjectURL(imageCache.get(imageName).url);
+    if(imageCache.has(imageName) && imageCache.get(imageName)?.url){
+      URL.revokeObjectURL(imageCache.get(imageName)?.url);
       imageCache.delete(imageName);
     }
   }
