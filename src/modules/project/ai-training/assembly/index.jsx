@@ -60,6 +60,7 @@ export default function AIAssembly() {
   const [modelInfo, setModelInfo] = useRecoilState(modelInfoAtom);
   
   const formRefs = Array.from({length: 5}, () => useRef(null));
+  const sseRef = useRef(null);
 
   const handleNext = async () => {
     try {
@@ -126,6 +127,8 @@ export default function AIAssembly() {
       });
       setLoading(false);
       setModelsList(res.data.data);
+      sseRef.current?.close();
+      startTrainingSSE();
     } catch (error) {
       setLoading(false);
       toast.error(JSON.stringify(error));
@@ -134,10 +137,38 @@ export default function AIAssembly() {
 
   useEffect(() => {
     fetchModelsList();
+    return ()=> sseRef.current?.close();
   }, []);
 
+  const startTrainingSSE = async () =>{
+    console.log('Starting Training SSE');
+    const sse = new EventSource(
+      `${import.meta.env.VITE_BASE_API_URL}/model/detection/sse?projectId=${params.projectId}`,
+      { withCredentials: true }
+    );
+
+    sse.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      console.log('[STATUS UPDATE]', data);
+      setModelsList(prev=>{
+        const cp = [...prev];
+        let index = cp.findIndex(ele=> ele.jobId==data.jobId);
+        if(index>=0){
+          cp[index].status = data.status;
+          if(data.epoch){
+            cp[index]['info'] = `Epoch ${data.epoch}`
+          }
+          else if(cp[index].info) delete cp[index].info;
+        }
+        return cp;
+      })
+    }
+
+    sseRef.current = sse;
+  }
+
   const startTraining = async () => {
-    console.log('starting training');
+    console.log('starting training', configuration);
     setLoading(true);
     try {
       const roiList = configuration[0]
@@ -245,6 +276,7 @@ export default function AIAssembly() {
                         className={`px-6 py-4 ${trainingStatus[model.status]?.color}`}
                       >
                         {trainingStatus[model.status]?.name}
+                        {model.info && <p>{model.info}</p>}
                       </td>
                       <td className="flex flex-wrap gap-2 px-6 py-4">
                         {model?.classes?.length > 0 &&
