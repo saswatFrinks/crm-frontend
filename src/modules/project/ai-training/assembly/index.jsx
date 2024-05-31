@@ -30,6 +30,20 @@ export const augmentationsMap = {
   RandomBrightnessContrast: 'Random Brightness Contrast',
 };
 
+const trainingStatus = {
+  0: {name: 'Training Queued', color: 'text-gray-500'},
+  1: {name: 'Initiating Training', color: 'text-green-300'},
+  2: {name: 'Initiating Training', color: 'text-green-300'},
+  3: {name: 'Training Started', color: 'text-green-400'},
+  4: {name: 'Files Downloaded', color: 'text-orange-400'},
+  5: {name: 'Training The Model', color: 'text-orange-500'},
+  6: {name: 'Uploading File', color: 'text-orange-500'},
+  7: {name: 'Completed', color: 'text-green-500'},
+  8: {name: 'Error While Training', color: 'text-red-400'}
+}
+
+const totalStatusCount = Object.keys(trainingStatus).length;
+
 export default function AIAssembly() {
   const params = useParams();
   const [open, setOpenDrawer] = React.useState(false);
@@ -67,14 +81,14 @@ export default function AIAssembly() {
     });
   };
 
-  const trainingStatus = {
-    0: { label: 'Initiated', color: 'text-yellow-500' },
-    1: { label: 'Files Downloaded', color: 'text-orange-500' },
-    2: { label: 'Training', color: 'text-gray-500' },
-    3: { label: 'Uploading', color: 'text-gray-500' },
-    4: { label: 'Completed', color: 'text-green-500' },
-    5: { label: 'Error', color: 'text-red-500' },
-  };
+  // const trainingStatus = {
+  //   0: { label: 'Initiated', color: 'text-yellow-500' },
+  //   1: { label: 'Files Downloaded', color: 'text-orange-500' },
+  //   2: { label: 'Training', color: 'text-gray-500' },
+  //   3: { label: 'Uploading', color: 'text-gray-500' },
+  //   4: { label: 'Completed', color: 'text-green-500' },
+  //   5: { label: 'Error', color: 'text-red-500' },
+  // };
 
   const columns = [
     'Model Name',
@@ -228,9 +242,9 @@ export default function AIAssembly() {
                         {model.totalImages != 1 && 's'}
                       </td>
                       <td
-                        className={`px-6 py-4 ${trainingStatus[model.status].color}`}
+                        className={`px-6 py-4 ${trainingStatus[model.status]?.color}`}
                       >
-                        {trainingStatus[model.status].label}
+                        {trainingStatus[model.status]?.name}
                       </td>
                       <td className="flex flex-wrap gap-2 px-6 py-4">
                         {model?.classes?.length > 0 &&
