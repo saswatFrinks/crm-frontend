@@ -252,7 +252,7 @@ const Instances = () => {
                           editIndex = {index}
                           id = {instance?.instances?.id}
                           setId = {setId}
-                          allowDelete = {!instance?.instances?.isActive}
+                          allowDelete = {instance?.instances?.deletedAt}
                         />
                       </td>
                     </tr>
