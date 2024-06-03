@@ -66,6 +66,7 @@ export default function UploadImage() {
 
   const cacheImages = async () => {
     try {
+      if(uploadedFileList.some(uploadedFile => !uploadedFile))return;
       const cacheMap = [...cachedFileList];
       let flag = false;
       for(let i=0;i<uploadedFileList.length;i++){
@@ -93,7 +94,7 @@ export default function UploadImage() {
           ...uploadedFileList[i],
           url
         };
-        if(imageId === selectedFile?.id){
+        if(flag && imageId === selectedFile?.id){
           setSelectedFile({
             ...uploadedFileList[i],
             url
