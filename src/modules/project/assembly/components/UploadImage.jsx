@@ -62,7 +62,7 @@ export default function UploadImage() {
     seletectedLabel? `${seletectedLabel.name} ${1+rectangles.reduce((p,c)=>{return c.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL && c.imageId==selectedFile.id ? p+1: p}, 0)}`
     : undefined
 
-  const selectedIndex = uploadedFileList.findIndex(f => f?.id === selectedFile?.id);
+  const selectedIndex = uploadedFileList.findIndex(f => (f && f?.id === selectedFile?.id));
 
   const cacheImages = async () => {
     try {
@@ -77,7 +77,7 @@ export default function UploadImage() {
           },
           responseType: 'arraybuffer',
         };
-        const isExists = cacheMap.find(img => img.id === imageId);
+        const isExists = cacheMap.find(img => (img && img.id === imageId));
         if(isExists || uploadedFileList[i]?.url?.startsWith('blob'))continue;
         flag = true;
         console.log('called')
@@ -89,10 +89,10 @@ export default function UploadImage() {
         const res = await axiosInstance.get('/configurationImage/view', config);
         const blob = new Blob([res.data], { type: 'image/png' });
         const url = window.URL.createObjectURL(blob);
-        cacheMap.push({
+        cacheMap[i] = {
           ...uploadedFileList[i],
           url
-        });
+        };
         if(imageId === selectedFile?.id){
           setSelectedFile({
             ...uploadedFileList[i],

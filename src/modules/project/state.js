@@ -102,7 +102,7 @@ export const uploadedFileListAtom = atom({
 
 export const cachedFileListAtom = atom({
   key: 'cachedFileListAtom',
-  default: []
+  default: Array.from({length: 10}, () => null)
 })
 
 export const annotationCacheAtom = atom({
