@@ -67,11 +67,19 @@ export default function UploadImage() {
   const cacheImages = async () => {
     try {
       if(uploadedFileList.some(uploadedFile => !uploadedFile))return;
-      const cacheMap = [...cachedFileList];
+      setImageLoading(Array.from({length: 10}, () => true));
+      let cacheMap = [...uploadedFileList];
       let flag = false;
       for(let i=0;i<uploadedFileList.length;i++){
         const imageId = uploadedFileList[i]?.id;
-        if(!imageId)continue;
+        if(uploadedFileList.some(uploadedFile => !uploadedFile))return;
+        if(!imageId){
+          setImageLoading((prev) => {
+            prev[i] = false;
+            return prev;
+          });
+          continue;
+        }
         const config = {
           params: {
             imageId
@@ -79,21 +87,22 @@ export default function UploadImage() {
           responseType: 'arraybuffer',
         };
         const isExists = cacheMap.find(img => (img && img.id === imageId));
-        if(isExists || uploadedFileList[i]?.url?.startsWith('blob'))continue;
+        if(isExists && uploadedFileList[i]?.url?.startsWith('blob')){
+          setImageLoading((prev) => {
+            prev[i] = false;
+            return prev;
+          });
+          continue;
+        }
         flag = true;
         console.log('called')
-        setImageLoading((prev) => {
-          prev[i] = true;
-          return prev;
-        });
       
         const res = await axiosInstance.get('/configurationImage/view', config);
         const blob = new Blob([res.data], { type: 'image/png' });
         const url = window.URL.createObjectURL(blob);
-        cacheMap[i] = {
-          ...uploadedFileList[i],
-          url
-        };
+        cacheMap = cacheMap.map((item, index) => 
+          index === i ? { ...uploadedFileList[index], url } : item
+        );
         if(flag && imageId === selectedFile?.id){
           setSelectedFile({
             ...uploadedFileList[i],
@@ -104,12 +113,16 @@ export default function UploadImage() {
           prev[i] = false;
           return prev;
         });
+        if(uploadedFileList.some(uploadedFile => !uploadedFile))return;
+        setCachedFileList(cacheMap);
       }
-      if(flag)setUploadedFileList(cacheMap);
+      
       setCachedFileList(cacheMap);
     } catch (error) {
       console.log({error})
-      toast.error(error?.response?.data?.data?.message)
+      if(error?.response?.status != 400){
+        toast.error(error?.response?.data?.data?.message)
+      }
       setImageLoading(Array.from({length: 10}, () => false))
     }
   }
@@ -159,7 +172,7 @@ export default function UploadImage() {
           {file &&
           [1, 2, 3].includes(step) &&
           image?.width ?
-          <KonvaImageView image={image} onDrawStop={updateRectangles} rectangles={rectangles} title={roiName} imageId={selectedFile.id}/> 
+          <KonvaImageView image={image} onDrawStop={updateRectangles} rectangles={rectangles} title={roiName} imageId={selectedFile?.id}/> 
           : null}
         </>
       )}
