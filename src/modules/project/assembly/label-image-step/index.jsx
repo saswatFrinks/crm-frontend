@@ -78,7 +78,6 @@ export default function LabelImage({ save }) {
       rect.imageId == selectedFile?.id
   );
 
-  console.log({ selectedRois });
 
   const selectedRoisRef = React.useRef(selectedRois);
 
@@ -96,7 +95,6 @@ export default function LabelImage({ save }) {
   const selectedLabelRef = React.useRef(selectedLabel);
 
   const removeRectangle = (uuid, imageId) => {
-    console.log({ imageId });
     setRectangle((t) => t.filter((k) => k.uuid !== uuid));
     // setRectangleColor((t) => t.filter((k) => k.name !== name))
     const temp = { ...annotationMap };
@@ -109,7 +107,6 @@ export default function LabelImage({ save }) {
     addClasses();
   }, []);
 
-  console.log({ labelEdited });
   console.log({ initialLabels });
 
   const getUniqueHexColor = (colors) => {
@@ -133,13 +130,10 @@ export default function LabelImage({ save }) {
     setLabelClasses(
       Object.keys(temp)
         .map((key, index) => {
-          // console.log('find', { rectangleColor });
           const findColor = rectangleColor.all.find(
             (obj) => obj.name === key
           )?.color;
-          console.log({ findColor });
           const color = findColor ? findColor : getUniqueHexColor(colors);
-          // console.log("find",rectangleColor.all.find((obj) => obj.name === key)?.color)
           colors.push({
             id: idMap[key],
             name: key,
@@ -157,9 +151,6 @@ export default function LabelImage({ save }) {
           return a.name > b.name ? 1 : -1;
         })
     );
-    console.log('xx', { labelClasses });
-    // console.log('rect length', rectangleColor.all.length, { rectangleColor });
-    // console.log('color length', colors.length, { colors });
 
     setRectangleColor((prev) => ({
       ...prev,
@@ -167,10 +158,8 @@ export default function LabelImage({ save }) {
     }));
   };
 
-  // console.log({ rectangleColor });
 
   const handleClassClick = async (e, i, col) => {
-    console.log('label class clicked');
     setIsEditing(true);
     setRectangleType(RECTANGLE_TYPE.ANNOTATION_LABEL);
     setRectangleColor({
@@ -183,7 +172,6 @@ export default function LabelImage({ save }) {
       id: labelClasses[i].id,
       color: col,
     };
-    console.log('setLabel', update);
     setLabel(update);
     selectedLabelRef.current = {
       name: labelClasses[i].name,
@@ -225,8 +213,6 @@ export default function LabelImage({ save }) {
     if (annotations.length) {
       setAnnotationMap((prev) => {
         const updates = {};
-        // console.log(annotations, prev)
-        console.log('annotations: ', annotations);
         annotations.forEach((annot) => {
           updates[annot.uuid] = selectedLabel.id;
           updates[annot.stroke] = selectedLabel.color;
@@ -238,7 +224,6 @@ export default function LabelImage({ save }) {
       setSelectedPloyId(annotations[0].uuid);
     }
 
-    console.log({ selectedRois });
   }, [selectedRois, annotationMap]);
 
   // useEffect(() => {
@@ -258,10 +243,8 @@ export default function LabelImage({ save }) {
               configurationId: params.configurationId,
             },
           });
-          console.log({ data });
           const loadedData = data?.data.data;
           if (loadedData.length) {
-            // console.log(loadedData, "got data"); return;
             const image = new Image();
             image.src = selectedFile.url;
             image.onload = () => {
@@ -276,8 +259,6 @@ export default function LabelImage({ save }) {
                     const className = labelsRef.current?.find(
                       (ele) => ele.id == cls
                     )?.name;
-                    // console.log('hello', className, cls, rectangleColor.all);
-                    // console.log("hello1", {className})
 
                     // const color = getRandomHexColor();
 
@@ -287,7 +268,6 @@ export default function LabelImage({ save }) {
                     const color = rectangleColor.all.find(
                       (obj) => obj.name === className
                     );
-                    console.log('1', { color });
                     configuredData.push({
                       ...BASE_RECT,
                       id: selectedRoisRef.current.length + i,
@@ -307,7 +287,7 @@ export default function LabelImage({ save }) {
                   }
                 });
               });
-              console.log('UPdate from txt', annotUpdates, configuredData);
+              // console.log('UPdate from txt', annotUpdates, configuredData);
               setAnnotationMap((prev) => ({ ...prev, ...annotUpdates }));
               setRectangle((prev) => [...prev, ...configuredData]);
               setInitialLabels(configuredData)
@@ -367,13 +347,15 @@ export default function LabelImage({ save }) {
                       );
                       const recCp = [...rectangles];
 
+                      const labelClass = labelClasses.find(
+                        (ele) => ele.id == e.target.value
+                      );
                       recCp[ind] = {
                         ...recCp[ind],
-                        title: labelClasses.find(
-                          (ele) => ele.id == e.target.value
-                        ).name,
+                        title: labelClass.name,
+                        stroke: labelClass.color,
+                        fill: labelClass.color
                       };
-                      // console.log("hii",recCp[ind].title)
                       setRectangle(recCp);
                       setAnnotationMap({
                         ...annotationMap,

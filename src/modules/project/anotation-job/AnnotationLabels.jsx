@@ -64,7 +64,8 @@ export default function AnnotationLabels({labelClass}) {
                     onChange={(e)=>{
                       const ind = rectangles.findIndex(ele=>ele.uuid==t.uuid);
                       const recCp = [...rectangles];
-                      recCp[ind] = {...recCp[ind], title: labelClass.find(ele=>ele.id==e.target.value).name }
+                      const label = labelClass.find(ele=>ele.id==e.target.value);
+                      recCp[ind] = {...recCp[ind], title: label.name, stroke: label.color, fill: label.color }
                       setAnnotationClasses(prev=>({...prev, [selectedImageId]:{
                         ...prev[selectedImageId],
                         rectangles: recCp,
