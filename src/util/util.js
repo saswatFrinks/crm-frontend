@@ -48,3 +48,27 @@ export const setUniqueClassColors = (allClasses) => {
 
   return classes;
 }
+
+
+export const compareArrays = (annotRects, iniLabels) => {
+  let flag = false;
+
+  for (let rect of annotRects) {
+    let initialLabel = iniLabels.find((label) => label.uuid === rect.uuid);
+    if (initialLabel) {
+      if (
+        rect.x !== initialLabel.x ||
+        rect.y !== initialLabel.y ||
+        rect.width !== initialLabel.width ||
+        rect.height !== initialLabel.height
+      ) {
+        flag = true;
+        break;
+      }
+    } else {
+      flag = true;
+      break;
+    }
+  }
+  return flag;
+};
