@@ -1,4 +1,5 @@
 
+import { getRandomHexColor } from '@/util/util';
 import { atom } from 'recoil';
 
 // export const stageAtom = atom({
@@ -96,3 +97,16 @@ export const loadedLabelsAtom = atom({
   key: 'loadedLabelsAtom',
   default: Array.from({length: 10}, ()=>false),
 });
+
+export const rectangleColorAtom = atom({
+  key: 'rectangleColorAtom',
+  default: {
+    all:[],
+    selectedColor: getRandomHexColor()
+  }
+})
+
+export const initialLabelsAtom = atom({
+  key: 'initialLabelsAtom',
+  default: []
+})

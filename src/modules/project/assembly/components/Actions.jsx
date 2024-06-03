@@ -79,6 +79,7 @@ export default function Actions({ cancel, submit }) {
     }));
     setActionName(ACTION_NAMES.SELECTED);
   };
+  console.log({imageStatus})
 
   const handleOneToOne = () => {
     setImageStatus((p)=>({...p, oneToOne: true}));

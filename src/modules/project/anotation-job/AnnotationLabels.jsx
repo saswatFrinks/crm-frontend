@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import Select from '@/shared/ui/Select';
 import { Edit, Trash } from 'react-feather';
-import { annotationClassesAtom, annotationMapAtom, currentRectangleIdAtom, rectanglesAtom, selectedFileAtom, uploadedFileListAtom } from '../state';
+import { annotationClassesAtom, annotationMapAtom, currentRectangleIdAtom, labelEditedAtom, rectanglesAtom, selectedFileAtom, uploadedFileListAtom } from '../state';
 import { RECTANGLE_TYPE } from '@/core/constants';
+import { initialLabelsAtom } from '../assembly/state';
 
 export default function AnnotationLabels({labelClass}) {
   const selectedImage = useRecoilValue(selectedFileAtom);
@@ -12,9 +13,16 @@ export default function AnnotationLabels({labelClass}) {
   const selectedRectangleId = useSetRecoilState(currentRectangleIdAtom)
   const selecteFile = useRecoilValue(selectedFileAtom)
   const [annotationClasses, setAnnotationClasses] = useRecoilState(annotationClassesAtom)
+
+  // const [initialLabels, setInitialLabels] = useRecoilState(initialLabelsAtom);
+  // console.log("annotatio1n",{initialLabels})
   
   const selectedImageId = selecteFile?.id
   const rectangles = selectedImageId ? annotationClasses[selectedImageId]?.rectangles || [] : [];
+
+  // useEffect(() => {
+  //   setInitialLabels(rectangles)
+  // }, [])
 
   const remove = (id, uuid) => {
     let newMap = Object.assign({}, annotMap);
@@ -56,7 +64,7 @@ export default function AnnotationLabels({labelClass}) {
                     onChange={(e)=>{
                       const ind = rectangles.findIndex(ele=>ele.uuid==t.uuid);
                       const recCp = [...rectangles];
-                      recCp[ind] = {...recCp[ind], title: labelClass.find(ele=>ele.id==e.target.value).name}
+                      recCp[ind] = {...recCp[ind], title: labelClass.find(ele=>ele.id==e.target.value).name }
                       setAnnotationClasses(prev=>({...prev, [selectedImageId]:{
                         ...prev[selectedImageId],
                         rectangles: recCp,

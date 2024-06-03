@@ -58,7 +58,7 @@ export default function UploadImage() {
 
   const roiIndex = configuration.rois.findIndex(v=>v.id==selectedRoiId)
   const roiName = roiIndex>=0? 
-    `ROI ${roiIndex}`: 
+    `ROI ${roiIndex}`:
     seletectedLabel? `${seletectedLabel.name} ${1+rectangles.reduce((p,c)=>{return c.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL && c.imageId==selectedFile.id ? p+1: p}, 0)}`
     : undefined
 

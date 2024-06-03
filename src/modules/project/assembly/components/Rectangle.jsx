@@ -29,7 +29,7 @@ const Rectangle = ({
       shapeRef.current.height(shapeProps.height * effectiveScale);
     }
   }, [shapeProps, shapeRef])
-  // console.log("title: ",shapeProps.title)
+  // console.log("shareProps title: ",shapeProps.title)
 
   return (
     <React.Fragment>

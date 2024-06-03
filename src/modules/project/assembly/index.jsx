@@ -21,7 +21,7 @@ import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader';
 import Actions from './components/Actions';
 import { useParams } from 'react-router-dom';
 
-import { editingRectAtom, loadedLabelsAtom, stepAtom } from './state';
+import { editingRectAtom, initialLabelsAtom, loadedLabelsAtom, stepAtom } from './state';
 import React, { useEffect, useRef, useState } from 'react';
 import axiosInstance from '@/core/request/aixosinstance';
 import {
@@ -74,6 +74,8 @@ export default function Assembly() {
   const [labelsEdited, setLabelsEdited] = useRecoilState(labelEditedAtom);
   const [roisLoaded, setRoisLoaded] = useState(false);
 
+  const [initialLabels, setInitialLabels] = useRecoilState(initialLabelsAtom);
+
   const getProject = async () => {
     try {
       const { data } = await axiosInstance.get('/project', {
@@ -95,9 +97,46 @@ export default function Assembly() {
   );
   const navigate = useNavigate();
 
+  const compareArrays = (annotRects, iniLabels) => {
+    let flag = false;
+    
+    for (let rect of annotRects) {
+      let initialLabel = iniLabels.find(label => label.uuid === rect.uuid);
+      if (initialLabel) {
+        if (
+          rect.x !== initialLabel.x ||
+          rect.y !== initialLabel.y ||
+          rect.width !== initialLabel.width ||
+          rect.height !== initialLabel.height
+        ) {
+          flag = true;
+          break;
+        }
+      } else {
+        flag = true;
+        break;
+      }
+    }
+    return flag;
+  }
+
   const updateAnnotation = async () => {
     const imgMap = {};
-    if (Object.keys(labelEditedAtom).length == 0) return;
+    if (Object.keys(labelEditedAtom).length == 0) {
+      return;
+    }
+    console.log({annotationRects}) // has all the label rectangles
+    console.log("initial", initialLabels)
+    if(initialLabels.length === annotationRects.length 
+      && !compareArrays(annotationRects, initialLabels)) {
+      toast.success('No changes to update');
+      return true;
+    }
+
+    // if(initialLabels.length === annotationRects.length) {
+    //   toast.success('my check');
+    //   return true;
+    // }
     annotationRects.forEach((rect) => {
       if (!labelsEdited[rect.imageId]) return;
       const classNo = annotationMap[rect.uuid];
@@ -105,6 +144,8 @@ export default function Assembly() {
       const width = rect.width.toFixed(4);
       const x = (rect.x + rect.width / 2).toFixed(4);
       const y = (rect.y + rect.height / 2).toFixed(4);
+      console.log("files",{classNo, height, width, x, y});
+      // console.log("rect.imageId",rect.imageId)
       if (imgMap[rect.imageId]) {
         imgMap[rect.imageId] += `${classNo} ${x} ${y} ${width} ${height}\n`;
       } else {
@@ -113,16 +154,23 @@ export default function Assembly() {
     });
     const formData = new FormData();
     const imageIds = [];
+    // console.log({images}) // conatins the 10 uploaded images
     images.forEach((img, index) => {
-      if (imgMap[img.id]?.length) {
+      if (imgMap[img.id]?.length || labelsEdited[img.id]) {
+        // console.log("length of imgMap:", imgMap[img.id]?.length, "labelsEdited:", labelsEdited[img.id])
         const fileContents = imgMap[img.id] || '';
+        console.log({fileContents})
         const fileBlob = new Blob([fileContents], { type: 'text/plain' });
         formData.append('files', fileBlob, img.id);
         imageIds.push(img.id || '');
       }
     });
+    // console.log("newFileContent",{newFileContent})
+    // console.log({imageIds})
+    // console.log("imgMap",{imgMap})
     formData.append('configurationId', configurationId);
     formData.append('imageIds', imageIds);
+    console.log({imageIds})
     if (!imageIds.length) {
       toast.success('No changes to update');
       return true;
@@ -132,8 +180,10 @@ export default function Assembly() {
         '/configuration/upload-label-files',
         formData
       );
-      toast.success('Labels uploaded');
+      toast.success('Labels updated');
       setLabelsEdited({});
+      setInitialLabels(annotationRects)
+      console.log("final", initialLabels);
       return data.data?.success;
     } catch (e) {
       toast.error(
@@ -182,6 +232,7 @@ export default function Assembly() {
   const cancel = () => {
     setEditingRect(false);
     setIsEditing(false);
+    // setLabelsEdited({});
     setCurrentRoiId(null);
     setRectangleType(RECTANGLE_TYPE.ROI);
     setLastAction(ACTION_NAMES.CANCEL);
@@ -440,6 +491,7 @@ export default function Assembly() {
       imageIdStore.add(rect.imageId);
   });
   const isAllImagesLabeled = imageIdStore.size == 10;
+  console.log({uploadedFileList})
 
   return (
     <>
