@@ -6,17 +6,23 @@ import AnnotationImage from './AnnotationImage';
 import AnnotationLabels from './AnnotationLabels';
 import Actions from '../assembly/components/Actions';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
-import { initialLabelsAtom, rectangleColorAtom, stepAtom } from '../assembly/state';
+import {
+  initialLabelsAtom,
+  rectangleColorAtom,
+  stepAtom,
+} from '../assembly/state';
 import React, { useEffect, useRef, useState } from 'react';
 import KonvaImageView from '../assembly/components/KonvaImageView';
 import axiosInstance from '@/core/request/aixosinstance';
 import { useNavigate, useParams } from 'react-router-dom';
 import useImage from 'use-image';
 import {
-  annotationCacheAtom, annotationClassesAtom,
+  annotationCacheAtom,
+  annotationClassesAtom,
   annotationMapAtom,
   assemblyAtom,
-  cacheLoaderAtom, currentRectangleIdAtom,
+  cacheLoaderAtom,
+  currentRectangleIdAtom,
   editingAtom,
   labelClassAtom,
   labelEditedAtom,
@@ -25,7 +31,7 @@ import {
   selectedFileAtom,
   uploadedFileListAtom,
 } from '../state';
-import { getRandomHexColor } from '@/util/util';
+import { compareArrays, getRandomHexColor } from '@/util/util';
 import {
   ACTION_NAMES,
   BASE_RECT,
@@ -52,7 +58,7 @@ export default function AnnotationJob() {
   const [annotationLoadeFlag, setAnnotationLoadedFlag] = useState({});
   const [annotationMap, setAnnotationMap] = useRecoilState(annotationMapAtom);
   const loaders = useRecoilValue(cacheLoaderAtom);
-  const [cachedImages, setCachedImages] = useRecoilState(annotationCacheAtom)
+  const [cachedImages, setCachedImages] = useRecoilState(annotationCacheAtom);
   const labelRef = React.useRef(labelClass);
   const [rois, setRois] = React.useState([]);
   const nav = useNavigate();
@@ -70,7 +76,7 @@ export default function AnnotationJob() {
 
   const [labelsEdited, setLabelsEdited] = useRecoilState(labelEditedAtom);
 
-  const [initialLabels, setInitialLabels] = useRecoilState(initialLabelsAtom)
+  const [initialLabels, setInitialLabels] = useRecoilState(initialLabelsAtom);
 
   const getImageUrl = (id) => {
     return `${import.meta.env.VITE_BASE_API_URL}/dataset/image?imageId=${id}`;
@@ -138,8 +144,9 @@ export default function AnnotationJob() {
       //   ...prev,
       //   all: prev.all.length === colors.length ? [...prev.all] : colors,
       // }));
-      if (colors?.length > 0) setRectangleColor((prev) => ({ ...prev, all: colors }));
-    } catch (error) { }
+      if (colors.length > 0)
+        setRectangleColor((prev) => ({ ...prev, all: colors }));
+    } catch (error) {}
   };
 
   const cancel = () => {
@@ -163,61 +170,62 @@ export default function AnnotationJob() {
   //   })
   // }
 
-  const compareArrays = (annotRects, iniLabels) => {
-    let flag = false;
 
-    for (let rect of annotRects) {
-      let initialLabel = iniLabels.find(label => label.uuid === rect.uuid);
-      if (initialLabel) {
-        if (
-          rect.x !== initialLabel.x ||
-          rect.y !== initialLabel.y ||
-          rect.width !== initialLabel.width ||
-          rect.height !== initialLabel.height
-        ) {
-          flag = true;
-          break;
-        }
-      } else {
-        flag = true;
-        break;
-      }
-    }
-    return flag;
-  }
+  console.log({ initialLabels }, {annotationClasses});
 
-  console.log({ initialLabels })
-  const updateAnnotation = async () => {
-    const imgMap = {};
-    console.log({ annotationClasses })
+  const handleExit = () => {
     const changedList = Object.values(annotationClasses).filter(
       (cls) => cls.changed
     );
-    // if (changedList.length == 0) return false;
-    console.log({ changedList });
-
 
     const imageSpecificRects = changedList.reduce((prev, cur) => {
       return [...prev, ...cur.rectangles];
     }, []);
 
-    console.log({ imageSpecificRects })
+    console.log("handleExit", {initialLabels}, {imageSpecificRects}, {changedList}, {annotationClasses})
+
+    if (
+      initialLabels[selectedImage.id]?.length === annotationClasses[selectedImage.id].rectangles.length &&
+      !compareArrays(imageSpecificRects, initialLabels[selectedImage.id])
+    ) {
+      setModalOpen(false);
+      nav('..', { relative: 'route' });
+    } else {
+      setModalOpen(true);
+    }
+    console.log({ modalOpen });
+  };
+
+  const updateAnnotation = async () => {
+    const imgMap = {};
+    console.log({ annotationClasses });
+    const changedList = Object.values(annotationClasses).filter(
+      (cls) => cls.changed
+    );
+    // if (changedList.length == 0) return false;
+    // console.log({ changedList });
+
+    const imageSpecificRects = changedList.reduce((prev, cur) => {
+      return [...prev, ...cur.rectangles];
+    }, []);
+
+    console.log({ imageSpecificRects });
     // console.log({initialLabels})
 
     // console.log("comp",compareArrays(imageSpecificRects, initialLabels))
-    console.log("condition check", initialLabels[selectedImage.id]?.length === imageSpecificRects.length);
-    console.log("selectedImage.id", selectedImage.id)
-    console.log()
-    if (initialLabels[selectedImage.id]?.length === imageSpecificRects.length
-      && !compareArrays(imageSpecificRects, initialLabels[selectedImage.id])) {
+
+    if (
+      initialLabels[selectedImage.id]?.length === imageSpecificRects.length &&
+      !compareArrays(imageSpecificRects, initialLabels[selectedImage.id])
+    ) {
       toast.success('No changes to update');
+      setModalOpen(false);
       return true;
     }
-    console.log('ll', { selectedImage }, { imageSpecificRects });
     // if (imageSpecificRects.length == 0) return false;
     const imageIds = [];
     imageSpecificRects.forEach((rect) => {
-      console.log(annotationMap, rect.uuid);
+      // console.log(annotationMap, rect.uuid);
       // if (!imageIds.includes(rect.imageId)) imageIds.push(rect.imageId);
       const classNo = annotationMap[rect.uuid];
       const height = rect.height.toFixed(4);
@@ -231,11 +239,12 @@ export default function AnnotationJob() {
       }
     });
     const formData = new FormData();
+    console.log({ changedList });
     changedList.forEach((item) => {
       const id = item.imageId;
       console.log(id);
       const fileContents = imgMap[id] || '';
-      console.log({ fileContents })
+      console.log({ fileContents });
       const fileBlob = new Blob([fileContents], { type: 'text/plain' });
       formData.append('files', fileBlob, id);
       imageIds.push(id);
@@ -245,20 +254,24 @@ export default function AnnotationJob() {
     formData.append('configurationId', configurationId);
 
     if (!imageIds.length) {
-      toast.success("No changes to update");
+      toast.success('No changes to update');
+      setModalOpen(false);
       return true;
     }
-
 
     try {
       const data = await axiosInstance.post('/annotation', formData);
       toast.success('Labels updated');
+      setModalOpen(false);
       const updates = {};
       imageIds.forEach((imgId) => {
         updates[imgId] = { ...annotationClasses[imgId], changed: false };
       });
       setAnnotationClasses((prev) => ({ ...prev, ...updates }));
-      setInitialLabels((prev) => ({ ...prev, [selectedImage.id]: imageSpecificRects }))
+      setInitialLabels((prev) => ({
+        ...prev,
+        [selectedImage.id]: imageSpecificRects,
+      }));
       return data.data?.success;
     } catch (e) {
       toast.error(
@@ -355,7 +368,11 @@ export default function AnnotationJob() {
 
   //load annotation file and load rectangles
   React.useEffect(() => {
-    if (selectedImage && !annotationLoadeFlag[selectedImage.id] && rectangleColor.all.length) {
+    if (
+      selectedImage &&
+      !annotationLoadeFlag[selectedImage.id] &&
+      rectangleColor.all.length
+    ) {
       const getData = async () => {
         const newStat = {
           ...DEFAULT_ANNOTATION,
@@ -411,19 +428,31 @@ export default function AnnotationJob() {
                 annotUpdates[uuid] = cls;
               }
             });
-            console.log('UPdate from txt', annotUpdates, configuredData);
+            // console.log('UPdate from txt', annotUpdates, configuredData);
             setAnnotationMap((prev) => ({ ...prev, ...annotUpdates }));
             // setRectangles(prev=>[...prev, ...configuredData]);
             newStat.rectangles = configuredData;
-            console.log("Annotation labels", configuredData)
-            setInitialLabels((prev) => ({ ...prev, [selectedImage.id]: configuredData }))
+            console.log('Annotation labels', configuredData);
+            console.log("prevData",{configuredData})
+            setInitialLabels((prev) => ({
+              ...prev,
+              [selectedImage.id]: configuredData,
+            }));
+          } else {
+            setInitialLabels((prev) => ({ ...prev, [selectedImage.id]: [] }));
           }
-          console.log("prevData.length", prevData.length)
-          if (prevData.length === 0) setInitialLabels((prev) => ({ ...prev, [selectedImage.id]: [] }));
+          // console.log('prevData.length', prevData.length);
+          // if (!(prevData.length && typeof prevData == 'string')) {
+          //   console.log('empty');
+          //   setInitialLabels((prev) => ({ ...prev, [selectedImage.id]: [] }));
+          // }
+
           setAnnotationLoadedFlag((prev) => {
             return { ...prev, [selectedImage.id]: true };
           });
         } catch (e) {
+          console.log("empty");
+          setInitialLabels((prev) => ({ ...prev, [selectedImage.id]: [] }));
         } finally {
           setAnnotationClasses((prev) => ({
             ...prev,
@@ -437,11 +466,12 @@ export default function AnnotationJob() {
         ...prev,
         [selectedImage.id]: true,
       }));
-    }
-    console.log("ee", { annotationLoadeFlag })
+    } 
+    
+    console.log('ee', { annotationLoadeFlag });
   }, [selectedImage, rectangleColor]);
 
-  console.log({ initialLabels })
+  console.log({ initialLabels });
 
   console.log(rectangles);
 
@@ -463,27 +493,26 @@ export default function AnnotationJob() {
         URL.revokeObjectURL(value.url);
       });
       setCachedImages(new Map());
-    }
-  }, [])
+      // setRectangleColor({
+      //   all: [],
+      //   selectedColor: getRandomHexColor(),
+      // });
+    };
+  }, []);
 
   React.useEffect(() => {
     if (selectedImage?.id) {
-      setRectangles(annotationClasses[selectedImage.id]?.rectangles || [])
+      setRectangles(annotationClasses[selectedImage.id]?.rectangles || []);
     }
   }, [annotationClasses, selectedImage]);
 
   React.useEffect(() => {
-    return () => {
-      cacheRef.current.forEach((value, key) => {
-        URL.revokeObjectURL(value.url);
-      });
-      setCachedImages(new Map());
-    }
-  }, [])
+    cacheRef.current = cachedImages;
+  }, [cachedImages]);
 
-  React.useEffect(() => {
-    cacheRef.current = cachedImages
-  }, [cachedImages])
+  
+
+  console.log('outside', { modalOpen });
 
   return (
     <>
@@ -543,7 +572,12 @@ export default function AnnotationJob() {
             </div>
           </div>
           <div className="row-span-1 flex items-center gap-2 border-t-[1px] border-black bg-white px-6">
-            <Button variant="flat" size="xs" onClick={() => setModalOpen(true)}>
+            <Button
+              variant="flat"
+              size="xs"
+              //  onClick={() => setModalOpen(true)}
+              onClick={handleExit}
+            >
               Exit
             </Button>
             <Button size="xs" onClick={updateAnnotation}>
@@ -561,7 +595,7 @@ export default function AnnotationJob() {
               }}
             >
               {loaders.get(selectedImage?.id) ? (
-                <div className="h-full w-[30%] flex flex-col gap-4 items-center justify-center">
+                <div className="flex h-full w-[30%] flex-col items-center justify-center gap-4">
                   <div className="text-xl font-medium">Loading Image</div>
                   <div className="loading px-4 text-center"></div>
                 </div>
@@ -572,7 +606,8 @@ export default function AnnotationJob() {
                       onDrawStop={(rects) => {
                         console.log('rect updated');
                         const annots = rects.filter(
-                          (rect) => rect.rectType == RECTANGLE_TYPE.ANNOTATION_LABEL
+                          (rect) =>
+                            rect.rectType == RECTANGLE_TYPE.ANNOTATION_LABEL
                         );
                         setAnnotationClasses((prev) => ({
                           ...prev,
@@ -599,9 +634,10 @@ export default function AnnotationJob() {
                       rectangles={
                         annotationClasses[selectedImage?.id]
                           ? [
-                            ...rois,
-                            ...annotationClasses[selectedImage?.id].rectangles,
-                          ]
+                              ...rois,
+                              ...annotationClasses[selectedImage?.id]
+                                .rectangles,
+                            ]
                           : rois
                       }
                       title={selectedClass?.name || 'Label'}
@@ -611,7 +647,6 @@ export default function AnnotationJob() {
                   )}
                 </>
               )}
-
             </div>
           </div>
 
