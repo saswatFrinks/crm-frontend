@@ -493,10 +493,10 @@ export default function AnnotationJob() {
         URL.revokeObjectURL(value.url);
       });
       setCachedImages(new Map());
-      // setRectangleColor({
-      //   all: [],
-      //   selectedColor: getRandomHexColor(),
-      // });
+      setRectangleColor({
+        all: [],
+        selectedColor: getRandomHexColor(),
+      });
     };
   }, []);
 

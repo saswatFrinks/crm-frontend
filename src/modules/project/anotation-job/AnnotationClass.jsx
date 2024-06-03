@@ -57,6 +57,7 @@ export default function AnnotationClass({ labelClass }) {
   // }, [rectangles, annotationMap])
 
   console.log({rectangleColor})
+  console.log("Annoptation class", {labelClass})
 
   return (
     <div className="">
