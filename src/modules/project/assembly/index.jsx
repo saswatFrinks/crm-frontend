@@ -103,9 +103,9 @@ export default function Assembly() {
     if (Object.keys(labelEditedAtom).length == 0) {
       return;
     }
-    console.log({annotationRects}) // has all the label rectangles
+    console.log({ annotationRects }) // has all the label rectangles
     console.log("initial", initialLabels)
-    if(initialLabels.length === annotationRects.length 
+    if (initialLabels.length === annotationRects.length
       && !compareArrays(annotationRects, initialLabels)) {
       toast.success('No changes to update');
       return true;
@@ -122,7 +122,7 @@ export default function Assembly() {
       const width = rect.width.toFixed(4);
       const x = (rect.x + rect.width / 2).toFixed(4);
       const y = (rect.y + rect.height / 2).toFixed(4);
-      console.log("files",{classNo, height, width, x, y});
+      console.log("files", { classNo, height, width, x, y });
       // console.log("rect.imageId",rect.imageId)
       if (imgMap[rect.imageId]) {
         imgMap[rect.imageId] += `${classNo} ${x} ${y} ${width} ${height}\n`;
@@ -137,7 +137,7 @@ export default function Assembly() {
       if (imgMap[img.id]?.length || labelsEdited[img.id]) {
         // console.log("length of imgMap:", imgMap[img.id]?.length, "labelsEdited:", labelsEdited[img.id])
         const fileContents = imgMap[img.id] || '';
-        console.log({fileContents})
+        console.log({ fileContents })
         const fileBlob = new Blob([fileContents], { type: 'text/plain' });
         formData.append('files', fileBlob, img.id);
         imageIds.push(img.id || '');
@@ -148,7 +148,7 @@ export default function Assembly() {
     // console.log("imgMap",{imgMap})
     formData.append('configurationId', configurationId);
     formData.append('imageIds', imageIds);
-    console.log({imageIds})
+    console.log({ imageIds })
     if (!imageIds.length) {
       toast.success('No changes to update');
       return true;
@@ -456,7 +456,7 @@ export default function Assembly() {
       toast.error(
         e?.response?.data?.data?.message
           ? // ? `${e?.response?.data?.data?.message}. All fields are required`
-            'All ROIs label are required!'
+          'All ROIs label are required!'
           : 'Failed'
       );
     }
@@ -469,17 +469,17 @@ export default function Assembly() {
       imageIdStore.add(rect.imageId);
   });
   const isAllImagesLabeled = imageIdStore.size == 10;
-  console.log({uploadedFileList})
+  console.log({ uploadedFileList })
 
   return (
     <>
       <div className="grid h-screen grid-cols-12 ">
         <div
-          className="col-span-5 grid grid-rows-12 border-r-[1px] border-gray-400"
+          className={`col-span-${step === 3 ? '12 px-10' : '5'} bg-white grid grid-rows-12 border-r-[1px] border-gray-400`}
           style={{ maxHeight: '100vh', overflow: 'hidden' }}
         >
           <div
-            className="row-span-11 flex flex-col bg-white"
+            className={`row-span-11 flex flex-col ${step === 3 ? 'w-[85%] mx-auto my-2' : ''}`}
             style={{ maxHeight: '91.65vh', overflowY: 'auto' }}
           >
             <h1 className="mb-4 px-6 pt-6 text-3xl font-bold">
@@ -533,18 +533,20 @@ export default function Assembly() {
           </div>
         </div>
 
-        <div className="col-span-7 grid grid-rows-12">
-          <div
-            className="row-span-11 flex flex-col items-center justify-center gap-4 bg-[#EAEDF1]"
-            style={{ overflow: 'hidden' }}
-          >
-            <UploadImage />
-          </div>
+        {step !== 3 && (
+          <div className="col-span-7 grid grid-rows-12">
+            <div
+              className="row-span-11 flex flex-col items-center justify-center gap-4 bg-[#EAEDF1]"
+              style={{ overflow: 'hidden' }}
+            >
+              <UploadImage />
+            </div>
 
-          <div className="flex items-center justify-between border-t-[1px] border-gray-400 bg-white">
-            <Actions cancel={cancel} submit={submit} />
+            <div className="flex items-center justify-between border-t-[1px] border-gray-400 bg-white">
+              <Actions cancel={cancel} submit={submit} />
+            </div>
           </div>
-        </div>
+        )}
       </div>
       {false && (
         <ProjectCreateLoader title="Please wait while we analyse the project..." />
