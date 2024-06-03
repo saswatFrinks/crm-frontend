@@ -57,6 +57,7 @@ export const compareArrays = (annotRects, iniLabels) => {
     let initialLabel = iniLabels.find((label) => label.uuid === rect.uuid);
     if (initialLabel) {
       if (
+        rect.name !== initialLabel.title ||
         rect.x !== initialLabel.x ||
         rect.y !== initialLabel.y ||
         rect.width !== initialLabel.width ||
