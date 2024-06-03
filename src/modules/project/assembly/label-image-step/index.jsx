@@ -66,9 +66,7 @@ export default function LabelImage({ save }) {
 
   const setIsEditing = useSetRecoilState(editingAtom);
   
-  const images = useRecoilValue(uploadedFileListAtom);
-
-  console.log({images});
+  const images = useRecoilValue(cachedFileListAtom);
 
   const [selectedFile, setSelectedFile] = useRecoilState(selectedFileAtom);
   const [rectangles, setRectangle] = useRecoilState(rectanglesAtom);
