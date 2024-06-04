@@ -175,19 +175,19 @@ const Evaluation = () => {
         This is used to evaluate if the model can predict correctly in presence or absence of certain parts of the image data by deciding for itself if the input data is important or not.
         The ‘Heatmap’ image shows what the model decides is an important feature in the image and what is not important for correct predictions.
       </div>
-      <div className="flex items-center justify-around gap-2 my-4 w-[60%] mx-auto">
+      <div className="flex items-center justify-around gap-2 my-4 w-[80%] mx-auto">
         <div className=" max-w-2xl flex flex-col items-center">
           {loaders.get(classList[selectedClass]) ? (
             <div className='flex items-center' style={{minHeight: '35vh'}}>
               <div className="loading mx-auto px-4 text-center bg-white" style={{ width: '10vw' }}></div>
             </div>
           ) : (
-            <div className="mx-auto w-[15vw] mb-4 mt-10">
+            <div className="mx-auto w-[20vw] mb-4 mt-10">
               <img
                 alt='evaluation-img'
                 src={classImages.length && `data:${classImages[0].type};base64,${classImages[0].base64}`}
                 style={{
-                  width: '15vw',
+                  width: '20vw',
                   margin: '0 auto'
                 }}
               />
@@ -202,12 +202,12 @@ const Evaluation = () => {
               <div className="loading mx-auto px-4 text-center bg-white" style={{ width: '10vw' }}></div>
             </div>
           ) : (
-            <div className="mx-auto w-[15vw] mb-4 mt-10">
+            <div className="mx-auto w-[20vw] mb-4 mt-10">
               <img
                 alt='evaluation-img'
                 src={classImages.length && `data:${classImages[1].type};base64,${classImages[1].base64}`}
                 style={{
-                  width: '15vw',
+                  width: '20vw',
                   margin: '0 auto'
                 }}
               />
