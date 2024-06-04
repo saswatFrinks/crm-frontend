@@ -170,19 +170,19 @@ const Evaluation = () => {
       </div>
       <h2 className='font-bold text-2xl my-4'>Lime Results</h2>
       <div className="my-2 text-lg">
-        The below images help you visualise what the model can see or not see in the evaluation data.
+        The below images help you visualise what the model can see or not see in the evaluation data for each class.
         The ‘Main Clusters’ image shows what the model is allowed to see and not allowed to see.
         This is used to evaluate if the model can predict correctly in presence or absence of certain parts of the image data by deciding for itself if the input data is important or not.
         The ‘Heatmap’ image shows what the model decides is an important feature in the image and what is not important for correct predictions.
       </div>
-      <div className="flex items-center justify-center gap-4 my-4">
-        <div className="w-full max-w-2xl flex flex-col items-center">
+      <div className="flex items-center justify-around gap-2 my-4 w-[60%] mx-auto">
+        <div className=" max-w-2xl flex flex-col items-center">
           {loaders.get(classList[selectedClass]) ? (
             <div className='flex items-center' style={{minHeight: '35vh'}}>
               <div className="loading mx-auto px-4 text-center bg-white" style={{ width: '10vw' }}></div>
             </div>
           ) : (
-            <div className="mx-auto w-[35vw] mb-4 mt-10">
+            <div className="mx-auto w-[15vw] mb-4 mt-10">
               <img
                 alt='evaluation-img'
                 src={classImages.length && `data:${classImages[0].type};base64,${classImages[0].base64}`}
@@ -196,13 +196,13 @@ const Evaluation = () => {
           <div className="my-2 text-lg font-bold">Main Clusters</div>
         </div>
 
-        <div className="w-full max-w-2xl flex flex-col items-center">
+        <div className="max-w-2xl flex flex-col items-center">
           {loaders.get(classList[selectedClass]) ? (
             <div className='flex items-center' style={{minHeight: '35vh'}}>
               <div className="loading mx-auto px-4 text-center bg-white" style={{ width: '10vw' }}></div>
             </div>
           ) : (
-            <div className="mx-auto w-[35vw] mb-4 mt-10">
+            <div className="mx-auto w-[15vw] mb-4 mt-10">
               <img
                 alt='evaluation-img'
                 src={classImages.length && `data:${classImages[1].type};base64,${classImages[1].base64}`}
@@ -221,7 +221,9 @@ const Evaluation = () => {
           onClick={() => handlePrev(selectedClass)}
           className='cursor-pointer'
         />
-        {classList[selectedClass]?.slice(0,15)}{classList[selectedClass]?.length > 15 && '....'}
+        <div className='font-bold'>
+          {classList[selectedClass]?.slice(0,15)?.toUpperCase()}{classList[selectedClass]?.length > 15 && '....'}
+        </div>
         <ChevronRight 
           onClick={() => handleNext(selectedClass)}
           className='cursor-pointer'
