@@ -491,13 +491,12 @@ export default function Assembly() {
       imageIdStore.add(rect.imageId);
   });
   const isAllImagesLabeled = imageIdStore.size == 10;
-  console.log({ uploadedFileList })
 
   return (
     <>
       <div className="grid h-screen grid-cols-12 ">
         <div
-          className={`col-span-${step === 3 ? '12 px-10' : '5'} bg-white grid grid-rows-12 border-r-[1px] border-gray-400`}
+          className={`${(step === 3) ? 'col-span-12 px-10' : 'col-span-5'} bg-white grid grid-rows-12 border-r-[1px] border-gray-400`}
           style={{ maxHeight: '100vh', overflow: 'hidden' }}
         >
           <div
