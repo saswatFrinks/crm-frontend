@@ -221,7 +221,7 @@ const Evaluation = () => {
           onClick={() => handlePrev(selectedClass)}
           className='cursor-pointer'
         />
-        {classList[selectedClass]?.slice(0,15)}
+        {classList[selectedClass]?.slice(0,15)}{classList[selectedClass]?.length > 15 && '....'}
         <ChevronRight 
           onClick={() => handleNext(selectedClass)}
           className='cursor-pointer'
