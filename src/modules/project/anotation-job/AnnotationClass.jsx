@@ -2,7 +2,7 @@ import { RECTANGLE_TYPE } from '@/core/constants';
 import axiosInstance from '@/core/request/aixosinstance';
 import Box from '@/shared/icons/Box';
 import { getRandomHexColor } from '@/util/util';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import {
@@ -35,6 +35,13 @@ export default function AnnotationClass({ labelClass }) {
     console.log({ labelClass });
   };
 
+  useEffect(() => {
+    setRectangleColor({
+      all: [],
+      selectedColor: getRandomHexColor(),
+    });
+  }, [])
+
   // React.useEffect(() => {
   //   let annotations = rectangles.filter(e=>e.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL && annotationMap[e.uuid]==undefined);
   //   if(annotations.length){
@@ -48,6 +55,9 @@ export default function AnnotationClass({ labelClass }) {
   //     setSelectedPloyId(annotations[0].uuid)
   //   }
   // }, [rectangles, annotationMap])
+
+  console.log({rectangleColor})
+  console.log("Annoptation class", {labelClass})
 
   return (
     <div className="">

@@ -32,7 +32,7 @@ export const defaultAugmentationAtom = {
   Rotate: false,
   GaussianBlur: false,
   RandomCrop: false,
-  RandomBrightnessContrast: false,
+  // RandomBrightnessContrast: false,
 }
 
 export const augmentationsAtom = atom({

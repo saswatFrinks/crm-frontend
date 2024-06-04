@@ -39,7 +39,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { cloneDeep } from 'lodash';
 import toast from 'react-hot-toast';
-import { getRandomHexColor } from '@/util/util';
+import { compareArrays, getRandomHexColor } from '@/util/util';
 import { v4 } from 'uuid';
 
 export default function Assembly() {
@@ -97,28 +97,6 @@ export default function Assembly() {
   );
   const navigate = useNavigate();
 
-  const compareArrays = (annotRects, iniLabels) => {
-    let flag = false;
-
-    for (let rect of annotRects) {
-      let initialLabel = iniLabels.find(label => label.uuid === rect.uuid);
-      if (initialLabel) {
-        if (
-          rect.x !== initialLabel.x ||
-          rect.y !== initialLabel.y ||
-          rect.width !== initialLabel.width ||
-          rect.height !== initialLabel.height
-        ) {
-          flag = true;
-          break;
-        }
-      } else {
-        flag = true;
-        break;
-      }
-    }
-    return flag;
-  }
 
   const updateAnnotation = async () => {
     const imgMap = {};
