@@ -124,7 +124,6 @@ const KonvaImageView = ({
         title,
         uuid,
       });
-      console.log("pp",{title})
 
       
       setLastPolyId(uuid);

@@ -26,8 +26,8 @@ export const augmentationsMap = {
   VerticalFlip: 'Vertical Flip',
   Rotate: 'Rotation',
   GaussianBlur: 'Gaussian Blur',
-  RandomCrop: 'Random Crop'
-  // RandomBrightnessContrast: 'Random Brightness Contrast',
+  RandomCrop: 'Random Crop',
+  RandomBrightnessContrast: 'Random Brightness Contrast',
 };
 
 const trainingStatus = {

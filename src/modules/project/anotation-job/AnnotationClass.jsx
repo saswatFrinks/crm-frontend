@@ -2,7 +2,7 @@ import { RECTANGLE_TYPE } from '@/core/constants';
 import axiosInstance from '@/core/request/aixosinstance';
 import Box from '@/shared/icons/Box';
 import { getRandomHexColor } from '@/util/util';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import {
@@ -14,21 +14,32 @@ import {
   rectanglesTypeAtom,
 } from '../state';
 import { rectangleColorAtom } from '../assembly/state';
-
-
+import toast from 'react-hot-toast';
 
 export default function AnnotationClass({ labelClass }) {
   const { projectId } = useParams();
   const [selectedClassId, setSelectedClassId] = useRecoilState(labelClassAtom);
   const setRectangleType = useSetRecoilState(rectanglesTypeAtom);
-  const setIsEditing = useSetRecoilState(editingAtom);
+  // const setIsEditing = useSetRecoilState(editingAtom);
+  const [isEditing, setIsEditing] = useRecoilState(editingAtom);
   const rectangles = useRecoilValue(rectanglesAtom);
   const [annotationMap, setAnnotationMap] = useRecoilState(annotationMapAtom);
   const setSelectedPloyId = useSetRecoilState(currentRectangleIdAtom);
 
-  const [rectangleColor, setRectangleColor] = useRecoilState(rectangleColorAtom);
+  const [rectangleColor, setRectangleColor] =
+    useRecoilState(rectangleColorAtom);
 
   const handleClick = async (t) => {
+    console.log("isEditing1",{isEditing});
+    if (isEditing === true) {
+      toast(
+        'Please confirm the creation of the new label first before proceeding',
+        {
+          icon: '⚠️',
+        }
+      );
+      return;
+    }
     setIsEditing(true);
     setRectangleType(RECTANGLE_TYPE.ANNOTATION_LABEL);
     setSelectedClassId(t);
@@ -40,7 +51,7 @@ export default function AnnotationClass({ labelClass }) {
       all: [],
       selectedColor: getRandomHexColor(),
     });
-  }, [])
+  }, []);
 
   // React.useEffect(() => {
   //   let annotations = rectangles.filter(e=>e.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL && annotationMap[e.uuid]==undefined);
@@ -55,10 +66,6 @@ export default function AnnotationClass({ labelClass }) {
   //     setSelectedPloyId(annotations[0].uuid)
   //   }
   // }, [rectangles, annotationMap])
-
-  console.log({rectangleColor})
-  console.log("Annoptation class", {labelClass})
-
   return (
     <div className="">
       <p className="mb-4 break-all">Click the class below to label it</p>
@@ -70,7 +77,9 @@ export default function AnnotationClass({ labelClass }) {
             style={{ backgroundColor: t.color }}
             onClick={() => {
               handleClick(t);
-              const clickedLabelClass = labelClass.find((label) => label.id === t.id);
+              const clickedLabelClass = labelClass.find(
+                (label) => label.id === t.id
+              );
               setRectangleColor({
                 ...rectangleColor,
                 selectedColor: clickedLabelClass.color,

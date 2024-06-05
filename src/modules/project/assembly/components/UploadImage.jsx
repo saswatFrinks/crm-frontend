@@ -35,9 +35,11 @@ import axiosInstance from '@/core/request/aixosinstance';
 
 export default function UploadImage() {
   const [file, setFile] = React.useState(null);
-  const [imageLoading, setImageLoading] = useState(Array.from({length: 10}, () => false));
+  const [imageLoading, setImageLoading] = useState(
+    Array.from({ length: 10 }, () => false)
+  );
 
-  const rectType = useRecoilValue(rectanglesTypeAtom)
+  const rectType = useRecoilValue(rectanglesTypeAtom);
 
   const [rectangles, setRectangles] = useRecoilState(rectanglesAtom);
 
@@ -45,35 +47,51 @@ export default function UploadImage() {
 
   const [selectedFile, setSelectedFile] = useRecoilState(selectedFileAtom);
 
-  const [uploadedFileList, setUploadedFileList] = useRecoilState(uploadedFileListAtom);
+  const [uploadedFileList, setUploadedFileList] =
+    useRecoilState(uploadedFileListAtom);
 
-  const [cachedFileList, setCachedFileList] = useRecoilState(cachedFileListAtom);
+  const [cachedFileList, setCachedFileList] =
+    useRecoilState(cachedFileListAtom);
 
   const [image] = useImage(file);
 
   const [configuration, setConfiguration] = useRecoilState(assemblyAtom);
   const selectedRoiId = useRecoilValue(currentRoiIdAtom);
-  const seletectedLabel = useRecoilValue(labelClassAtom)
-  const setRectType = useSetRecoilState(rectanglesTypeAtom)
+  const seletectedLabel = useRecoilValue(labelClassAtom);
+  const setRectType = useSetRecoilState(rectanglesTypeAtom);
 
-  const roiIndex = configuration.rois.findIndex(v=>v.id==selectedRoiId)
-  const roiName = roiIndex>=0? 
-    `ROI ${roiIndex}`:
-    seletectedLabel? `${seletectedLabel.name} ${1+rectangles.reduce((p,c)=>{return c.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL && c.imageId==selectedFile.id ? p+1: p}, 0)}`
-    : undefined
+  const roiIndex = configuration.rois.findIndex((v) => v.id == selectedRoiId);
+  const roiName =
+    roiIndex >= 0
+      ? `ROI ${roiIndex}`
+      : seletectedLabel
+        ? seletectedLabel.name
+         // ? `${seletectedLabel.name}
+          //  ${
+          //     1 +
+          //     rectangles.reduce((p, c) => {
+          //       return c.rectType == RECTANGLE_TYPE.ANNOTATION_LABEL &&
+          //         c.imageId == selectedFile?.id
+          //         ? p + 1
+          //         : p;
+          //     }, 0)
+          // }`
+        :  undefined;
 
-  const selectedIndex = uploadedFileList.findIndex(f => (f && f?.id === selectedFile?.id));
+  const selectedIndex = uploadedFileList.findIndex(
+    (f) => f && f?.id === selectedFile?.id
+  );
 
   const cacheImages = async () => {
     try {
-      if(uploadedFileList.some(uploadedFile => !uploadedFile))return;
-      setImageLoading(Array.from({length: 10}, () => true));
+      if (uploadedFileList.some((uploadedFile) => !uploadedFile)) return;
+      setImageLoading(Array.from({ length: 10 }, () => true));
       let cacheMap = [...uploadedFileList];
       let flag = false;
-      for(let i=0;i<uploadedFileList.length;i++){
+      for (let i = 0; i < uploadedFileList.length; i++) {
         const imageId = uploadedFileList[i]?.id;
-        if(uploadedFileList.some(uploadedFile => !uploadedFile))return;
-        if(!imageId){
+        if (uploadedFileList.some((uploadedFile) => !uploadedFile)) return;
+        if (!imageId) {
           setImageLoading((prev) => {
             prev[i] = false;
             return prev;
@@ -82,12 +100,12 @@ export default function UploadImage() {
         }
         const config = {
           params: {
-            imageId
+            imageId,
           },
           responseType: 'arraybuffer',
         };
-        const isExists = cacheMap.find(img => (img && img.id === imageId));
-        if(isExists && uploadedFileList[i]?.url?.startsWith('blob')){
+        const isExists = cacheMap.find((img) => img && img.id === imageId);
+        if (isExists && uploadedFileList[i]?.url?.startsWith('blob')) {
           setImageLoading((prev) => {
             prev[i] = false;
             return prev;
@@ -95,37 +113,37 @@ export default function UploadImage() {
           continue;
         }
         flag = true;
-        console.log('called')
-      
+        console.log('called');
+
         const res = await axiosInstance.get('/configurationImage/view', config);
         const blob = new Blob([res.data], { type: 'image/png' });
         const url = window.URL.createObjectURL(blob);
-        cacheMap = cacheMap.map((item, index) => 
+        cacheMap = cacheMap.map((item, index) =>
           index === i ? { ...uploadedFileList[index], url } : item
         );
-        if(flag && imageId === selectedFile?.id){
+        if (flag && imageId === selectedFile?.id) {
           setSelectedFile({
             ...uploadedFileList[i],
-            url
-          })
+            url,
+          });
         }
         setImageLoading((prev) => {
           prev[i] = false;
           return prev;
         });
-        if(uploadedFileList.some(uploadedFile => !uploadedFile))return;
+        if (uploadedFileList.some((uploadedFile) => !uploadedFile)) return;
         setCachedFileList(cacheMap);
       }
-      
+
       setCachedFileList(cacheMap);
     } catch (error) {
-      console.log({error})
-      if(error?.response?.status != 400){
-        toast.error(error?.response?.data?.data?.message)
+      console.log({ error });
+      if (error?.response?.status != 400) {
+        toast.error(error?.response?.data?.data?.message);
       }
-      setImageLoading(Array.from({length: 10}, () => false))
+      setImageLoading(Array.from({ length: 10 }, () => false));
     }
-  }
+  };
 
   React.useEffect(() => {
     if (selectedFile?.url) {
@@ -134,23 +152,23 @@ export default function UploadImage() {
   }, [selectedFile?.id, selectedFile]);
 
   const updateRectangles = (rects) => {
-    setRectangles(rects)
-  }
+    setRectangles(rects);
+  };
 
-  React.useEffect(()=>{
-    setRectType(RECTANGLE_TYPE.ROI)
-  },[])
+  React.useEffect(() => {
+    setRectType(RECTANGLE_TYPE.ROI);
+  }, []);
 
   React.useEffect(() => {
     cacheImages();
-  }, [uploadedFileList])
+  }, [uploadedFileList]);
 
   return (
     <div
       className="flex h-full w-full flex-col items-center justify-center gap-4"
       style={{
         width: ((window.innerWidth - 16 * 4) * 7) / 12,
-        maxHeight: '91.65vh'
+        maxHeight: '91.65vh',
       }}
     >
       {step == 0 ? (
@@ -162,18 +180,22 @@ export default function UploadImage() {
         </>
       ) : null}
 
-      {((selectedIndex > -1 && imageLoading[selectedIndex]) && step !== 0) ? (
-        <div className="h-full w-[30%] flex flex-col gap-4 items-center justify-center">
+      {selectedIndex > -1 && imageLoading[selectedIndex] && step !== 0 ? (
+        <div className="flex h-full w-[30%] flex-col items-center justify-center gap-4">
           <div className="text-xl font-medium">Loading Image</div>
           <div className="loading px-4 text-center"></div>
         </div>
       ) : (
         <>
-          {file &&
-          [1, 2, 3].includes(step) &&
-          image?.width ?
-          <KonvaImageView image={image} onDrawStop={updateRectangles} rectangles={rectangles} title={roiName} imageId={selectedFile?.id}/> 
-          : null}
+          {file && [1, 2, 3].includes(step) && image?.width ? (
+            <KonvaImageView
+              image={image}
+              onDrawStop={updateRectangles}
+              rectangles={rectangles}
+              title={roiName}
+              imageId={selectedFile?.id}
+            />
+          ) : null}
         </>
       )}
     </div>
