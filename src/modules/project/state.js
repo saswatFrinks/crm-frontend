@@ -143,3 +143,8 @@ export const labelEditedAtom = atom({
   key: 'labelEditedAtom',
   default: {}
 })
+
+export const currentLabelIdAtom = atom({
+  key: 'currentLabelIdAtom',
+  default: null,
+});

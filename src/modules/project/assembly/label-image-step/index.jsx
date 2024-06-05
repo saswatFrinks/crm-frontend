@@ -15,6 +15,7 @@ import {
   annotationMapAtom,
   assemblyAtom,
   cachedFileListAtom,
+  currentLabelIdAtom,
   currentRectangleIdAtom,
   editingAtom,
   labelClassAtom,
@@ -41,6 +42,7 @@ import {
 import Pagination from '@/shared/ui/Pagination';
 import { v4 } from 'uuid';
 import ResultPagination from '@/shared/ui/ResultPagination';
+import toast from 'react-hot-toast';
 
 export default function LabelImage({ save }) {
   const configuration = useRecoilValue(assemblyAtom);
@@ -64,20 +66,22 @@ export default function LabelImage({ save }) {
 
   const selectedImage = useRecoilValue(selectedFileAtom);
 
-  const setIsEditing = useSetRecoilState(editingAtom);
-  
+  // const setIsEditing = useSetRecoilState(editingAtom);
+  const [isEditing, setIsEditing] = useRecoilState(editingAtom);
+
   const images = useRecoilValue(cachedFileListAtom);
 
   const [selectedFile, setSelectedFile] = useRecoilState(selectedFileAtom);
   const [rectangles, setRectangle] = useRecoilState(rectanglesAtom);
   const [initialLabels, setInitialLabels] = useRecoilState(initialLabelsAtom);
 
+  const [labelId, setLabelId] = useRecoilState(currentLabelIdAtom);
+
   let selectedRois = rectangles.filter(
     (rect) =>
       rect.rectType == RECTANGLE_TYPE.ANNOTATION_LABEL &&
       rect.imageId == selectedFile?.id
   );
-
 
   const selectedRoisRef = React.useRef(selectedRois);
 
@@ -95,6 +99,10 @@ export default function LabelImage({ save }) {
   const selectedLabelRef = React.useRef(selectedLabel);
 
   const removeRectangle = (uuid, imageId) => {
+    // if(isEditing) {
+    //   toast.error("Please confirm the current label");
+    //   return;
+    // }
     setRectangle((t) => t.filter((k) => k.uuid !== uuid));
     // setRectangleColor((t) => t.filter((k) => k.name !== name))
     const temp = { ...annotationMap };
@@ -105,9 +113,11 @@ export default function LabelImage({ save }) {
 
   useEffect(() => {
     addClasses();
+    setIsEditing(false);
+    setLabelId(null);
   }, []);
 
-  console.log({ initialLabels });
+  console.log({ initialLabels }, { selectedRois });
 
   const getUniqueHexColor = (colors) => {
     let hexColor;
@@ -158,14 +168,25 @@ export default function LabelImage({ save }) {
     }));
   };
 
-
   const handleClassClick = async (e, i, col) => {
+    console.log({isEditing});
+    if (isEditing) {
+      toast(
+        'Please confirm the creation of the new label first before proceeding',
+        {
+          icon: '⚠️',
+        }
+      );
+      return;
+    }
+
     setIsEditing(true);
     setRectangleType(RECTANGLE_TYPE.ANNOTATION_LABEL);
     setRectangleColor({
       ...rectangleColor,
       selectedColor: col,
     });
+    // console.log("name",labelClasses[i].name)
     const update = {
       name: labelClasses[i].name,
       count: labelClasses[i].count,
@@ -181,7 +202,7 @@ export default function LabelImage({ save }) {
     };
   };
 
-  const curIndex = images.findIndex((image) => image.id == selectedFile.id);
+  const curIndex = images.findIndex((image) => image.id == selectedFile?.id);
 
   const changeImageFile = (next = true) => {
     if (next && curIndex + 1 < images.length) {
@@ -193,9 +214,18 @@ export default function LabelImage({ save }) {
   };
 
   const setPageNum = (p) => {
-    setSelectedFile(images[p-1]);
+    if (isEditing) {
+      toast(
+        'Please confirm the creation of the new label first before proceeding',
+        {
+          icon: '⚠️',
+        }
+      );
+      return;
+    }
+    setSelectedFile(images[p - 1]);
     setPage(p);
-  }
+  };
 
   React.useEffect(() => {
     if (actionName == ACTION_NAMES.SELECTED && step == 2) {
@@ -221,9 +251,10 @@ export default function LabelImage({ save }) {
       });
     }
     if (annotations.length) {
+      console.log('poly', annotations[0].uuid);
       setSelectedPloyId(annotations[0].uuid);
+      setLabelId(annotations[0].uuid);
     }
-
   }, [selectedRois, annotationMap]);
 
   // useEffect(() => {
@@ -290,7 +321,7 @@ export default function LabelImage({ save }) {
               // console.log('UPdate from txt', annotUpdates, configuredData);
               setAnnotationMap((prev) => ({ ...prev, ...annotUpdates }));
               setRectangle((prev) => [...prev, ...configuredData]);
-              setInitialLabels(configuredData)
+              setInitialLabels(configuredData);
             };
           }
         } catch (e) {}
@@ -302,6 +333,13 @@ export default function LabelImage({ save }) {
   React.useEffect(() => {
     labelsRef.current = labelClasses;
   }, [labelClasses]);
+
+  console.log(
+    { selectedRois },
+    { initialLabels },
+    { selectedPolyId },
+    { labelId }
+  );
 
   return (
     <div className="flex grow flex-col gap-4">
@@ -323,7 +361,7 @@ export default function LabelImage({ save }) {
 
       <div>
         Current labels for{' '}
-        <span className="font-semibold">{selectedImage.fileName}</span>
+        <span className="font-semibold">{selectedImage?.fileName}</span>
       </div>
       <div className="flex grow flex-col gap-4 overflow-y-auto">
         {selectedRois
@@ -332,14 +370,20 @@ export default function LabelImage({ save }) {
             <div key={t.id} className="flex items-center gap-4 ">
               <span>{i + 1}.</span>
               <div className=" flex grow">
-                <div className=" w-full max-w-sm">
+                {/* <div
+                  className={`w-full max-w-sm ${t.action === 'RECTANGLE' && isEditing &&
+                   selectedRois.length !== initialLabels.length && labelId === t.uuid && t.id === selectedRois.length - 1 ? 'border border-red-700 rounded-lg' : ''}`}
+                > */}
+                <div
+                  className={`w-full max-w-sm ${labelId === t.uuid ? 'rounded-lg border border-blue-700' : ''}`}
+                >
                   <Select
                     size="sm"
                     options={labelClasses}
                     placeholder="Select class"
                     value={annotationMap[t.uuid]}
+                    disabled={isEditing ? true : false}
                     onChange={(e) => {
-                      //!update rectangle class tooo, title
                       const ind = rectangles.findIndex(
                         (ele) =>
                           ele.uuid == t.uuid &&
@@ -354,7 +398,7 @@ export default function LabelImage({ save }) {
                         ...recCp[ind],
                         title: labelClass.name,
                         stroke: labelClass.color,
-                        fill: labelClass.color
+                        fill: labelClass.color,
                       };
                       setRectangle(recCp);
                       setAnnotationMap({
@@ -373,6 +417,15 @@ export default function LabelImage({ save }) {
                 size={18}
                 className="mr-4 cursor-pointer"
                 onClick={() => {
+                  if (isEditing) {
+                    toast(
+                      'Please confirm the creation of the new label first before proceeding',
+                      {
+                        icon: '⚠️',
+                      }
+                    );
+                    return;
+                  }
                   setSelectedPloyId(t.uuid);
                   setLabelsEdited((prev) => ({ ...prev, [t.imageId]: true }));
                 }}
@@ -381,14 +434,26 @@ export default function LabelImage({ save }) {
                 size={18}
                 className="cursor-pointer"
                 onClick={() => {
-                  removeRectangle(t.uuid, t.imageId);
+                  if (isEditing && labelId === t.uuid) {
+                    removeRectangle(t.uuid, t.imageId);
+                    setIsEditing(false);
+                  } else if (isEditing) {
+                    toast(
+                      'Please confirm the creation of the new label first before proceeding',
+                      {
+                        icon: '⚠️',
+                      }
+                    );
+                  } else {
+                    removeRectangle(t.uuid, t.imageId);
+                  }
                 }}
               />
             </div>
           ))}
       </div>
       <div className="sticky bottom-0 flex flex-col items-center gap-2 bg-white">
-        <ResultPagination total={10} page={page} setPage={setPageNum}/>
+        <ResultPagination total={10} page={page} setPage={setPageNum} />
         <Button
           size="sm"
           variant="flat"

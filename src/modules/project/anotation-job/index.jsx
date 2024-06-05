@@ -22,6 +22,7 @@ import {
   annotationMapAtom,
   assemblyAtom,
   cacheLoaderAtom,
+  currentLabelIdAtom,
   currentRectangleIdAtom,
   editingAtom,
   labelClassAtom,
@@ -48,7 +49,8 @@ export default function AnnotationJob() {
   const [step, setStep] = useRecoilState(stepAtom);
   const [images, setAllImages] = useRecoilState(uploadedFileListAtom);
   const [file, setFile] = useState(null);
-  const setIsEditing = useSetRecoilState(editingAtom);
+  // const setIsEditing = useSetRecoilState(editingAtom);
+  const [isEditing, setIsEditing] = useRecoilState(editingAtom);
   const [rectangles, setRectangles] = useRecoilState(rectanglesAtom);
   const [labelClass, setLabelClass] = React.useState([]);
   const [selectedImage, setSelectedImage] = useRecoilState(selectedFileAtom);
@@ -75,6 +77,7 @@ export default function AnnotationJob() {
     useRecoilState(rectangleColorAtom);
 
   const [labelsEdited, setLabelsEdited] = useRecoilState(labelEditedAtom);
+  const [labelId, setLabelId] = useRecoilState(currentLabelIdAtom);
 
   const [initialLabels, setInitialLabels] = useRecoilState(initialLabelsAtom);
 
@@ -151,11 +154,13 @@ export default function AnnotationJob() {
 
   const cancel = () => {
     setIsEditing(false);
+    setLabelId(null);
     setLastAction(ACTION_NAMES.CANCEL);
   };
 
   const submit = () => {
     setIsEditing(false);
+    setLabelId(null);
     setLastAction(ACTION_NAMES.SUBMIT);
   };
 
@@ -170,10 +175,18 @@ export default function AnnotationJob() {
   //   })
   // }
 
-
-  console.log({ initialLabels }, {annotationClasses});
+  console.log({ initialLabels }, { annotationClasses });
 
   const handleExit = () => {
+    if (isEditing) {
+      toast(
+        'Please confirm the creation of the new label first before proceeding',
+        {
+          icon: '⚠️',
+        }
+      );
+      return;
+    }
     const changedList = Object.values(annotationClasses).filter(
       (cls) => cls.changed
     );
@@ -182,10 +195,10 @@ export default function AnnotationJob() {
       return [...prev, ...cur.rectangles];
     }, []);
 
-    console.log("handleExit", {initialLabels}, {imageSpecificRects}, {changedList}, {annotationClasses})
 
     if (
-      initialLabels[selectedImage.id]?.length === annotationClasses[selectedImage.id].rectangles.length &&
+      initialLabels[selectedImage.id]?.length ===
+        annotationClasses[selectedImage.id].rectangles.length &&
       !compareArrays(imageSpecificRects, initialLabels[selectedImage.id])
     ) {
       setModalOpen(false);
@@ -197,6 +210,15 @@ export default function AnnotationJob() {
   };
 
   const updateAnnotation = async () => {
+    if (isEditing) {
+      toast(
+        'Please confirm the creation of the new label first before proceeding',
+        {
+          icon: '⚠️',
+        }
+      );
+      return;
+    }
     const imgMap = {};
     console.log({ annotationClasses });
     const changedList = Object.values(annotationClasses).filter(
@@ -209,14 +231,18 @@ export default function AnnotationJob() {
       return [...prev, ...cur.rectangles];
     }, []);
 
-    console.log({ imageSpecificRects });
+    console.log({ imageSpecificRects }, { changedList }, { annotationClasses });
     // console.log({initialLabels})
 
     // console.log("comp",compareArrays(imageSpecificRects, initialLabels))
 
     if (
-      initialLabels[selectedImage.id]?.length === imageSpecificRects.length &&
-      !compareArrays(imageSpecificRects, initialLabels[selectedImage.id])
+      initialLabels[selectedImage.id]?.length ===
+        annotationClasses[selectedImage.id].rectangles.length &&
+      !compareArrays(
+        annotationClasses[selectedImage.id].rectangles,
+        initialLabels[selectedImage.id]
+      )
     ) {
       toast.success('No changes to update');
       setModalOpen(false);
@@ -294,8 +320,8 @@ export default function AnnotationJob() {
           configurationId,
         },
       });
-      const data = JSON.parse(roiData.data.data?.data);
-      console.log({ data });
+      const data = roiData.data?.data;
+      console.log('configuration/class', { data });
       if (data.length) {
         const rects = [];
         const roiMap = {};
@@ -323,8 +349,15 @@ export default function AnnotationJob() {
           }
           roiMap[roiId] = true;
           classesSet.add(conf.parts.classId);
+          console.log({ classesSet });
         });
-        setLabelClass((prev) => prev.filter((cls) => classesSet.has(cls.id)));
+        console.log({ classesSet });
+        setLabelClass((prev) =>
+          prev.filter((cls) => {
+            console.log(cls, classesSet, 'okkk');
+            return classesSet.has(cls.id);
+          })
+        );
         if (rects.length) setRois(rects);
       }
       return true;
@@ -334,6 +367,8 @@ export default function AnnotationJob() {
   };
 
   React.useEffect(() => {
+    setIsEditing(false);
+    setLabelId(null);
     setInitialLabels([]);
     setAnnotationClasses({});
     setStep(2);
@@ -433,7 +468,7 @@ export default function AnnotationJob() {
             // setRectangles(prev=>[...prev, ...configuredData]);
             newStat.rectangles = configuredData;
             console.log('Annotation labels', configuredData);
-            console.log("prevData",{configuredData})
+            console.log('prevData', { configuredData });
             setInitialLabels((prev) => ({
               ...prev,
               [selectedImage.id]: configuredData,
@@ -451,7 +486,7 @@ export default function AnnotationJob() {
             return { ...prev, [selectedImage.id]: true };
           });
         } catch (e) {
-          console.log("empty");
+          // console.log('empty');
           setInitialLabels((prev) => ({ ...prev, [selectedImage.id]: [] }));
         } finally {
           setAnnotationClasses((prev) => ({
@@ -466,8 +501,8 @@ export default function AnnotationJob() {
         ...prev,
         [selectedImage.id]: true,
       }));
-    } 
-    
+    }
+
     console.log('ee', { annotationLoadeFlag });
   }, [selectedImage, rectangleColor]);
 
@@ -484,10 +519,13 @@ export default function AnnotationJob() {
   React.useEffect(() => {
     if (selectedImage?.id) {
       setRectangles(annotationClasses[selectedImage.id]?.rectangles || []);
+      // console.log("new rectangle", annotationClasses[selectedImage.id]?.rectangles[rectangles.length])
+      setLabelId(annotationClasses[selectedImage.id]?.rectangles[rectangles.length]?.uuid)
     }
   }, [annotationClasses, selectedImage]);
 
   React.useEffect(() => {
+    // setIsEditing(false);
     return () => {
       cacheRef.current.forEach((value, key) => {
         URL.revokeObjectURL(value.url);
@@ -509,8 +547,6 @@ export default function AnnotationJob() {
   React.useEffect(() => {
     cacheRef.current = cachedImages;
   }, [cachedImages]);
-
-  
 
   console.log('outside', { modalOpen });
 

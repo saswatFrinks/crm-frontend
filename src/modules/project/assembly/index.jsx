@@ -21,12 +21,18 @@ import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader';
 import Actions from './components/Actions';
 import { useParams } from 'react-router-dom';
 
-import { editingRectAtom, initialLabelsAtom, loadedLabelsAtom, stepAtom } from './state';
+import {
+  editingRectAtom,
+  initialLabelsAtom,
+  loadedLabelsAtom,
+  stepAtom,
+} from './state';
 import React, { useEffect, useRef, useState } from 'react';
 import axiosInstance from '@/core/request/aixosinstance';
 import {
   annotationMapAtom,
   assemblyAtom,
+  currentLabelIdAtom,
   currentRectangleIdAtom,
   currentRoiIdAtom,
   editingAtom,
@@ -48,7 +54,8 @@ export default function Assembly() {
 
   const { projectId, configurationId } = useParams();
 
-  const [uploadedFileList, setUploadedFileList] = useRecoilState(uploadedFileListAtom);
+  const [uploadedFileList, setUploadedFileList] =
+    useRecoilState(uploadedFileListAtom);
 
   const [type, setType] = useState(ASSEMBLY_CONFIG.STATIONARY);
   const [configuration, setConfiguration] = useRecoilState(assemblyAtom);
@@ -75,6 +82,7 @@ export default function Assembly() {
   const [roisLoaded, setRoisLoaded] = useState(false);
 
   const [initialLabels, setInitialLabels] = useRecoilState(initialLabelsAtom);
+  const [labelId, setLabelId] = useRecoilState(currentLabelIdAtom);
 
   const getProject = async () => {
     try {
@@ -97,16 +105,28 @@ export default function Assembly() {
   );
   const navigate = useNavigate();
 
-
   const updateAnnotation = async () => {
     const imgMap = {};
     if (Object.keys(labelEditedAtom).length == 0) {
       return;
     }
-    console.log({ annotationRects }) // has all the label rectangles
-    console.log("initial", initialLabels)
-    if (initialLabels.length === annotationRects.length
-      && !compareArrays(annotationRects, initialLabels)) {
+
+    if (isEditing) {
+      toast(
+        'Please confirm the creation of the new label first before proceeding',
+        {
+          icon: '⚠️',
+        }
+      );
+      return;
+    }
+    // console.log({ annotationRects }); // has all the label rectangles
+    // console.log('initial', initialLabels);
+
+    if (
+      initialLabels.length === annotationRects.length &&
+      !compareArrays(annotationRects, initialLabels)
+    ) {
       toast.success('No changes to update');
       return true;
     }
@@ -116,14 +136,13 @@ export default function Assembly() {
     //   return true;
     // }
     annotationRects.forEach((rect) => {
+      console.log('labelsedited', labelsEdited[rect.imageId], rect.imageId);
       if (!labelsEdited[rect.imageId]) return;
       const classNo = annotationMap[rect.uuid];
       const height = rect.height.toFixed(4);
       const width = rect.width.toFixed(4);
       const x = (rect.x + rect.width / 2).toFixed(4);
       const y = (rect.y + rect.height / 2).toFixed(4);
-      console.log("files", { classNo, height, width, x, y });
-      // console.log("rect.imageId",rect.imageId)
       if (imgMap[rect.imageId]) {
         imgMap[rect.imageId] += `${classNo} ${x} ${y} ${width} ${height}\n`;
       } else {
@@ -135,23 +154,29 @@ export default function Assembly() {
     // console.log({images}) // conatins the 10 uploaded images
     images.forEach((img, index) => {
       if (imgMap[img.id]?.length || labelsEdited[img.id]) {
-        // console.log("length of imgMap:", imgMap[img.id]?.length, "labelsEdited:", labelsEdited[img.id])
         const fileContents = imgMap[img.id] || '';
-        console.log({ fileContents })
+        console.log({ fileContents });
         const fileBlob = new Blob([fileContents], { type: 'text/plain' });
         formData.append('files', fileBlob, img.id);
         imageIds.push(img.id || '');
       }
     });
-    // console.log("newFileContent",{newFileContent})
-    // console.log({imageIds})
-    // console.log("imgMap",{imgMap})
     formData.append('configurationId', configurationId);
     formData.append('imageIds', imageIds);
-    console.log({ imageIds })
+    console.log({ imageIds });
     if (!imageIds.length) {
       toast.success('No changes to update');
       return true;
+    }
+
+    if (isEditing) {
+      toast(
+        'Please confirm the creation of the new label first before proceeding',
+        {
+          icon: '⚠️',
+        }
+      );
+      return;
     }
     try {
       const data = await axiosInstance.post(
@@ -160,8 +185,9 @@ export default function Assembly() {
       );
       toast.success('Labels updated');
       setLabelsEdited({});
-      setInitialLabels(annotationRects)
-      console.log("final", initialLabels);
+      // setIsEditing(false)
+      submit();
+      setInitialLabels(annotationRects);
       return data.data?.success;
     } catch (e) {
       toast.error(
@@ -175,6 +201,16 @@ export default function Assembly() {
   const nextRef = useRef();
 
   const handleNext = async () => {
+    if (isEditing) {
+      toast(
+        'Please confirm the creation of the new label/ROI first before proceeding',
+        {
+          icon: '⚠️',
+        }
+      );
+      return;
+    }
+
     let t = step;
     if (!canGoNext) t = 0;
     else if (t == 0) {
@@ -197,6 +233,15 @@ export default function Assembly() {
   };
 
   const handlePrev = () => {
+    if (isEditing) {
+      toast(
+        'Please confirm the creation of the new label/ROI first before proceeding',
+        {
+          icon: '⚠️',
+        }
+      );
+      return;
+    }
     setStep((t) => {
       if (t == 0) return t;
       return t - 1;
@@ -210,7 +255,7 @@ export default function Assembly() {
   const cancel = () => {
     setEditingRect(false);
     setIsEditing(false);
-    // setLabelsEdited({});
+    setLabelId(null);
     setCurrentRoiId(null);
     setRectangleType(RECTANGLE_TYPE.ROI);
     setLastAction(ACTION_NAMES.CANCEL);
@@ -224,6 +269,7 @@ export default function Assembly() {
   };
 
   const submit = () => {
+    setLabelId(null);
     setEditingRect(false);
     setIsEditing(false);
     setCurrentRoiId(null);
@@ -248,14 +294,18 @@ export default function Assembly() {
 
   const getRois = async () => {
     if (roisLoaded) return true;
+    console.log('ap1');
     try {
       const roiData = await axiosInstance.get('/configuration/classes', {
         params: {
           configurationId,
         },
       });
-      const data = JSON.parse(roiData.data.data?.data);
+      console.log({ roiData });
+      const data = roiData.data?.data;
+      console.log('api', { data });
       const temp = [...data];
+      console.log({ temp });
       temp.length &&
         temp.map((item, index) => {
           console.log('inside map:', item);
@@ -295,9 +345,7 @@ export default function Assembly() {
               parts: [],
             };
             //!do rectangle here too
-            console.log('before');
             const { x1, x2, y1, y2 } = conf.rois;
-            console.log('before');
             const color = getRandomHexColor();
             const uuid = v4();
             rects.push({
@@ -365,14 +413,16 @@ export default function Assembly() {
 
   useEffect(() => {
     setLabelsEdited({});
+    setLabelId(null);
     getProject();
+    setIsEditing(false);
 
     return () => {
       uploadedFileList.forEach((value) => {
         URL.revokeObjectURL(value.url);
       });
       setUploadedFileList([]);
-    }
+    };
   }, []);
 
   const prepareApiData = async () => {
@@ -456,7 +506,7 @@ export default function Assembly() {
       toast.error(
         e?.response?.data?.data?.message
           ? // ? `${e?.response?.data?.data?.message}. All fields are required`
-          'All ROIs label are required!'
+            'All ROIs label are required!'
           : 'Failed'
       );
     }
@@ -474,11 +524,11 @@ export default function Assembly() {
     <>
       <div className="grid h-screen grid-cols-12 ">
         <div
-          className={`${(step === 3) ? 'col-span-12 px-10' : 'col-span-5'} bg-white grid grid-rows-12 border-r-[1px] border-gray-400`}
+          className={`${step === 3 ? 'col-span-12 px-10' : 'col-span-5'} grid grid-rows-12 border-r-[1px] border-gray-400 bg-white`}
           style={{ maxHeight: '100vh', overflow: 'hidden' }}
         >
           <div
-            className={`row-span-11 flex flex-col ${step === 3 ? 'w-[85%] mx-auto my-2' : ''}`}
+            className={`row-span-11 flex flex-col ${step === 3 ? 'mx-auto my-2 w-[85%]' : ''}`}
             style={{ maxHeight: '91.65vh', overflowY: 'auto' }}
           >
             <h1 className="mb-4 px-6 pt-6 text-3xl font-bold">
