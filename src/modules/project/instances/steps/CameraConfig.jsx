@@ -52,24 +52,25 @@ const CameraConfig = ({formRef, configUploaded}) => {
 
   React.useEffect(() => {
     if(files?.length === 0){
-      setFiles(Array.from({length: data?.length}, () => (configUploaded ? true : false)));
-      setUploaded(Array.from({length: data?.length}, () => false))
+      setFiles(Array.from({length: displayData?.length}, () => (configUploaded ? true : false)));
+      setUploaded(Array.from({length: displayData?.length}, () => false))
     }
-  }, [data])
+  }, [displayData])
 
   const validate = () => {
     const formErrors = [...errors];
     let flag = true;
-    data?.forEach((d, index) => {
-      formErrors[index] = d?.roiId ? '' : `This Camera Config doesn't have any ROIs`;
-      flag = d?.roiId ? true : false;
+    displayData?.forEach((d, index) => {
+      const hasRoi = data.filter(dataItem => (d.cameraConfigId === dataItem.cameraConfigId && dataItem?.roiId != null));
+      formErrors[index] = hasRoi.length > 0 ? '' : `This Camera Config doesn't have any ROIs`;
+      if(hasRoi.length === 0)flag = false;
     })
     setErrors(formErrors);
     if(!flag)return false;
 
-    data?.forEach((d, index) => {
+    displayData?.forEach((d, index) => {
       formErrors[index] = configDetails.get(d?.cameraConfigId) ? '' : (formErrors[index] !== '' ? formErrors[index] : 'Please upload the camera config file');
-      flag = configDetails.get(d?.cameraConfigId) ? true : false;
+      if(!configDetails.has(d?.cameraConfigId))flag = false;
     })
     setErrors(formErrors);
     return flag;
@@ -141,17 +142,17 @@ const CameraConfig = ({formRef, configUploaded}) => {
   }
 
   const getAllConfigs = async () => {
-    for(let i=0;i<data.length;i++){
-      await viewConfigDetails(data[i]?.cameraConfigId);
+    for(let i=0;i<displayData.length;i++){
+      await viewConfigDetails(displayData[i]?.cameraConfigId);
     }
   }
 
   React.useEffect(() => {
-    if(data.length > 0){
+    if(displayData.length > 0){
       getAllConfigs();
     }
-    setErrors(Array.from({length: data?.length}, () => ''))
-  }, [data])
+    setErrors(Array.from({length: displayData?.length}, () => ''))
+  }, [displayData])
 
   return (
     <div>
