@@ -79,7 +79,7 @@ const BasicInformation = ({project, formRef, editInstanceId = null}) => {
         instanceName: data?.instance?.name,
         plantId: data?.instance?.plantId,
         teamId: data?.instance?.teamId,
-        cameraIps: data?.cameras?.length > 0 ? data?.cameras : [...formData.cameraIps]
+        cameraIps: data?.cameras?.length > 0 ? data?.cameras : Array.from({length: project?.cameraCount}, () => ({cameraIp: '', id: null}))
       }
       setAddInstance({
         ...addInstance,
