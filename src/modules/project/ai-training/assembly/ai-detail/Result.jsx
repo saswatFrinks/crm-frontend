@@ -44,7 +44,7 @@ export default function Result() {
       const config = {
         params: {
           modelId: params.modelId,
-          name: imageName
+          name: imageName,
         },
         responseType: 'arraybuffer',
       };
@@ -93,6 +93,7 @@ export default function Result() {
       const response = await axiosInstance.get('/model/result-images-list', {
         params: {
           modelId: params.modelId,
+          mode: 'validation'
         }
       });
 

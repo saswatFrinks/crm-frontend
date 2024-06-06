@@ -128,9 +128,9 @@ const Instances = () => {
     }
   }
 
-  const downloadInstance = async (instanceId, instanceName, isActive) => {
+  const downloadInstance = async (instanceId, instanceName, deletedAt) => {
     try {
-        if (!isActive) return;
+        if (deletedAt) return;
         setDownloadLoader(true);
         const res = await axiosInstance.get('/instance/download', {
             params: { instanceId },
@@ -219,12 +219,12 @@ const Instances = () => {
                     >
                       <td className="px-6 py-4">
                         <Link 
-                          to={`/instances/${params.projectId}/${instance?.instances?.isActive ? instance.instances.id : ''}`}
+                          to={`/instances/${params.projectId}/${!instance?.instances?.deletedAt ? instance.instances.id : ''}`}
                           state={{...location.state, projectName: project?.name}}
-                          className={`${instance?.instances?.isActive ? 'underline text-f-primary' : ''} font-medium`}
+                          className={`${!instance?.instances?.deletedAt ? 'underline text-f-primary' : ''} font-medium`}
                         >
                           {instance?.instances?.name}{'   '}
-                          {!instance?.instances?.isActive && <sup className='text-[#FF1212] text-sm'>draft</sup>}
+                          {instance?.instances?.deletedAt && <sup className='text-[#FF1212] text-sm'>draft</sup>}
                         </Link>
                       </td>
                       <td className="px-6 py-4">
@@ -237,11 +237,11 @@ const Instances = () => {
                       <td className="px-6 py-4">{instance?.instances?.id}</td>
                       <td className="px-6 py-4">
                         <span 
-                          onClick={() => downloadInstance(instance?.instances?.id, instance?.instances?.name, instance?.instances?.isActive)}
-                          className={`${instance?.instances?.isActive ? 'cursor-pointer' : ''}`}
+                          onClick={() => downloadInstance(instance?.instances?.id, instance?.instances?.name, instance?.instances?.deletedAt)}
+                          className={`${!instance?.instances?.deletedAt ? 'cursor-pointer' : ''}`}
                         >
                           <Download 
-                            disabled={!instance?.instances?.isActive}
+                            disabled={instance?.instances?.deletedAt}
                           />
                         </span>
                       </td>
@@ -252,7 +252,7 @@ const Instances = () => {
                           editIndex = {index}
                           id = {instance?.instances?.id}
                           setId = {setId}
-                          allowDelete = {!instance?.instances?.isActive}
+                          allowDelete = {instance?.instances?.deletedAt}
                         />
                       </td>
                     </tr>

@@ -102,7 +102,7 @@ export const uploadedFileListAtom = atom({
 
 export const cachedFileListAtom = atom({
   key: 'cachedFileListAtom',
-  default: []
+  default: Array.from({length: 10}, () => null)
 })
 
 export const annotationCacheAtom = atom({
@@ -143,3 +143,8 @@ export const labelEditedAtom = atom({
   key: 'labelEditedAtom',
   default: {}
 })
+
+export const currentLabelIdAtom = atom({
+  key: 'currentLabelIdAtom',
+  default: null,
+});

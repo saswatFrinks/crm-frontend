@@ -66,8 +66,12 @@ export default function DataSet({ setLoading, formRef }) {
       // if (dataset.length != 0) {
       //   setFolders(newFolders);
       // } else {
+      if(dataset?.length === 0){
         setFolders(newFolders);
         setDataSet(newFolders);
+      }else{
+        setFolders(dataset);
+      }
       // }
       setLoading(false);
     } catch (e) {
@@ -204,12 +208,12 @@ export default function DataSet({ setLoading, formRef }) {
                   </th>
                   <th scope="col" key={2} className="w-1/3">
                     <div className="flex select-none items-center gap-2 px-2">
-                      <span>{k.cameraConfig.name}</span>
+                      <span>{k.capturePosition.name}</span>
                     </div>
                   </th>
                   <th scope="col" key={3} className="w-1/3">
                     <div className="flex select-none items-center gap-2 px-2">
-                      <span>{k.capturePosition.name}</span>
+                      <span>{k.cameraConfig.name}</span>
                     </div>
                   </th>
                 </tr>
@@ -217,6 +221,7 @@ export default function DataSet({ setLoading, formRef }) {
               {k.open ? (
                 <tbody>
                   {k.folders.map((folder, index) => {
+                    console.log({check: folder.check, folders})
                     return (
                       <tr className="border-b " key={folder.id}>
                         <th

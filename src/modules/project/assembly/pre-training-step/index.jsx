@@ -152,6 +152,29 @@ export default function PreTrainingStep() {
     }
   }, [starter]);
 
+  const groupRowsByFirstColumn = (data) => {
+    const groupedData = [];
+    const rowSpanMap = {};
+
+    data.forEach((row) => {
+      const firstColumnValue = row[0];
+      if (!rowSpanMap[firstColumnValue]) {
+        rowSpanMap[firstColumnValue] = { count: 0, index: groupedData.length };
+        groupedData.push([...row]);
+      } else {
+        const previousRowIndex = rowSpanMap[firstColumnValue].index;
+        rowSpanMap[firstColumnValue].count += 1;
+        groupedData.push([null, ...row.slice(1)]);
+        groupedData[previousRowIndex][0] = {
+          value: firstColumnValue,
+          rowSpan: rowSpanMap[firstColumnValue].count + 1,
+        };
+      }
+    });
+
+    return groupedData;
+  };
+
   return (
     <>
       {loader !== null ? (
@@ -164,35 +187,46 @@ export default function PreTrainingStep() {
           <p className="text-center text-lg">
             Below are the data recommendations for good training results:
           </p>
-          <table className="w-full text-left text-sm text-gray-500 rtl:text-right ">
-            <thead className="bg-white text-sm uppercase text-gray-700 ">
+          <table className="w-[60%] mx-auto text-left text-sm text-gray-500 rtl:text-right ">
+            <thead className="bg-white text-sm uppercase text-gray-700 border-b">
               <tr>
-                {columns.map((t) => (
-                  <th scope="col" className="px-6 py-3" key={t}>
+                {columns.map((t, ind) => (
+                  <th scope="col" className={`px-6 py-4 ${ind > 1 ? 'text-right' : (ind === 1 ? 'text-center' : '')}`} key={t}>
                     {t}
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {info &&
-                info?.length &&
-                info.map((roiRow, index) => {
-                  return (
-                    <tr
-                      key={index}
-                      className="border-b odd:bg-white even:bg-[#C6C4FF]/10"
-                    >
-                      {roiRow.map((item, ind) => {
-                        return (
-                          <td className="px-6 py-4" key={ind}>
-                            {item}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  );
-                })}
+              {info && info?.length > 0 && groupRowsByFirstColumn(info).map((roiRow, rowIndex) => (
+                <tr key={rowIndex} className="border-b bg-white">
+                  {roiRow.map((item, colIndex) => {
+                    if (colIndex === 0 && item && typeof item === 'object') {
+                      return (
+                        <td
+                          key={colIndex}
+                          rowSpan={item.rowSpan}
+                          className="px-6 py-4 border-r"
+
+                        >
+                          {item.value}
+                        </td>
+                      );
+                    } else if (colIndex === 0 && item === null) {
+                      return null;
+                    } else {
+                      return (
+                        <td
+                          key={colIndex}
+                          className={`px-6 py-4 ${colIndex === 0 ? 'border-r' : ''} ${colIndex > 1 ? 'text-right' : (colIndex === 1 ? 'text-center' : '')}`}
+                        >
+                          {item}
+                        </td>
+                      );
+                    }
+                  })}
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>

@@ -21,12 +21,18 @@ import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader';
 import Actions from './components/Actions';
 import { useParams } from 'react-router-dom';
 
-import { editingRectAtom, loadedLabelsAtom, stepAtom } from './state';
+import {
+  editingRectAtom,
+  initialLabelsAtom,
+  loadedLabelsAtom,
+  stepAtom,
+} from './state';
 import React, { useEffect, useRef, useState } from 'react';
 import axiosInstance from '@/core/request/aixosinstance';
 import {
   annotationMapAtom,
   assemblyAtom,
+  currentLabelIdAtom,
   currentRectangleIdAtom,
   currentRoiIdAtom,
   editingAtom,
@@ -39,7 +45,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { cloneDeep } from 'lodash';
 import toast from 'react-hot-toast';
-import { getRandomHexColor } from '@/util/util';
+import { compareArrays, getRandomHexColor } from '@/util/util';
 import { v4 } from 'uuid';
 
 export default function Assembly() {
@@ -48,7 +54,8 @@ export default function Assembly() {
 
   const { projectId, configurationId } = useParams();
 
-  const [uploadedFileList, setUploadedFileList] = useRecoilState(uploadedFileListAtom);
+  const [uploadedFileList, setUploadedFileList] =
+    useRecoilState(uploadedFileListAtom);
 
   const [type, setType] = useState(ASSEMBLY_CONFIG.STATIONARY);
   const [configuration, setConfiguration] = useRecoilState(assemblyAtom);
@@ -74,6 +81,9 @@ export default function Assembly() {
   const [labelsEdited, setLabelsEdited] = useRecoilState(labelEditedAtom);
   const [roisLoaded, setRoisLoaded] = useState(false);
 
+  const [initialLabels, setInitialLabels] = useRecoilState(initialLabelsAtom);
+  const [labelId, setLabelId] = useRecoilState(currentLabelIdAtom);
+
   const getProject = async () => {
     try {
       const { data } = await axiosInstance.get('/project', {
@@ -97,8 +107,36 @@ export default function Assembly() {
 
   const updateAnnotation = async () => {
     const imgMap = {};
-    if (Object.keys(labelEditedAtom).length == 0) return;
+    if (Object.keys(labelEditedAtom).length == 0) {
+      return;
+    }
+
+    if (isEditing) {
+      toast(
+        'Please confirm the creation of the new label first before proceeding',
+        {
+          icon: '⚠️',
+        }
+      );
+      return;
+    }
+    // console.log({ annotationRects }); // has all the label rectangles
+    // console.log('initial', initialLabels);
+
+    if (
+      initialLabels.length === annotationRects.length &&
+      !compareArrays(annotationRects, initialLabels)
+    ) {
+      toast.success('No changes to update');
+      return true;
+    }
+
+    // if(initialLabels.length === annotationRects.length) {
+    //   toast.success('my check');
+    //   return true;
+    // }
     annotationRects.forEach((rect) => {
+      console.log('labelsedited', labelsEdited[rect.imageId], rect.imageId);
       if (!labelsEdited[rect.imageId]) return;
       const classNo = annotationMap[rect.uuid];
       const height = rect.height.toFixed(4);
@@ -113,9 +151,11 @@ export default function Assembly() {
     });
     const formData = new FormData();
     const imageIds = [];
+    // console.log({images}) // conatins the 10 uploaded images
     images.forEach((img, index) => {
-      if (imgMap[img.id]?.length) {
+      if (imgMap[img.id]?.length || labelsEdited[img.id]) {
         const fileContents = imgMap[img.id] || '';
+        console.log({ fileContents });
         const fileBlob = new Blob([fileContents], { type: 'text/plain' });
         formData.append('files', fileBlob, img.id);
         imageIds.push(img.id || '');
@@ -123,17 +163,31 @@ export default function Assembly() {
     });
     formData.append('configurationId', configurationId);
     formData.append('imageIds', imageIds);
+    console.log({ imageIds });
     if (!imageIds.length) {
       toast.success('No changes to update');
       return true;
+    }
+
+    if (isEditing) {
+      toast(
+        'Please confirm the creation of the new label first before proceeding',
+        {
+          icon: '⚠️',
+        }
+      );
+      return;
     }
     try {
       const data = await axiosInstance.post(
         '/configuration/upload-label-files',
         formData
       );
-      toast.success('Labels uploaded');
+      toast.success('Labels updated');
       setLabelsEdited({});
+      // setIsEditing(false)
+      submit();
+      setInitialLabels(annotationRects);
       return data.data?.success;
     } catch (e) {
       toast.error(
@@ -147,6 +201,16 @@ export default function Assembly() {
   const nextRef = useRef();
 
   const handleNext = async () => {
+    if (isEditing) {
+      toast(
+        'Please confirm the creation of the new label/ROI first before proceeding',
+        {
+          icon: '⚠️',
+        }
+      );
+      return;
+    }
+
     let t = step;
     if (!canGoNext) t = 0;
     else if (t == 0) {
@@ -169,6 +233,15 @@ export default function Assembly() {
   };
 
   const handlePrev = () => {
+    if (isEditing) {
+      toast(
+        'Please confirm the creation of the new label/ROI first before proceeding',
+        {
+          icon: '⚠️',
+        }
+      );
+      return;
+    }
     setStep((t) => {
       if (t == 0) return t;
       return t - 1;
@@ -182,6 +255,7 @@ export default function Assembly() {
   const cancel = () => {
     setEditingRect(false);
     setIsEditing(false);
+    setLabelId(null);
     setCurrentRoiId(null);
     setRectangleType(RECTANGLE_TYPE.ROI);
     setLastAction(ACTION_NAMES.CANCEL);
@@ -195,6 +269,7 @@ export default function Assembly() {
   };
 
   const submit = () => {
+    setLabelId(null);
     setEditingRect(false);
     setIsEditing(false);
     setCurrentRoiId(null);
@@ -219,14 +294,18 @@ export default function Assembly() {
 
   const getRois = async () => {
     if (roisLoaded) return true;
+    console.log('ap1');
     try {
       const roiData = await axiosInstance.get('/configuration/classes', {
         params: {
           configurationId,
         },
       });
-      const data = JSON.parse(roiData.data.data?.data);
+      console.log({ roiData });
+      const data = roiData.data?.data;
+      console.log('api', { data });
       const temp = [...data];
+      console.log({ temp });
       temp.length &&
         temp.map((item, index) => {
           console.log('inside map:', item);
@@ -266,9 +345,7 @@ export default function Assembly() {
               parts: [],
             };
             //!do rectangle here too
-            console.log('before');
             const { x1, x2, y1, y2 } = conf.rois;
-            console.log('before');
             const color = getRandomHexColor();
             const uuid = v4();
             rects.push({
@@ -336,14 +413,16 @@ export default function Assembly() {
 
   useEffect(() => {
     setLabelsEdited({});
+    setLabelId(null);
     getProject();
+    setIsEditing(false);
 
     return () => {
       uploadedFileList.forEach((value) => {
         URL.revokeObjectURL(value.url);
       });
       setUploadedFileList([]);
-    }
+    };
   }, []);
 
   const prepareApiData = async () => {
@@ -445,11 +524,11 @@ export default function Assembly() {
     <>
       <div className="grid h-screen grid-cols-12 ">
         <div
-          className="col-span-5 grid grid-rows-12 border-r-[1px] border-gray-400"
+          className={`${step === 3 ? 'col-span-12 px-10' : 'col-span-5'} grid grid-rows-12 border-r-[1px] border-gray-400 bg-white`}
           style={{ maxHeight: '100vh', overflow: 'hidden' }}
         >
           <div
-            className="row-span-11 flex flex-col bg-white"
+            className={`row-span-11 flex flex-col ${step === 3 ? 'mx-auto my-2 w-[85%]' : ''}`}
             style={{ maxHeight: '91.65vh', overflowY: 'auto' }}
           >
             <h1 className="mb-4 px-6 pt-6 text-3xl font-bold">
@@ -503,18 +582,20 @@ export default function Assembly() {
           </div>
         </div>
 
-        <div className="col-span-7 grid grid-rows-12">
-          <div
-            className="row-span-11 flex flex-col items-center justify-center gap-4 bg-[#EAEDF1]"
-            style={{ overflow: 'hidden' }}
-          >
-            <UploadImage />
-          </div>
+        {step !== 3 && (
+          <div className="col-span-7 grid grid-rows-12">
+            <div
+              className="row-span-11 flex flex-col items-center justify-center gap-4 bg-[#EAEDF1]"
+              style={{ overflow: 'hidden' }}
+            >
+              <UploadImage />
+            </div>
 
-          <div className="flex items-center justify-between border-t-[1px] border-gray-400 bg-white">
-            <Actions cancel={cancel} submit={submit} />
+            <div className="flex items-center justify-between border-t-[1px] border-gray-400 bg-white">
+              <Actions cancel={cancel} submit={submit} />
+            </div>
           </div>
-        </div>
+        )}
       </div>
       {false && (
         <ProjectCreateLoader title="Please wait while we analyse the project..." />

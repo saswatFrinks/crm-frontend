@@ -19,7 +19,7 @@ export default function Actions({ cancel, submit }) {
 
   const [isHovered, setIsHovered] = useState('');
 
-  const [isEditing, setIsEditing] = useRecoilState(editingAtom);
+  const isEditing = useRecoilValue(editingAtom);
   const currentRoiId = useRecoilValue(currentRoiIdAtom);
   const rectangles = useRecoilValue(rectanglesAtom);
   const configuration = useRecoilValue(assemblyAtom);
@@ -65,13 +65,14 @@ export default function Actions({ cancel, submit }) {
   const handleDrawBox = () => {
     if (!isEditing) return;
     let ret = false
-    console.log(rectangles, currentRoiId)
+    console.log("handleDrawBox",{rectangles, currentRoiId})
     rectangles.forEach((rect)=>{
       if(rect.roiId && rect.roiId === currentRoiId){
         ret = true
       }
     })
     if(ret) return;
+    console.log("click rectangular selection",{IMAGE_STATUS})
     setImageStatus((t) => ({
       ...IMAGE_STATUS,
       draw: !t.draw,
@@ -79,6 +80,7 @@ export default function Actions({ cancel, submit }) {
     }));
     setActionName(ACTION_NAMES.SELECTED);
   };
+  console.log({imageStatus})
 
   const handleOneToOne = () => {
     setImageStatus((p)=>({...p, oneToOne: true}));
@@ -88,6 +90,8 @@ export default function Actions({ cancel, submit }) {
     setImageStatus((p)=>({...p, fitToCenter: true}));
   }
 
+  
+console.log({imageStatus})
   const actions = [
     // {
     //   title: 'zoom in',
@@ -143,6 +147,8 @@ export default function Actions({ cancel, submit }) {
         ),
     },
   ];
+
+  console.log("Actions", {isEditing})
 
   return (
     <>

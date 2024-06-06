@@ -14,7 +14,7 @@ import {
   lastActionNameAtom,
   rectanglesTypeAtom,
 } from '../../state';
-import { stepAtom } from '../state';
+import { rectangleColorAtom, stepAtom } from '../state';
 import { v4 } from 'uuid';
 
 const KonvaImageView = ({
@@ -24,12 +24,17 @@ const KonvaImageView = ({
   title = null,
   imageId,
 }) => {
+  console.log(rectangles);
   const coverRef = React.useRef(null);
   const canvasRef = React.useRef(null);
   const stageRef = React.useRef(null);
 
   const [IMAGE_STATUS, setImageStatus] = useRecoilState(imageStatusAtom);
   const isEditing = useRecoilValue(editingAtom);
+
+  const [rectangleColor, setRectangleColor] = useRecoilState(rectangleColorAtom);
+  console.log({rectangleColor});
+  
 
   const canvaSize = 5000;
 
@@ -94,9 +99,9 @@ const KonvaImageView = ({
         x: pointerPosition.x,
         y: pointerPosition.y,
       };
-      console.log({ ...poly });
+      console.log('hghggg',rectangleColor.selectedColor );
       setRectStart(poly);
-      const color = getRandomHexColor();
+      const color = rectangleColor.selectedColor === "#fff" ? getRandomHexColor() : rectangleColor.selectedColor;
       const id =
         1 + step == 1
           ? rectangles?.filter((ele) => ele.rectType == RECTANGLE_TYPE.ROI)
@@ -119,6 +124,7 @@ const KonvaImageView = ({
         title,
         uuid,
       });
+
       
       setLastPolyId(uuid);
     } else {
@@ -335,6 +341,7 @@ const KonvaImageView = ({
   React.useEffect(() => {
     const modified = [];
     if (image?.width) {
+      console.log()
       rectangles.forEach((rect) => {
         const x = rect.x * image.width;
         const y = rect.y * image.height;

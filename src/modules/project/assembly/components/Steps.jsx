@@ -7,7 +7,7 @@ export default function Steps() {
   const step = useRecoilValue(stepAtom);
 
   return (
-    <ul className="relative mx-6 flex justify-between border-b-[1px] border-t-[1px] py-4">
+    <ul className={`relative ${step === 3 ? 'w-[90%] mx-auto' : 'mx-6'} flex justify-between py-4`}>
       <div className="absolute left-0 top-6 z-10 h-0.5 w-full   bg-gray-400">
         <div
           className={` h-0.5 bg-f-primary  duration-100`}
