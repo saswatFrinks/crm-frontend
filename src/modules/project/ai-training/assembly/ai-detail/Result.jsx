@@ -14,7 +14,7 @@ import Select from '@/shared/ui/Select';
 export default function Result() {
   const canvasSize = 500;
   const params = useParams();
-  const [threshold, setThreshold] = useState(50);
+  const [threshold, setThreshold] = useState(0.5);
   const [page, setPage] = useState(1);
   const [images, setImages] = useState([]);
   const [imageWithConfigs, setImageWithConfigs] = useState([]);

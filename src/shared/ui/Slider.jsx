@@ -13,13 +13,16 @@ export default function Slider({ title, id = 'range', value, setValue }) {
       </label>
       <TailwindSlider
         value={value} 
-        onChange={(e) => { setValue(e.target.value) }}
+        onChange={(e) => { setValue(Number(e.target.value).toFixed(2)) }}
+        max={1}
       />
       <Input 
         className="font-semibold"
-        value={Number(value/100).toFixed(2)}
+        value={Number(value)}
         onChange={(e) => {
-          setValue(Number(e.target.value)*100 > 100 ? 100 : Number(e.target.value)*100)
+          const newValue = Number(e.target.value);
+          if(newValue.toFixed(2) == Number(value).toFixed(2))return;
+          setValue(newValue > 1 ? 1 : newValue.toFixed(2))
         }}
         min={0}
         max={1}
