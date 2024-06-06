@@ -110,3 +110,8 @@ export const initialLabelsAtom = atom({
   key: 'initialLabelsAtom',
   default: []
 })
+
+export const prevStatusAtom = atom({
+  key: 'prevStatusAtom',
+  default: 'default'
+})
