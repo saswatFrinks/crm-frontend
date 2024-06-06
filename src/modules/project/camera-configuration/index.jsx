@@ -21,6 +21,7 @@ export default function CameraConfiguration() {
   const [cameraConfigs, setCameraConfigs] = React.useState([]);
   const [editIndex, setEditIndex] = React.useState(null);
   const [editConfig, setEditConfig] = React.useState(null);
+  const [title, setTitle] = React.useState('');
   const [id, setId] = React.useState('');
   const location = useLocation();
 
@@ -68,7 +69,22 @@ export default function CameraConfiguration() {
     setOpenDrawer(true);
   };
 
-  const handleOpenModal = (type) => {
+  const handleOpenModal = async (type) => {
+    if(type === 'delete'){
+      const instanceStatus = await axiosInstance.get('/cameraConfig/instance-status', {
+        params: {
+          projectId: params.projectId 
+        }
+      })
+      if(instanceStatus.data.data.data !== 1){
+        setTitle(
+          `There are existing Instances which are using this camera configuration. If you delete it, those Instances
+          will lose all data related to this camera configuration along with loss of other data stored within this
+          configuration as well (like datasets, ROIs, classes, etc.). Do you want to proceed to delete this camera
+          configuration (which will delete this configuration from the existing Instances) ?`
+        )
+      }
+    }
     setModalState(true);
   };
 
@@ -84,6 +100,7 @@ export default function CameraConfiguration() {
         <DeleteModal
           deleteById={deleteCameraConfig}
           title={'camera configuration'}
+          para={title}
         />
       </Modal>
       <Heading
