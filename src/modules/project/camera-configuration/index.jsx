@@ -76,7 +76,7 @@ export default function CameraConfiguration() {
           projectId: params.projectId 
         }
       })
-      if(instanceStatus.data.data.data !== 1){
+      if(instanceStatus.data.data.data !== 0){
         setTitle(
           `There are existing Instances which are using this camera configuration. If you delete it, those Instances
           will lose all data related to this camera configuration along with loss of other data stored within this
