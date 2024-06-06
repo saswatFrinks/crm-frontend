@@ -102,7 +102,7 @@ const CameraConfig = ({formRef, configUploaded}) => {
       });
       viewConfigDetails(cameraConfigId)
     } catch (error) {
-      toast.error(error?.response?.data?.data);
+      toast.error(error?.response?.data?.data?.message);
     }
   }
 

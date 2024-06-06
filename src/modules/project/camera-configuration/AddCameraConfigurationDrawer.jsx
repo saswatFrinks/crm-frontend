@@ -1,12 +1,16 @@
 import axiosInstance from '@/core/request/aixosinstance';
+import { modalAtom } from '@/shared/states/modal.state';
+import Button from '@/shared/ui/Button';
 import Checkbox from '@/shared/ui/Checkbox';
 import Input from '@/shared/ui/Input';
 import InputFile from '@/shared/ui/InputFile';
 import Label from '@/shared/ui/Label';
+import Modal, { ModalBody, ModalHeader } from '@/shared/ui/Modal';
 import { useFormik } from 'formik';
 import React, { useEffect, useState } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import { useParams } from 'react-router-dom';
+import { useRecoilState } from 'recoil';
 
 const objectivesModulesMapping = {
   assemblyInspection: 'Assembly',
@@ -19,6 +23,8 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
   const params = useParams();
   const { closeDrawer, fetchAllCameraConfigs, editConfig } = props;
   const [initialObjectives, setInitialObjectives] = useState([]);
+  const [openConfirm, setOpenConfirm] = useRecoilState(modalAtom)
+  const [draftData, setDraftData] = useState(null);
 
   const objectivesMap = {
     assemblyInspection: 0,
@@ -87,7 +93,6 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
           modules: modules,
           capturePositionId: params.cameraPositionId,
         };
-
         if (editConfig) {
           delete data.capturePositionId;
           data = {
@@ -96,18 +101,30 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
           };
           await axiosInstance.put('/cameraConfig/edit', data);
         } else {
-          await axiosInstance.post('/cameraConfig/setup', data);
+          const instanceStatus = await axiosInstance.get('/cameraConfig/instance-status', {
+            params: {
+              projectId: params.projectId 
+            }
+          })
+          if(instanceStatus.data.data.data === 0){
+            await axiosInstance.post('/cameraConfig/setup', data);
+            afterSubmit();
+          }else{
+            setOpenConfirm(true);
+            setDraftData(data);
+          }
         }
-
-        fetchAllCameraConfigs();
-        closeDrawer();
-        // formik.resetForm();
-        formik.setValues({'name': '', 'order': '', objectives: [...initialObjectives]})
       } catch (err) {
         toast.error(err.response.data.data.message);
       }
     },
   });
+
+  const afterSubmit = () => {
+    fetchAllCameraConfigs();
+    closeDrawer();
+    formik.setValues({'name': '', 'order': '', objectives: [...initialObjectives]})
+  }
 
   const handleCheckboxChange = (value) => {
     if (!initialObjectives.includes(value)) return;
@@ -123,6 +140,17 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
       });
     }
   };
+
+  const createAfterConfirm = async () => {
+    try {
+      await axiosInstance.post('/cameraConfig/setup', draftData);
+      afterSubmit();
+      setOpenConfirm(false);
+      setDraftData(null)
+    } catch(error) {
+      toast.error(error?.response?.data?.data?.message)
+    }
+  }
 
   React.useImperativeHandle(ref, () => ({
     submitForm() {
@@ -146,6 +174,30 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
 
   return (
     <div className="flex flex-col gap-4">
+      {openConfirm && draftData && <Modal>
+        <ModalHeader>Confirmation</ModalHeader>
+        <ModalBody>
+          <div className="mb-4 font-medium text-lg">
+            There are existing Instances which are using the already created camera configurations. If you create a new
+            camera configuration, this will move those Instances to drafts which then need to be reconfigured to include
+            this new configuration, before they can be downloaded. Do you want to proceed to create this camera
+            configuration (which will move those Instances to drafts) ?
+          </div>
+          <div className="flex items-center justify-center mt-4 gap-4">
+            <Button
+              onClick = {() => setOpenConfirm(false)}
+              variant='flat'
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick = {createAfterConfirm}
+            >
+              Create
+            </Button>
+          </div>
+        </ModalBody>
+      </Modal>}
       <div>
         <Label>Camera configuration name</Label>
         <Input
