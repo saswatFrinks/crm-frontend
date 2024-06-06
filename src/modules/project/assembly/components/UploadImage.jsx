@@ -61,9 +61,11 @@ export default function UploadImage() {
   const setRectType = useSetRecoilState(rectanglesTypeAtom);
 
   const roiIndex = configuration.rois.findIndex((v) => v.id == selectedRoiId);
+  const name = configuration.rois.filter((v) => v.id == selectedRoiId)[0]?.title;
   const roiName =
     roiIndex >= 0
-      ? `ROI ${roiIndex}`
+      // ? `ROI ${roiIndex}`
+      ? name
       : seletectedLabel
         ? seletectedLabel.name
          // ? `${seletectedLabel.name}

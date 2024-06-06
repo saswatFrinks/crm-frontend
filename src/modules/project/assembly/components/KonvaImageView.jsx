@@ -99,9 +99,8 @@ const KonvaImageView = ({
         x: pointerPosition.x,
         y: pointerPosition.y,
       };
-      console.log('hghggg',rectangleColor.selectedColor );
       setRectStart(poly);
-      const color = rectangleColor.selectedColor === "#fff" ? getRandomHexColor() : rectangleColor.selectedColor;
+      const color = rectangleColor.selectedColor === "#fff" || rectangleType === 'ROI' ? getRandomHexColor() : rectangleColor.selectedColor;
       const id =
         1 + step == 1
           ? rectangles?.filter((ele) => ele.rectType == RECTANGLE_TYPE.ROI)
