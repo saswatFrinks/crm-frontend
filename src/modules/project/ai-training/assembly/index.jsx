@@ -39,10 +39,9 @@ const trainingStatus = {
   5: {name: 'Training The Model', color: 'text-orange-500'},
   6: {name: 'Uploading File', color: 'text-orange-500'},
   7: {name: 'Completed', color: 'text-green-500'},
-  8: {name: 'Error While Training', color: 'text-red-400'}
+  8: {name: 'Error While Training', color: 'text-red-400'},
+  9: {name: 'Network Disconnection: Status Not Available', color: 'text-red-400' }
 }
-
-const totalStatusCount = Object.keys(trainingStatus).length;
 
 export default function AIAssembly() {
   const params = useParams();
@@ -155,10 +154,6 @@ export default function AIAssembly() {
         let index = cp.findIndex(ele=> ele.jobId==data.jobId);
         if(index>=0){
           cp[index].status = data.status;
-          if(data.epoch){
-            cp[index]['info'] = `Epoch ${data.epoch}`
-          }
-          else if(cp[index].info) delete cp[index].info;
         }
         return cp;
       })

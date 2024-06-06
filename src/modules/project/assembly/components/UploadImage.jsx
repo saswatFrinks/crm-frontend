@@ -62,7 +62,7 @@ export default function UploadImage() {
     seletectedLabel? `${seletectedLabel.name} ${1+rectangles.reduce((p,c)=>{return c.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL && c.imageId==selectedFile.id ? p+1: p}, 0)}`
     : undefined
 
-  const selectedIndex = uploadedFileList.findIndex(f => f.id === selectedFile?.id);
+  const selectedIndex = uploadedFileList.findIndex(f => f?.id === selectedFile?.id);
 
   const cacheImages = async () => {
     try {
