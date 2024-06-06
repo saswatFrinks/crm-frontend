@@ -12,6 +12,7 @@ import CheckCircle from '@/shared/icons/CheckCircle';
 const CameraConfig = ({formRef, configUploaded}) => {
   const [addInstance, setAddInstance] = useRecoilState(addInstanceAtom);
   const [data, setData] = React.useState([]);
+  const [displayData, setDisplayData] = React.useState([]);
   const [files, setFiles] = React.useState(addInstance?.cameraConfig?.files || []);
   const [uploaded, setUploaded] = React.useState([]);
   const [loader, setLoader] = React.useState(false);
@@ -35,6 +36,15 @@ const CameraConfig = ({formRef, configUploaded}) => {
       roiName: d?.roiName,
       roiId: d?.roiId
     }));
+
+    setDisplayData(removeDuplicates(addInstance?.mappingData?.map(d => ({
+      variantName: d.variantName,
+      variantId: d.variantId,
+      cameraPositionName: d.capturePositionName,
+      cameraPositionId: d.capturePositionId,
+      cameraConfigName: d.cameraConfigName,
+      cameraConfigId: d.cameraConfigId
+    }))));
 
     const uniqueData = removeDuplicates(cameraConfigData);
     setData(uniqueData);
@@ -160,7 +170,7 @@ const CameraConfig = ({formRef, configUploaded}) => {
             </tr>
           </thead>
           <tbody>
-            {data?.map((dataItem, index) => {
+            {displayData?.map((dataItem, index) => {
               return (
                 <>
                   <tr
