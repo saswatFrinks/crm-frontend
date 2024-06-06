@@ -71,8 +71,14 @@ const CreateUserDrawer = React.forwardRef((props, ref) => {
     },
     onSubmit: async (values) => {
       try {
-        const userJson = createUserJson(values);
+        let userJson = createUserJson(values);
         console.log(' submit', userJson)
+        if(!userJson.plantId){
+          userJson = {...userJson, plantId: null}
+        };
+        if(!userJson.teamId){
+          userJson = {...userJson, teamId: null}
+        };
         userToEdit ?  
           await axiosInstance.post('/user/edit', {
             ...userJson, 
