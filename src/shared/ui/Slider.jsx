@@ -1,5 +1,6 @@
 import React from 'react';
 import { Slider as TailwindSlider } from '@material-tailwind/react';
+import Input from './Input';
 
 export default function Slider({ title, id = 'range', value, setValue }) {
   return (
@@ -12,9 +13,22 @@ export default function Slider({ title, id = 'range', value, setValue }) {
       </label>
       <TailwindSlider
         value={value} 
-        onChange={(e) => { setValue(e.target.value) }}
+        onChange={(e) => { setValue(Number(e.target.value).toFixed(2)) }}
+        max={1}
       />
-      <div className="font-semibold">{Math.round(value, 2)}/100</div>
+      <Input 
+        className="font-semibold"
+        value={Number(value)}
+        onChange={(e) => {
+          const newValue = Number(e.target.value);
+          if(newValue.toFixed(2) == Number(value).toFixed(2))return;
+          setValue(newValue > 1 ? 1 : newValue.toFixed(2))
+        }}
+        min={0}
+        max={1}
+        step={0.01}
+        type="number"
+      />
     </div>
   );
 }

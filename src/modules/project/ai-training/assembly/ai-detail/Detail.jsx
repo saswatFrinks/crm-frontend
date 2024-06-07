@@ -76,7 +76,7 @@ export default function Detail({ loader, modelInfo, datasets }) {
                   <div key={i}>
                     <div className="flex justify-between gap-2 border-b-[1px] py-2">
                       <div className="flex-1">{roiItem.variantName}</div>
-                      <div className="flex-1">{roiItem.capturePosition}</div>
+                      <div className="flex-1">{roiItem.capturePositionName}</div>
                       <div className="flex-1">{roiItem.cameraConfig}</div>
                       <div className="flex-1">{roiItem.roi}</div>
                       <div className="flex flex-1 gap-2">

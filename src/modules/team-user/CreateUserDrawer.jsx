@@ -67,11 +67,19 @@ const CreateUserDrawer = React.forwardRef((props, ref) => {
         errors.email = 'Enter a valid email id';
       }
 
+      if(!values.teamId){
+        errors.teamId = 'Team name is required'
+      }
+
+      if(!values.plantId){
+        errors.plantId = 'Plant name is required'
+      }
+
       return errors;
     },
     onSubmit: async (values) => {
       try {
-        const userJson = createUserJson(values);
+        let userJson = createUserJson(values);
         console.log(' submit', userJson)
         userToEdit ?  
           await axiosInstance.post('/user/edit', {
@@ -189,6 +197,7 @@ const CreateUserDrawer = React.forwardRef((props, ref) => {
           field="plantId"
           formik={formik}
           selectedId={defaultPlantId}
+          errorMessage={formik.errors.plantId}
         />
       </div>
 
@@ -199,6 +208,7 @@ const CreateUserDrawer = React.forwardRef((props, ref) => {
           field="teamId"
           formik={formik}
           selectedId={defaultTeamId}
+          errorMessage={formik.errors.teamId}
         />
       </div>
     </div>

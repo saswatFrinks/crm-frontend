@@ -23,7 +23,6 @@ const ModelSelection = ({ formRef }) => {
   }
 
   const filterClasses = () => {
-    const classes = new Map();
     let classesData = [];
     addInstance?.mappingData?.forEach(data => {
       classesData = [...classesData, ...data?.classes]
@@ -32,7 +31,7 @@ const ModelSelection = ({ formRef }) => {
     setClassColors(setUniqueClassColors(classesData));
     setAddInstance({
       ...addInstance,
-      colorClasses: classes
+      colorClasses: setUniqueClassColors(classesData)
     })
   }
 

@@ -54,6 +54,7 @@ export const DEFAULT_OBJECT = {
 
 export const DEFAULT_ROI = {
   id: 0,
+  title: 'ROI 0',
   checked: false,
   status: STATUS.DEFAULT,
   open: true,

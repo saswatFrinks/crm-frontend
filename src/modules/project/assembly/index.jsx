@@ -25,6 +25,7 @@ import {
   editingRectAtom,
   initialLabelsAtom,
   loadedLabelsAtom,
+  prevStatusAtom,
   stepAtom,
 } from './state';
 import React, { useEffect, useRef, useState } from 'react';
@@ -83,6 +84,9 @@ export default function Assembly() {
 
   const [initialLabels, setInitialLabels] = useRecoilState(initialLabelsAtom);
   const [labelId, setLabelId] = useRecoilState(currentLabelIdAtom);
+  const [initialRectangles, setInitialRectnagles] = useState([]);
+
+  const [prevStatus, setPrevStatus] = useRecoilState(prevStatusAtom);
 
   const getProject = async () => {
     try {
@@ -263,7 +267,8 @@ export default function Assembly() {
       ...t,
       rois: t.rois.map((k) => ({
         ...k,
-        status: k.id == currentRoiId ? STATUS.DEFAULT : k.status,
+        // status: k.id == currentRoiId ? STATUS.DEFAULT : k.status,
+        status: k.id == currentRoiId ? prevStatus : k.status,
       })),
     }));
   };
@@ -279,11 +284,22 @@ export default function Assembly() {
       ...t,
       rois: t.rois.map((k) => ({
         ...k,
-        status: k.id == currentRoiId ? STATUS.FINISH : k.status,
+        // status: k.id == currentRoiId ? STATUS.FINISH : k.status,
+
+        status:
+          k.id === currentRoiId &&
+          (prevStatus === 'finish' ||
+            rectangles.find((rect) => rect.title === k.title))
+            ? STATUS.FINISH
+            : k.id === currentRoiId
+              ? STATUS.DEFAULT
+              : k.status,
       })),
     }));
     setRectangleType(RECTANGLE_TYPE.ROI);
   };
+
+  console.log({ configuration }, { rectangles });
 
   const stepObj = {
     0: <UploadImageStep />,
@@ -302,10 +318,10 @@ export default function Assembly() {
         },
       });
       console.log({ roiData });
-      const data = JSON.parse(roiData.data?.data?.data);
-      console.log('api', { data });
+      let data = roiData.data?.data;
+      data = data.sort((a, b) => a.rois.name.localeCompare(b.rois.name));
+      console.log({ data });
       const temp = [...data];
-      console.log({ temp });
       temp.length &&
         temp.map((item, index) => {
           console.log('inside map:', item);
@@ -338,6 +354,7 @@ export default function Assembly() {
             console.log('roi id not present');
             roiMap[roiId] = {
               id: i,
+              title: conf.rois.name,
               identity: roiId,
               checked: false,
               status: STATUS.FINISH,
@@ -387,15 +404,26 @@ export default function Assembly() {
             checked: false,
             open: true,
           });
+          console.log('getting rois', roiId, partsMap[roiId]);
         });
         for (let roiId in roiMap) {
           roiMap[roiId].parts = partsMap[roiId];
         }
+
+        // const sortedKeys = Object.keys(roiMap).sort((a, b) =>
+        //   roiMap[a].title.localeCompare(roiMap[b].title)
+        // );
+
+        // // Use the sorted keys to create the final sorted rois array
+        // const sortedRois = sortedKeys.map((key) => roiMap[key]);
+
         setConfiguration((t) => ({
           ...t,
           rois: Object.values(roiMap),
+          // rois: sortedRois
         }));
         setRectangles((prev) => [...prev, ...rects]);
+
         // if (configUpdateRequired) {
         //   setConfiguration((prev) => ({
         //     ...prev,
@@ -427,11 +455,17 @@ export default function Assembly() {
 
   const prepareApiData = async () => {
     const imgMap = {};
-    const temp = cloneDeep(configuration);
+    let temp = cloneDeep(configuration);
+    // const temp = configuration;
+    console.log('prepareApiData', { temp }, { configuration });
+    temp = {
+      ...temp,
+    };
     temp.direction = parseInt(temp.productFlow);
     temp.id = configurationId;
     delete temp.productFlow;
-    temp.rois = temp.rois.map((roi, index) => {
+    temp.rois = configuration.rois.map((roi, index) => {
+      console.log('roi11', { roi });
       const tempParts = roi.parts.map((part) => {
         return {
           classify: part.classify == 'on',
@@ -454,9 +488,11 @@ export default function Assembly() {
           y2 = parseFloat((roiRect.y + roiRect.height).toFixed(4));
         }
       });
+      // console.log("id of rois",roi?.id)
       return {
         id: roi?.identity || '',
-        name: `ROI ${index}`,
+        name: roi?.title ?? `ROI ${roi?.id}`,
+        // name: `ROI ${roi?.id}`,
         x1,
         x2,
         y1,
@@ -478,6 +514,7 @@ export default function Assembly() {
     //   const blob = await resp.blob()
     //   formData.append('images', blob, img.name)
     // }))
+    console.log('formData', { temp });
     formData.append('data', JSON.stringify(temp));
     formData.append('configurationId', configurationId);
     formData.append(

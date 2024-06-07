@@ -1,5 +1,8 @@
 import axiosInstance from '@/core/request/aixosinstance';
+import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader';
 import ResultPagination from '@/shared/ui/ResultPagination'
+import Select from '@/shared/ui/Select';
+import { removeDuplicates } from '@/util/util';
 import React, { useEffect, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'react-feather';
 import toast from 'react-hot-toast';
@@ -11,14 +14,18 @@ const Evaluation = () => {
 
   const [images, setImages] = useState(new Map());
   const [loaders, setLoaders] = useState(new Map());
+  const [loading, setLoading] = useState(false);
   const [imagesList, setImagesList] = useState([]);
   const [classList, setClassList] = useState([]);
+  const [classWithImageIds, setClassWithImageIds] = useState(new Map());
   const [classImages, setClassImages] = useState(new Map());
   const [selectedClass, setSelectedClass] = useState(null);
+  const [imagePage, setImagePage] = useState(1);
 
-  const total = imagesList.length;
+  const total = classList?.length ? classWithImageIds?.get(classList[selectedClass])?.length : 0;
 
   const abortControllerRef = useRef();
+  const currentClassWithImage = `${classList[selectedClass]}/${classWithImageIds.has(classList[selectedClass]) ? classWithImageIds.get(classList[selectedClass])[imagePage-1] : 0}`;
 
   const setLoader = (imageName, flag) => {
     setLoaders(prev => {
@@ -47,7 +54,7 @@ const Evaluation = () => {
         return newImages;
       })
     } catch (error) {
-      toast.error(error?.response?.data?.data);
+      toast.error(error?.response?.data?.data?.message);
     } finally {
       setLoader(imageName, false);
     }
@@ -55,6 +62,7 @@ const Evaluation = () => {
 
   const fetchImages = async () => {
     try {
+      setLoading(true);
       const response = await axiosInstance.get('/model/result-images-list', {
         params: {
           modelId,
@@ -64,7 +72,9 @@ const Evaluation = () => {
 
       setImagesList(response?.data?.data);
     } catch (error) {
-      toast.error(error?.response?.data?.data);
+      toast.error(error?.response?.data?.data?.message);
+    } finally{
+      setLoading(false);
     }
   }
 
@@ -95,6 +105,7 @@ const Evaluation = () => {
 
   const fetchClasses = async () => {
     try {
+      setLoading(true);
       const response = await axiosInstance.get('/model/result-images-list', {
         params: {
           modelId,
@@ -103,19 +114,23 @@ const Evaluation = () => {
       });
 
       const classes = response?.data?.data;
-      setClassList(classes);
+      const classMap = new Map();
+      classes.forEach(cl => {
+        const [className, imageId] = cl.split('/');
+        if(classMap.has(className)){
+          classMap.set(className, [...classMap.get(className), imageId]);
+        }else{
+          classMap.set(className, [imageId]);
+        }
+      });
+      setClassList(removeDuplicates(classes.map(cl => (cl.split('/')[0]))));
+      setClassWithImageIds(classMap);
       setSelectedClass(0);
     } catch (error) {
-      toast.error(error?.response?.data?.data);
+      toast.error(error?.response?.data?.data?.message);
+    } finally{
+      setLoading(false);
     }
-  }
-
-  const handleNext = (pageNum) => {
-    setSelectedClass((pageNum+1)%classList.length);
-  }
-
-  const handlePrev = (pageNum) => {
-    setSelectedClass((pageNum-1+classList.length)%classList.length);
   }
 
   useEffect(() => {
@@ -132,13 +147,15 @@ const Evaluation = () => {
   }, [imagesList])
 
   useEffect(() => {
-    if (classList.length > 0) {
-      fetchClassImageByName(classList[selectedClass])
+    if (classList.length > 0 && classWithImageIds.size > 0) {
+      const classWithImageId = `${classList[selectedClass]}/${classWithImageIds.get(classList[selectedClass])[imagePage-1]}`
+      fetchClassImageByName(classWithImageId)
     }
-  }, [selectedClass])
+  }, [selectedClass, imagePage])
 
   return (
     <div className='w-full'>
+      {loading && <ProjectCreateLoader title='Loading Details' />}
       <h2 className='font-bold text-2xl my-2'>Prediction Results</h2>
       <div className="my-2 text-lg">
         The below images show the comparison of the ground truth with the predictions of the model.
@@ -163,7 +180,7 @@ const Evaluation = () => {
       )}
       <div className="mt-4 mb-10">
         <ResultPagination
-          total={total}
+          total={imagesList.length}
           page={page}
           setPage={setPage}
         />
@@ -177,7 +194,7 @@ const Evaluation = () => {
       </div>
       <div className="flex items-center justify-around gap-2 my-4 w-[80%] mx-auto">
         <div className=" max-w-2xl flex flex-col items-center">
-          {loaders.get(classList[selectedClass]) ? (
+          {loaders.get(currentClassWithImage) ? (
             <div className='flex items-center' style={{minHeight: '35vh'}}>
               <div className="loading mx-auto px-4 text-center bg-white" style={{ width: '10vw' }}></div>
             </div>
@@ -197,7 +214,7 @@ const Evaluation = () => {
         </div>
 
         <div className="max-w-2xl flex flex-col items-center">
-          {loaders.get(classList[selectedClass]) ? (
+          {loaders.get(currentClassWithImage) ? (
             <div className='flex items-center' style={{minHeight: '35vh'}}>
               <div className="loading mx-auto px-4 text-center bg-white" style={{ width: '10vw' }}></div>
             </div>
@@ -216,19 +233,31 @@ const Evaluation = () => {
           <div className="my-2 text-lg font-bold">Heatmap</div>
         </div>
       </div>
-      <div className="px-4 py-2 border border-black rounded-3xl flex items-center justify-between w-[15rem] mx-auto gap-4">
-        <ChevronLeft 
-          onClick={() => handlePrev(selectedClass)}
-          className='cursor-pointer'
-        />
-        <div className='font-bold'>
-          {classList[selectedClass]?.slice(0,15)?.toUpperCase()}{classList[selectedClass]?.length > 15 && '....'}
+      {classWithImageIds.size > 0 && classWithImageIds.has(classList[selectedClass]) && (
+        <div className="px-4 py-2 flex flex-col items-center mx-auto gap-4">
+          <Select
+            options={classList.map((cl, idx) => ({id: idx, name: cl}))}
+            value={selectedClass}
+            size='md'
+            style={{
+              textTransform: 'uppercase',
+              backgroundColor: '#9990FF',
+              color: '#fff',
+              cursor: 'pointer'
+            }}
+            onChange={(e) => {
+              const classIdx = Number(e.target.value);
+              setImagePage(1);
+              setSelectedClass(classIdx)
+            }}
+          />
+          <ResultPagination
+            total={total}
+            page={imagePage}
+            setPage={setImagePage}
+          />
         </div>
-        <ChevronRight 
-          onClick={() => handleNext(selectedClass)}
-          className='cursor-pointer'
-        />
-      </div>
+      )}
     </div>
   )
 }

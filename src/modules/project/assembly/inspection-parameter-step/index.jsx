@@ -40,6 +40,8 @@ import {
   selectedConfigurationAtom,
 } from '../../project-configuration/state';
 import { cloneDeep } from 'lodash';
+import toast from 'react-hot-toast';
+import { prevStatusAtom } from '../state';
 
 export default function InspectionParameterStep(props) {
   // type: moving | stationary {{ASSEMBLY_CONFIG}}
@@ -49,7 +51,7 @@ export default function InspectionParameterStep(props) {
 
   const setModalState = useSetRecoilState(modalAtom);
 
-  const setIsEditing = useSetRecoilState(editingAtom);
+  // const setIsEditing = useSetRecoilState(editingAtom);
 
   const [deleteModal, setDeleteModal] = React.useState('roi');
 
@@ -77,6 +79,10 @@ export default function InspectionParameterStep(props) {
     primaryObjectClassError: '',
   });
 
+  const [isEditing, setIsEditing] = useRecoilState(editingAtom);
+  const [prevStatus, setPrevStatus] = useRecoilState(prevStatusAtom);
+
+
   const handleSubmit = () => {
     const res1 = validate(formData);
     const res2 = validateMoving(movingForm);
@@ -90,16 +96,21 @@ export default function InspectionParameterStep(props) {
   };
 
   const validateMoving = (values) => {
-    if(type !== ASSEMBLY_CONFIG.MOVING) return false;
-   
+    if (type !== ASSEMBLY_CONFIG.MOVING) return false;
+
     let errorFound = false;
-    const flowError = (!values.productFlow && !configuration.productFlow) ? 'Product Flow is required' : '';
-    const objectError = (!values.primaryObject && !configuration.primaryObject)
-      ? 'Primary Object is required'
-      : '';
-    const classError = (!values.primaryObjectClass && !configuration.primaryObjectClass)
-      ? 'Primary Object Class is required'
-      : '';
+    const flowError =
+      !values.productFlow && !configuration.productFlow
+        ? 'Product Flow is required'
+        : '';
+    const objectError =
+      !values.primaryObject && !configuration.primaryObject
+        ? 'Primary Object is required'
+        : '';
+    const classError =
+      !values.primaryObjectClass && !configuration.primaryObjectClass
+        ? 'Primary Object Class is required'
+        : '';
     if (flowError || objectError || classError) errorFound = true;
     setMovingErrors({
       productFlowError: flowError,
@@ -157,7 +168,7 @@ export default function InspectionParameterStep(props) {
     }
     let tempRois = cloneDeep(configuration.rois);
     // console.log('confRois:', configuration.rois);
-    if (tempRois[0].parts[0].class === '') {
+    if (tempRois[0]?.parts[0]?.class === '') {
       tempRois[0].parts[0].class = classOptions[0].id;
       tempRois[0].parts[0].className = classOptions[0].name;
     }
@@ -169,6 +180,13 @@ export default function InspectionParameterStep(props) {
   }, [classOptions]);
 
   const addRoi = () => {
+    // console.log('addRoi1', { configuration });
+    if (isEditing) {
+      toast('Please confirm the current ROI', {
+        icon: '⚠️',
+      });
+      return;
+    }
     setConfiguration((t) => ({
       ...t,
       id: selectedConfiguration.id,
@@ -176,14 +194,27 @@ export default function InspectionParameterStep(props) {
         ...t.rois,
         {
           ...DEFAULT_ROI,
-          id: t.rois.length,
+          // id: t.rois.length,
+          id:
+            t.rois.length > 0
+              ? t.rois[t.rois.length - 1].id + 1
+              : t.rois.length,
+          // title: `ROI ${t.rois[t.rois.length - 1].title.replace('ROI ', '') + 1}`
+          title: `ROI ${t.rois.length > 0 ? parseInt(t.rois[t.rois.length - 1].title.replace('ROI ', '')) + 1 : 1}`,
         },
       ],
     }));
+    // console.log("addRoi2",{configuration})
   };
   // console.log({formData})
 
   const addObject = (roiId) => {
+    // if(isEditing) {
+    //   toast('Please confirm the current ROI', {
+    //     icon: '⚠️',
+    //   });
+    //   return;
+    // }
     setConfiguration((config) => ({
       ...config,
       rois: config.rois.map((roi) => ({
@@ -232,6 +263,7 @@ export default function InspectionParameterStep(props) {
 
   const deleteRoi = () => {
     let roiId = null;
+    // console.log("deleteRoi1",{configuration})
     setConfiguration((t) => {
       // console.log('deleting roi:', t);
       const ret = t.rois.filter((k) => !k.checked);
@@ -244,6 +276,7 @@ export default function InspectionParameterStep(props) {
     if (roiId) {
       setRectangles((rects) => rects.filter((rect) => rect.roiId !== roiId));
     }
+    // console.log("deleteRoi2",{configuration})
   };
 
   const genObjId = (id) => {
@@ -435,7 +468,7 @@ export default function InspectionParameterStep(props) {
                     return {
                       ...form,
                       primaryObjectClass: e.target.value,
-                    }
+                    };
                   });
                 }}
                 errorMessage={movingErrors?.primaryObjectClassError}
@@ -512,6 +545,8 @@ export default function InspectionParameterStep(props) {
     setErrors(newErrors);
   };
 
+  console.log({ configuration });
+
   return (
     <>
       <Modal>{renderModal()}</Modal>
@@ -521,30 +556,56 @@ export default function InspectionParameterStep(props) {
       <div className="mt-2 flex flex-col gap-4">
         {/* roi list */}
         {configuration.rois.map((t, i) => (
-          <div key={i}>
+          <div key={t.id}>
             <div className="mb-4 flex items-center gap-4">
-              {type !== ASSEMBLY_CONFIG.MOVING && <Checkbox
-                id={t.id}
-                value={t.id}
-                checked={t.checked}
-                onClick={() =>
-                  setConfiguration((configuration) => ({
-                    ...configuration,
-                    rois: configuration.rois.map((k) => ({
-                      ...k,
-                      checked: t.id == k.id ? !k.checked : k.checked,
-                    })),
-                  }))
-                }
-                htmlFor={t.id}
-              />}
-              <span>ROI {t.id}</span>
+              {type !== ASSEMBLY_CONFIG.MOVING && (
+                <Checkbox
+                  id={t.id}
+                  value={t.id}
+                  checked={t.checked}
+                  onClick={() => {
+                    if (isEditing) {
+                      toast('Please confirm the current ROI', {
+                        icon: '⚠️',
+                      });
+                      return;
+                    }
+                    setConfiguration((configuration) => ({
+                      ...configuration,
+                      rois: configuration.rois.map((k) => ({
+                        ...k,
+                        checked: t.id == k.id ? !k.checked : k.checked,
+                      })),
+                    }));
+                  }}
+                  htmlFor={t.id}
+                />
+              )}
+              {/* <span>ROI {t.id} {t.status} </span> */}
+              <span>{t.title ?? `ROI ${t.id}`} </span>
               <div className="flex-1">
                 <Button
                   size="tiny"
                   color={genLabelClass(t.status)}
                   fullWidth={false}
-                  onClick={() => handleClickLabel(t.id)}
+                  // disabled={isEditing ? true : false}
+                  onClick={() => {
+                    console.log('ROI status', t.status);
+                    if (isEditing) {
+                      // toast(
+                      //   `${
+                      //     t.status === STATUS.EDITING
+                      //       ? 'Please confirm the edit of the ROI'
+                      //       : 'Please confirm the creation of the new ROI first before proceeding'
+                      //   }`,
+                      toast('Please confirm the current ROI', {
+                        icon: '⚠️',
+                      });
+                      return;
+                    }
+                    setPrevStatus(t.status);
+                    handleClickLabel(t.id);
+                  }}
                 >
                   <div className="flex items-center gap-2">
                     <Pen /> {t.status == STATUS.EDITING ? 'Edit' : 'Label'} ROI
@@ -592,7 +653,13 @@ export default function InspectionParameterStep(props) {
                         id={genObjId(obj.id)}
                         value={obj.id}
                         checked={obj.checked}
-                        onClick={() =>
+                        onClick={() => {
+                          if (isEditing) {
+                            toast('Please confirm the current ROI', {
+                              icon: '⚠️',
+                            });
+                            return;
+                          }
                           setConfiguration((configuration) => ({
                             ...configuration,
                             rois: configuration.rois.map((k) => ({
@@ -603,8 +670,8 @@ export default function InspectionParameterStep(props) {
                                   h.id == obj.id ? !h.checked : h.checked,
                               })),
                             })),
-                          }))
-                        }
+                          }));
+                        }}
                         htmlFor={genObjId(obj.id)}
                       />
                       <span className="select-none">Object {objIndex + 1}</span>

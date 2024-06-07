@@ -12,6 +12,7 @@ import CheckCircle from '@/shared/icons/CheckCircle';
 const CameraConfig = ({formRef, configUploaded}) => {
   const [addInstance, setAddInstance] = useRecoilState(addInstanceAtom);
   const [data, setData] = React.useState([]);
+  const [displayData, setDisplayData] = React.useState([]);
   const [files, setFiles] = React.useState(addInstance?.cameraConfig?.files || []);
   const [uploaded, setUploaded] = React.useState([]);
   const [loader, setLoader] = React.useState(false);
@@ -36,30 +37,40 @@ const CameraConfig = ({formRef, configUploaded}) => {
       roiId: d?.roiId
     }));
 
+    setDisplayData(removeDuplicates(addInstance?.mappingData?.map(d => ({
+      variantName: d.variantName,
+      variantId: d.variantId,
+      cameraPositionName: d.capturePositionName,
+      cameraPositionId: d.capturePositionId,
+      cameraConfigName: d.cameraConfigName,
+      cameraConfigId: d.cameraConfigId
+    }))));
+
     const uniqueData = removeDuplicates(cameraConfigData);
     setData(uniqueData);
   }, [])
 
   React.useEffect(() => {
     if(files?.length === 0){
-      setFiles(Array.from({length: data?.length}, () => (configUploaded ? true : false)));
-      setUploaded(Array.from({length: data?.length}, () => false))
+      setFiles(Array.from({length: displayData?.length}, () => (configUploaded ? true : false)));
+      setUploaded(Array.from({length: displayData?.length}, () => false))
     }
-  }, [data])
+  }, [displayData])
 
   const validate = () => {
     const formErrors = [...errors];
     let flag = true;
-    data?.forEach((d, index) => {
-      formErrors[index] = d?.roiId ? '' : `This Camera Config doesn't have any ROIs`;
-      flag = d?.roiId ? true : false;
+    displayData?.forEach((d, index) => {
+      const hasRoi = data.filter(dataItem => (d.cameraConfigId === dataItem.cameraConfigId && dataItem?.roiId != null));
+      formErrors[index] = hasRoi.length > 0 ? '' : `This Camera Config doesn't have any ROIs`;
+      if(hasRoi.length === 0)flag = false;
     })
     setErrors(formErrors);
     if(!flag)return false;
 
-    data?.forEach((d, index) => {
+    displayData?.forEach((d, index) => {
       formErrors[index] = configDetails.get(d?.cameraConfigId) ? '' : (formErrors[index] !== '' ? formErrors[index] : 'Please upload the camera config file');
-      flag = configDetails.get(d?.cameraConfigId) ? true : false;
+      if(!configDetails.has(d?.cameraConfigId))flag = false;
     })
     setErrors(formErrors);
     return flag;
@@ -102,7 +113,7 @@ const CameraConfig = ({formRef, configUploaded}) => {
       });
       viewConfigDetails(cameraConfigId)
     } catch (error) {
-      toast.error(error?.response?.data?.data);
+      toast.error(error?.response?.data?.data?.message);
     }
   }
 
@@ -131,17 +142,17 @@ const CameraConfig = ({formRef, configUploaded}) => {
   }
 
   const getAllConfigs = async () => {
-    for(let i=0;i<data.length;i++){
-      await viewConfigDetails(data[i]?.cameraConfigId);
+    for(let i=0;i<displayData.length;i++){
+      await viewConfigDetails(displayData[i]?.cameraConfigId);
     }
   }
 
   React.useEffect(() => {
-    if(data.length > 0){
+    if(displayData.length > 0){
       getAllConfigs();
     }
-    setErrors(Array.from({length: data?.length}, () => ''))
-  }, [data])
+    setErrors(Array.from({length: displayData?.length}, () => ''))
+  }, [displayData])
 
   return (
     <div>
@@ -160,7 +171,7 @@ const CameraConfig = ({formRef, configUploaded}) => {
             </tr>
           </thead>
           <tbody>
-            {data?.map((dataItem, index) => {
+            {displayData?.map((dataItem, index) => {
               return (
                 <>
                   <tr
