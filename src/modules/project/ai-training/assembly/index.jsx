@@ -154,6 +154,14 @@ export default function AIAssembly() {
         let index = cp.findIndex(ele=> ele.jobId==data.jobId);
         if(index>=0){
           cp[index].status = data.status;
+          if(data.epoch){
+            let [n, d] = String(data.epoch).split('/')
+            if(d){
+              const cal = parseInt(n)/parseInt(d);
+              cp[index].info = `${(cal * 100) - (cal ==1 ? 1: 0)}%`
+            }
+          }
+          else delete cp[index].info
         }
         return cp;
       })
@@ -268,9 +276,9 @@ export default function AIAssembly() {
                         {model.totalImages != 1 && 's'}
                       </td>
                       <td
-                        className={`px-6 py-4 ${trainingStatus[model.status]?.color}`}
+                        className={`px-6 py-4 ${trainingStatus[model.status]?.color || 'text-green-500'}`}
                       >
-                        {trainingStatus[model.status]?.name}
+                        {trainingStatus[model.status]?.name || "Training Completed"}
                         {model.info && <p>{model.info}</p>}
                       </td>
                       <td className="flex flex-wrap gap-2 px-6 py-4">

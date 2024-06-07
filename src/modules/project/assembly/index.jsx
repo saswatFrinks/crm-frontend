@@ -302,7 +302,7 @@ export default function Assembly() {
         },
       });
       console.log({ roiData });
-      const data = roiData.data?.data;
+      const data = JSON.parse(roiData.data?.data?.data);
       console.log('api', { data });
       const temp = [...data];
       console.log({ temp });
