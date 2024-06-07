@@ -82,6 +82,7 @@ export default function InspectionParameterStep(props) {
   const [isEditing, setIsEditing] = useRecoilState(editingAtom);
   const [prevStatus, setPrevStatus] = useRecoilState(prevStatusAtom);
 
+
   const handleSubmit = () => {
     const res1 = validate(formData);
     const res2 = validateMoving(movingForm);
