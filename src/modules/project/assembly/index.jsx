@@ -491,7 +491,7 @@ export default function Assembly() {
       // console.log("id of rois",roi?.id)
       return {
         id: roi?.identity || '',
-        name: roi?.title,
+        name: roi?.title ?? `ROI ${roi?.id}`,
         // name: `ROI ${roi?.id}`,
         x1,
         x2,
