@@ -65,7 +65,7 @@ export default function UploadImage() {
   const roiName =
     roiIndex >= 0
       // ? `ROI ${roiIndex}`
-      ? name
+      ? name ?? `ROI ${roiIndex}`
       : seletectedLabel
         ? seletectedLabel.name
          // ? `${seletectedLabel.name}
