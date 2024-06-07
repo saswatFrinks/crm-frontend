@@ -93,7 +93,7 @@ export default function User() {
           <Button fullWidth={false} size="xs" onClick={handleAddUser}>
             <div className="flex items-center gap-2">
               <FaPlus />
-              Add user
+              Add a new user
             </div>
           </Button>
         </div>
@@ -154,7 +154,7 @@ export default function User() {
       {drawerAction==='AddUser' && <Drawer
         isOpen={open}
         handleClose={closeDrawer}
-        title={'Create a new user'}
+        title={'Add a new user'}
         size="xs"
         footer={
           <div className="flex w-2/3 items-end justify-end gap-2 ">

@@ -54,7 +54,7 @@ const Evaluation = () => {
         return newImages;
       })
     } catch (error) {
-      toast.error(error?.response?.data?.data);
+      toast.error(error?.response?.data?.data?.message);
     } finally {
       setLoader(imageName, false);
     }
@@ -72,7 +72,7 @@ const Evaluation = () => {
 
       setImagesList(response?.data?.data);
     } catch (error) {
-      toast.error(error?.response?.data?.data);
+      toast.error(error?.response?.data?.data?.message);
     } finally{
       setLoading(false);
     }
@@ -127,7 +127,7 @@ const Evaluation = () => {
       setClassWithImageIds(classMap);
       setSelectedClass(0);
     } catch (error) {
-      toast.error(error?.response?.data?.data);
+      toast.error(error?.response?.data?.data?.message);
     } finally{
       setLoading(false);
     }
