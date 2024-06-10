@@ -20,6 +20,7 @@ export default function Result() {
   const [imageWithConfigs, setImageWithConfigs] = useState([]);
   const [roiImageMap, setRoiImageMap] = useState(new Map());
   const [selectedImage, setSelectedImage] = useState(0);
+  const [datasetCount, setDatasetCount] = useState(0);
 
   const [cachedImages, setCachedImages] = useState(new Map());
 
@@ -49,7 +50,7 @@ export default function Result() {
       const config = {
         params: {
           modelId: params.modelId,
-          name: imageName,
+          name: imageName?.split('_')[0],
           roiId
         },
         responseType: 'arraybuffer',
@@ -93,6 +94,18 @@ export default function Result() {
     }
   }
 
+  const getDatasetCount = async () => {
+    try{
+      const response = await axiosInstance.get('/model/model-data', {
+        params: {
+          modelId: params.modelId,
+        }
+      });
+      setDatasetCount(response.data?.data?.datasets.reduce((prev, cur)=> prev + cur.annotatedImages, 0));
+    }
+    catch(e){}
+  }
+
   const getModelData = async () => {
     try {
       setLoader(true);
@@ -120,6 +133,7 @@ export default function Result() {
       setImages(keys);
       setRoiImageMap(imageRoiMap);
       setSelectedImage(0);
+      getDatasetCount();
     } catch (error) {
       toast.error(error?.response?.data?.data?.message)
     } finally {
@@ -215,6 +229,8 @@ export default function Result() {
     let roundedValidationData = Math.round(validationData);
     let roundedTrainingData = Math.round(trainingData);
 
+    console.log({trainingData, validationData, testingData, roundedTestingData, roundedValidationData, roundedTrainingData})
+
     let total = roundedTestingData + roundedValidationData + roundedTrainingData;
 
     let difference = x - total;
@@ -248,7 +264,7 @@ export default function Result() {
     };
   }
 
-  const {trainingCount, testingCount, validationCount} = distributeCounts(imageWithConfigs.length);
+  const {trainingCount, testingCount, validationCount} = distributeCounts(datasetCount);
 
   useEffect(() => {
     if (images?.length > 0) {

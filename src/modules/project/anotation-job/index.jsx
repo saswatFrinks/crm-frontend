@@ -548,7 +548,7 @@ export default function AnnotationJob() {
     cacheRef.current = cachedImages;
   }, [cachedImages]);
 
-  console.log('outside', { modalOpen });
+  console.log('outside', { modalOpen }, annotationClasses[selectedImage?.id]?.rectangles,);
 
   return (
     <>

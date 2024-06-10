@@ -210,7 +210,7 @@ const Evaluation = () => {
               />
             </div>
           )}
-          <div className="my-2 text-lg font-bold">Main Clusters</div>
+          <div className="my-2 text-lg font-bold">Heatmap</div>
         </div>
 
         <div className="max-w-2xl flex flex-col items-center">
@@ -230,7 +230,7 @@ const Evaluation = () => {
               />
             </div>
           )}
-          <div className="my-2 text-lg font-bold">Heatmap</div>
+          <div className="my-2 text-lg font-bold">Main Clusters</div>
         </div>
       </div>
       {classWithImageIds.size > 0 && classWithImageIds.has(classList[selectedClass]) && (
