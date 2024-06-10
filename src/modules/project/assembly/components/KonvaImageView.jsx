@@ -183,6 +183,7 @@ const KonvaImageView = ({
       handleValueReset(normalizedValue);
       console.log(normalizedValue);
       if (normalizedValue.width !== 0 && normalizedValue.height !== 0) {
+        console.log(normalizedValue)
         onDrawStop([...rectangles, normalizedValue]);
       }
       setCurrentPoly(null);

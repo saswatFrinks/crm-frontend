@@ -82,6 +82,7 @@ export default function InspectionParameterStep(props) {
   const [isEditing, setIsEditing] = useRecoilState(editingAtom);
   const [prevStatus, setPrevStatus] = useRecoilState(prevStatusAtom);
 
+
   const handleSubmit = () => {
     const res1 = validate(formData);
     const res2 = validateMoving(movingForm);
@@ -581,7 +582,7 @@ export default function InspectionParameterStep(props) {
                 />
               )}
               {/* <span>ROI {t.id} {t.status} </span> */}
-              <span>{t.title ?? `ROII ${t.id}`} </span>
+              <span>{t.title ?? `ROI ${t.id}`} </span>
               <div className="flex-1">
                 <Button
                   size="tiny"

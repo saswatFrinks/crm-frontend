@@ -280,18 +280,26 @@ export default function Assembly() {
     setCurrentRoiId(null);
     setSelectedRectId(null);
     setLastAction(ACTION_NAMES.SUBMIT);
-    console.log("confirm",{configuration}, {initialLabels}, {rectangles})
     setConfiguration((t) => ({
       ...t,
       rois: t.rois.map((k) => ({
         ...k,
-        status: k.id == currentRoiId ? STATUS.FINISH : k.status,
+        // status: k.id == currentRoiId ? STATUS.FINISH : k.status,
+
+        status:
+          k.id === currentRoiId &&
+          (prevStatus === 'finish' ||
+            rectangles.find((rect) => rect.title === k.title))
+            ? STATUS.FINISH
+            : k.id === currentRoiId
+              ? STATUS.DEFAULT
+              : k.status,
       })),
     }));
     setRectangleType(RECTANGLE_TYPE.ROI);
   };
 
-  console.log({ configuration }, { rectangles })
+  console.log({ configuration }, { rectangles });
 
   const stepObj = {
     0: <UploadImageStep />,
@@ -312,7 +320,7 @@ export default function Assembly() {
       console.log({ roiData });
       let data = roiData.data?.data;
       data = data.sort((a, b) => a.rois.name.localeCompare(b.rois.name));
-      console.log({data});
+      console.log({ data });
       const temp = [...data];
       temp.length &&
         temp.map((item, index) => {
@@ -396,7 +404,7 @@ export default function Assembly() {
             checked: false,
             open: true,
           });
-          console.log("getting rois",roiId, partsMap[roiId]);
+          console.log('getting rois', roiId, partsMap[roiId]);
         });
         for (let roiId in roiMap) {
           roiMap[roiId].parts = partsMap[roiId];
@@ -405,7 +413,7 @@ export default function Assembly() {
         // const sortedKeys = Object.keys(roiMap).sort((a, b) =>
         //   roiMap[a].title.localeCompare(roiMap[b].title)
         // );
-  
+
         // // Use the sorted keys to create the final sorted rois array
         // const sortedRois = sortedKeys.map((key) => roiMap[key]);
 
@@ -415,7 +423,7 @@ export default function Assembly() {
           // rois: sortedRois
         }));
         setRectangles((prev) => [...prev, ...rects]);
-        
+
         // if (configUpdateRequired) {
         //   setConfiguration((prev) => ({
         //     ...prev,
@@ -449,16 +457,15 @@ export default function Assembly() {
     const imgMap = {};
     let temp = cloneDeep(configuration);
     // const temp = configuration;
-    console.log("prepareApiData", {temp}, {configuration});
+    console.log('prepareApiData', { temp }, { configuration });
     temp = {
       ...temp,
-
-    }
+    };
     temp.direction = parseInt(temp.productFlow);
     temp.id = configurationId;
     delete temp.productFlow;
     temp.rois = configuration.rois.map((roi, index) => {
-      console.log("roi11",{roi});
+      console.log('roi11', { roi });
       const tempParts = roi.parts.map((part) => {
         return {
           classify: part.classify == 'on',
@@ -484,7 +491,7 @@ export default function Assembly() {
       // console.log("id of rois",roi?.id)
       return {
         id: roi?.identity || '',
-        name: roi?.title,
+        name: roi?.title ?? `ROI ${roi?.id}`,
         // name: `ROI ${roi?.id}`,
         x1,
         x2,
@@ -507,7 +514,7 @@ export default function Assembly() {
     //   const blob = await resp.blob()
     //   formData.append('images', blob, img.name)
     // }))
-    console.log("formData", {temp});
+    console.log('formData', { temp });
     formData.append('data', JSON.stringify(temp));
     formData.append('configurationId', configurationId);
     formData.append(
