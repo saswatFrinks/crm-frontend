@@ -375,6 +375,8 @@ export default function AnnotationJob() {
     setRectangles([]);
     getAllImages();
     getClasses();
+
+    return () => setModalOpen(false);
   }, []);
 
   React.useEffect(() => {

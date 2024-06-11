@@ -143,7 +143,7 @@ export default function AIAssembly() {
       startTrainingSSE();
     } catch (error) {
       setLoading(false);
-      toast.error(JSON.stringify(error));
+      toast.error(error?.response?.data?.data?.message);
     }
   };
 
@@ -252,8 +252,8 @@ export default function AIAssembly() {
           <table className="w-full text-left text-sm text-gray-500 rtl:text-right ">
             <thead className="bg-white text-sm uppercase text-gray-700 ">
               <tr>
-                {columns.map((t) => (
-                  <th scope="col" className="px-6 py-3" key={t}>
+                {columns.map((t, i) => (
+                  <th scope="col" className={`px-6 py-3 ${i == 0 ? 'text-left' : (i === columns.length - 1 ? '' : 'text-center')}`} key={t}>
                     {t}
                   </th>
                 ))}
@@ -269,7 +269,7 @@ export default function AIAssembly() {
                     >
                       <th
                         scope="row"
-                        className="whitespace-nowrap px-6 py-4 font-medium text-gray-900 hover:underline "
+                        className="whitespace-nowrap px-6 py-4 text-left font-medium text-gray-900 hover:underline "
                       >
                         <Link
                           to={`${model.id}#detail`}
@@ -280,10 +280,10 @@ export default function AIAssembly() {
                           {model.name}
                         </Link>
                       </th>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4 text-center">
                         {new Date(Number(model.createdAt)).toLocaleString()}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4 text-center">
                         {model.totalImages} image
                         {model.totalImages != 1 && 's'}
                       </td>

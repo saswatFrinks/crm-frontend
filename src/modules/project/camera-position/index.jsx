@@ -45,6 +45,8 @@ export default function CameraPosition() {
 
   React.useEffect(() => {
     fetchAllCameraPosition();
+
+    return () => setModalState(false);
   }, []);
 
   const renderModalAction = () => {

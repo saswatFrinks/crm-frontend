@@ -54,6 +54,7 @@ export default function Home() {
 
   React.useEffect(() => {
     fetchAllProjects();
+    return () => setOpenModal(false);
   }, []);
 
   const setOpenModal = useSetRecoilState(modalAtom);

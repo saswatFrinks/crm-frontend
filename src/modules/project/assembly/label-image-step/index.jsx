@@ -43,6 +43,9 @@ import Pagination from '@/shared/ui/Pagination';
 import { v4 } from 'uuid';
 import ResultPagination from '@/shared/ui/ResultPagination';
 import toast from 'react-hot-toast';
+import Label from '@/shared/ui/Label';
+import Pen from '@/shared/icons/Pen';
+import Box from '@/shared/icons/Box';
 
 export default function LabelImage({ save }) {
   const configuration = useRecoilValue(assemblyAtom);
@@ -343,23 +346,47 @@ export default function LabelImage({ save }) {
 
   return (
     <div className="flex grow flex-col gap-4">
-      <p>Choose the class below you wish to label in the image</p>
+      <p className='font-medium'>First label the Primary Object Class in the image</p>
+      <div className="flex items-center gap-2">
+        <Label main={false}>Primary Object Class Annotation:</Label>
+        <div className="ml-2 w-44 max-w-xs">
+          <Button
+            size="tiny"
+            // color={genLabelClass(t.status)}
+            fullWidth={false}
+            onClick={() => {
+              // if (isEditing) {
+              //   toast('Please confirm the current Class', {
+              //     icon: '⚠️',
+              //   });
+              //   return;
+              // }
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <Pen /> Label Class
+            </div>
+          </Button>
+        </div>
+      </div>
+      <p className='font-medium mt-5'>Choose the class below you wish to label in the image</p>
       <ul className="flex flex-wrap gap-4">
         {labelClasses.map((t, index) => (
           <li
             key={t.name}
-            className={`bg-[${t.color}] cursor-pointer rounded-md px-3 py-1.5`}
+            className={`bg-[${t.color}] flex items-center gap-1 cursor-pointer rounded-md px-3 py-1.5`}
             style={{ backgroundColor: t.color }}
             onClick={(e) => {
               handleClassClick(e, index, t.color);
             }}
           >
+            <Box size="xs" />
             {t.name}
           </li>
         ))}
       </ul>
 
-      <div>
+      <div className='mt-2'>
         Current labels for{' '}
         <span className="font-semibold">{selectedImage?.fileName}</span>
       </div>

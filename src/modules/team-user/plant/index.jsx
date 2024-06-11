@@ -43,6 +43,8 @@ export default function Plants() {
 
   React.useEffect(() => {
     fetchAllPlants();
+
+    return () => setModalState(false);
   }, []);
 
   const renderModalAction = () => {

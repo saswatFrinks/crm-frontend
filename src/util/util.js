@@ -88,7 +88,7 @@ export function validateRegexString(input) {
       }
   }
 
-  let errorMessage = `Invalid characters: "${Array.from(invalidCharacters).join(", ")}" ${Array.from(invalidCharacters).length > 1 ? 'are' : 'is'} not allowed.`;
+  let errorMessage = `Invalid characters: '${Array.from(invalidCharacters).join(", ")}' ${Array.from(invalidCharacters).length > 1 ? 'are' : 'is'} not allowed.`;
 
   return errorMessage;
 }

@@ -242,6 +242,8 @@ export default function Configuration({ setLoading, formRef }) {
 
   React.useEffect(() => {
     helper();
+
+    return () => setOpenModal(false);
   }, []);
 
   React.useEffect(() => {

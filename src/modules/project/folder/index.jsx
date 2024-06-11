@@ -77,6 +77,8 @@ export default function Folder() {
 
   React.useEffect(() => {
     fetchAllImages();
+
+    return () => setModalState(false);
   }, []);
 
   const handleOpenModal = () => {

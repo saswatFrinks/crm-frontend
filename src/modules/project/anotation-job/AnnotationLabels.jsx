@@ -61,7 +61,7 @@ export default function AnnotationLabels({ labelClass }) {
   const selectClass = (id) => {};
   return (
     <div>
-      <p className="mb-4 break-all px-2">
+      <p className="mb-4 break-all pr-2 mt-2">
         Current labels for{' '}
         <span className="font-semibold">{selectedImage?.name}</span>
       </p>

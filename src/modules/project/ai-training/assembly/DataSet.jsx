@@ -82,6 +82,8 @@ export default function DataSet({ setLoading, formRef }) {
 
   React.useEffect(() => {
     fetchAllFolders();
+
+    return () => setOpenModal(false);
   }, []);
 
   // const columns = ['Variant 1', 'CP1', 'CC1'];

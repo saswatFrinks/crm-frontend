@@ -80,6 +80,8 @@ const WarningModal = ({warningIndex, configId, config}) => {
 
   useEffect(() => {
     getValidationForConfiguration();
+
+    return () => setOpen(false);
   }, [])
 
   return (

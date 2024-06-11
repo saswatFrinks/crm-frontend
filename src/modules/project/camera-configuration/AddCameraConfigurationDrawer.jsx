@@ -105,6 +105,8 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
             cameraConfigId: editConfig.id,
           };
           await axiosInstance.put('/cameraConfig/edit', data);
+          closeDrawer();
+          fetchAllCameraConfigs();
         } else {
           const instanceStatus = await axiosInstance.get('/cameraConfig/instance-status', {
             params: {
@@ -165,6 +167,8 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
 
   useEffect(() => {
     fetchAllClasses();
+
+    return () => setOpenConfirm(false);
   }, [])
 
   React.useEffect(() => {
