@@ -132,9 +132,9 @@ export default function Detail({ loader, modelInfo, datasets }) {
                                 <div>{dataset?.datasetName}</div>
                                 <div>
                                   <p
-                                    className={`text-${dataset?.isAnnotated ? 'green' : 'red'}-500 font-medium mr-4`}
+                                    className={`text-green-500 font-medium mr-4`}
                                   >
-                                    {`${dataset?.annotatedImages}/${dataset?.totalImages}`}
+                                    {`${dataset?.annotatedImages}`}
                                   </p>
                                 </div>
                               </div>
