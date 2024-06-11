@@ -362,7 +362,7 @@ export default function Assembly() {
               parts: [],
             };
             //!do rectangle here too
-            const { x1, x2, y1, y2 } = conf.rois;
+            const [ x1, y1, x2, y2] = conf.rois.coordinates;
             const color = getRandomHexColor();
             const uuid = v4();
             rects.push({
@@ -475,17 +475,17 @@ export default function Assembly() {
           operator: part.operation,
         };
       });
-      let x1, x2, y1, y2;
+      const points = []
       console.log(
         roi.id,
         rois.map((ele) => ele.roiId)
       );
       rois.forEach((roiRect) => {
         if (roi.id == roiRect.roiId) {
-          x1 = parseFloat(roiRect.x.toFixed(4));
-          x2 = parseFloat((roiRect.x + roiRect.width).toFixed(4));
-          y1 = parseFloat(roiRect.y.toFixed(4));
-          y2 = parseFloat((roiRect.y + roiRect.height).toFixed(4));
+          points.push(parseFloat(roiRect.x.toFixed(4)));
+          points.push(parseFloat(roiRect.y.toFixed(4)));
+          points.push(parseFloat((roiRect.x + roiRect.width).toFixed(4)));
+          points.push(parseFloat((roiRect.y + roiRect.height).toFixed(4)));
         }
       });
       // console.log("id of rois",roi?.id)
@@ -493,10 +493,7 @@ export default function Assembly() {
         id: roi?.identity || '',
         name: roi?.title ?? `ROI ${roi?.id}`,
         // name: `ROI ${roi?.id}`,
-        x1,
-        x2,
-        y1,
-        y2,
+        coordinates: points,
         parts: tempParts,
       };
     });

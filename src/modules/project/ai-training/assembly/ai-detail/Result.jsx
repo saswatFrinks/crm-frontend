@@ -35,10 +35,10 @@ export default function Result() {
   const getFormattedBoxes = (boxes) => {
     return boxes.map((classItem, index) => ({
       ...classItem,
-      x: (classItem.x1 + classItem.x2) / 2,
-      y: (classItem.y1 + classItem.y2) / 2,
-      width: Math.abs(classItem.x1 - classItem.x2),
-      height: Math.abs(classItem.y1 - classItem.y2),
+      x: (classItem.coordinates[0] + classItem.coordinates[2]) / 2,
+      y: (classItem.coordinates[1] + classItem.coordinates[3]) / 2,
+      width: Math.abs(classItem.coordinates[0] - classItem.coordinates[2]),
+      height: Math.abs(classItem.coordinates[1] - classItem.coordinates[3]),
       id: index,
       title: `Class ${index + 1}`,
     }))

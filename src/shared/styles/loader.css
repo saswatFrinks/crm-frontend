@@ -56,3 +56,18 @@
     left: -25%;
   }
 }
+
+.radial-progess-item{
+  animation: radial-progress 4s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+@keyframes radial-progress {
+  0% {
+    rotate: -90deg;
+  }
+  100% {
+    rotate: 270deg;
+  }
+}
