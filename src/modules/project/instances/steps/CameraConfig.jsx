@@ -70,7 +70,7 @@ const CameraConfig = ({formRef, configUploaded}) => {
 
     displayData?.forEach((d, index) => {
       formErrors[index] = configDetails.get(d?.cameraConfigId) ? '' : (formErrors[index] !== '' ? formErrors[index] : 'Please upload the camera config file');
-      if(!configDetails.has(d?.cameraConfigId))flag = false;
+      if(!configDetails.get(d?.cameraConfigId))flag = false;
     })
     setErrors(formErrors);
     return flag;
