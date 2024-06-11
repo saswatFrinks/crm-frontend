@@ -2,7 +2,7 @@ import { useContainerSize } from '@/shared/hooks/useContainerSize';
 import { useMouseWheel } from '@/modules/project/assembly/hooks/useMouseWheel';
 import BigImage from '@/shared/icons/BigImage';
 import Upload from '@/shared/icons/Upload';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Stage, Layer, Image, Text, Line as LineShape } from 'react-konva';
 import useImage from 'use-image';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
@@ -17,7 +17,9 @@ import {
   labelClassAtom,
   mousePositionAtom,
   rectanglesAtom,
+  polygonsAtom,
   rectanglesTypeAtom,
+  polygonsTypeAtom,
   selectedFileAtom,
   selectedRoiSelector,
   stageAtom,
@@ -42,6 +44,7 @@ export default function UploadImage() {
   const rectType = useRecoilValue(rectanglesTypeAtom);
 
   const [rectangles, setRectangles] = useRecoilState(rectanglesAtom);
+  const [polygons, setPolygons] = useRecoilState(polygonsAtom)
 
   const step = useRecoilValue(stepAtom);
 
@@ -59,6 +62,10 @@ export default function UploadImage() {
   const selectedRoiId = useRecoilValue(currentRoiIdAtom);
   const seletectedLabel = useRecoilValue(labelClassAtom);
   const setRectType = useSetRecoilState(rectanglesTypeAtom);
+  const setPolyType = useSetRecoilState(polygonsTypeAtom);
+
+  const [imageStatus, setImageStatus] = useRecoilState(imageStatusAtom);
+  const [polyDraw, setPolyDraw] = useState(false);
 
   const roiIndex = configuration.rois.findIndex((v) => v.id == selectedRoiId);
   const name = configuration.rois.filter((v) => v.id == selectedRoiId)[0]?.title;
@@ -157,8 +164,25 @@ export default function UploadImage() {
     setRectangles(rects);
   };
 
+  const updatePolygons = (polys) => {
+    setPolygons(polys)
+  }
+
+  useEffect(() => {
+    if(imageStatus.drawMode === 'POLY') {
+      setPolyDraw(true)
+    } else if(imageStatus.drawMode == false){
+      setPolyDraw(false);
+    }
+  }, [imageStatus.drawMode])
+
+  // const updatePolygon = (polys) => {
+  //   setPolygon(polys);
+  // }
+
   React.useEffect(() => {
     setRectType(RECTANGLE_TYPE.ROI);
+    setPolyType(RECTANGLE_TYPE.ROI);
   }, []);
 
   React.useEffect(() => {
@@ -196,6 +220,9 @@ export default function UploadImage() {
               rectangles={rectangles}
               title={roiName}
               imageId={selectedFile?.id}
+              polygons={polygons}
+              onPolyUpdate={updatePolygons}
+              polyDraw={polyDraw}
             />
           ) : null}
         </>

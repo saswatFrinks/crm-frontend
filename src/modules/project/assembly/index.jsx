@@ -35,13 +35,17 @@ import {
   assemblyAtom,
   currentLabelIdAtom,
   currentRectangleIdAtom,
+  currentPolygonIdAtom,
   currentRoiIdAtom,
   editingAtom,
   labelEditedAtom,
   lastActionNameAtom,
   rectanglesAtom,
+  polygonsAtom,
   rectanglesTypeAtom,
+  polygonsTypeAtom,
   uploadedFileListAtom,
+  imageStatusAtom,
 } from '../state';
 import { useNavigate } from 'react-router-dom';
 import { cloneDeep } from 'lodash';
@@ -52,6 +56,7 @@ import { v4 } from 'uuid';
 export default function Assembly() {
   const [isEditing, setIsEditing] = useRecoilState(editingAtom);
   const setRectangleType = useSetRecoilState(rectanglesTypeAtom);
+  const setPolygonType = useSetRecoilState(polygonsTypeAtom);
 
   const { projectId, configurationId } = useParams();
 
@@ -66,18 +71,47 @@ export default function Assembly() {
   const [isEditingRect, setEditingRect] = useRecoilState(editingRectAtom);
 
   const [step, setStep] = useRecoilState(stepAtom);
-  const rois = useRecoilValue(rectanglesAtom).filter(
-    (t) => t.rectType == RECTANGLE_TYPE.ROI
-  );
-  const annotationRects = useRecoilValue(rectanglesAtom).filter(
-    (t) => t.rectType == RECTANGLE_TYPE.ANNOTATION_LABEL
-  );
+
+  const [imageStatus, setImageStatus] = useRecoilState(imageStatusAtom);
+  
+  // const rois = useRecoilValue(rectanglesAtom).filter(
+  //   (t) => t.rectType == RECTANGLE_TYPE.ROI
+  // );
+
+  const rois = [
+    ...useRecoilValue(rectanglesAtom).filter(
+      (t) => t.rectType === RECTANGLE_TYPE.ROI
+    ),
+    ...useRecoilValue(polygonsAtom).filter(
+      (t) => t.polyType === RECTANGLE_TYPE.ROI
+    ),
+  ];
+
+  // const annotationRects = useRecoilValue(rectanglesAtom).filter(
+  //   (t) => t.rectType == RECTANGLE_TYPE.ANNOTATION_LABEL
+  // );
+
+  const annotationRects = [
+    ...useRecoilValue(rectanglesAtom).filter(
+      (t) => t.rectType === RECTANGLE_TYPE.ANNOTATION_LABEL
+    ),
+    ...useRecoilValue(polygonsAtom).filter(
+      (t) => t.polyType === RECTANGLE_TYPE.ANNOTATION_LABEL
+    ),
+  ];
+
+  // const recValue = useRecoilValue(rectanglesAtom);
+  // const polyValue = useRecoilValue(polygonsAtom);
+  // console.log("all figures",{rois, annotationRects, recValue, polyValue})
+
   const [annotationMap, setAnnotationMap] = useRecoilState(annotationMapAtom);
   const [selectedRectId, setSelectedRectId] = useRecoilState(
     currentRectangleIdAtom
   );
+  const [selectedPolyId, setSelectedPolyId] = useRecoilState(currentPolygonIdAtom);
   const setLastAction = useSetRecoilState(lastActionNameAtom);
   const [rectangles, setRectangles] = useRecoilState(rectanglesAtom);
+  const [polygons, setPolygons] = useRecoilState(polygonsAtom);
   const setLabelsLoaded = useSetRecoilState(loadedLabelsAtom);
   const [labelsEdited, setLabelsEdited] = useRecoilState(labelEditedAtom);
   const [roisLoaded, setRoisLoaded] = useState(false);
@@ -257,11 +291,17 @@ export default function Assembly() {
   };
 
   const cancel = () => {
+    // setPolygons((polys) => polys.filter((poly) => poly.roiId !== currentRoiId));
+    setImageStatus((prev) => ({
+      ...prev,
+      drawMode: false,
+    }));
     setEditingRect(false);
     setIsEditing(false);
     setLabelId(null);
     setCurrentRoiId(null);
     setRectangleType(RECTANGLE_TYPE.ROI);
+    setPolygonType(RECTANGLE_TYPE.ROI);
     setLastAction(ACTION_NAMES.CANCEL);
     setConfiguration((t) => ({
       ...t,
@@ -274,11 +314,16 @@ export default function Assembly() {
   };
 
   const submit = () => {
+    setImageStatus((prev) => ({
+      ...prev,
+      drawMode: false,
+    }));
     setLabelId(null);
     setEditingRect(false);
     setIsEditing(false);
     setCurrentRoiId(null);
     setSelectedRectId(null);
+    setSelectedPolyId(null);
     setLastAction(ACTION_NAMES.SUBMIT);
     setConfiguration((t) => ({
       ...t,
@@ -289,7 +334,8 @@ export default function Assembly() {
         status:
           k.id === currentRoiId &&
           (prevStatus === 'finish' ||
-            rectangles.find((rect) => rect.title === k.title))
+            rectangles.find((rect) => rect.title === k.title)) || 
+            polygons.find((poly) => poly.title === k.title)
             ? STATUS.FINISH
             : k.id === currentRoiId
               ? STATUS.DEFAULT
@@ -297,9 +343,10 @@ export default function Assembly() {
       })),
     }));
     setRectangleType(RECTANGLE_TYPE.ROI);
+    setPolygonType(RECTANGLE_TYPE.ROI);
   };
 
-  console.log({ configuration }, { rectangles });
+  console.log({ configuration }, { rectangles }, { polygons });
 
   const stepObj = {
     0: <UploadImageStep />,
@@ -345,6 +392,7 @@ export default function Assembly() {
         const partsMap = {};
         const roiMap = {};
         const rects = [];
+        const polys = [];
         // let configUpdate = { productFlow: data[0].configuration.direction },
         //   configUpdateRequired = false;
         data?.forEach((conf, i) => {
@@ -363,8 +411,11 @@ export default function Assembly() {
             };
             //!do rectangle here too
             const { x1, x2, y1, y2 } = conf.rois;
+            // const points = conf.rois.points;
+
             const color = getRandomHexColor();
             const uuid = v4();
+            // if(points.length === 4) it is rectangle
             rects.push({
               ...BASE_RECT,
               id: rois.length + i,
@@ -380,6 +431,19 @@ export default function Assembly() {
               height: parseFloat(y2 - y1),
               uuid,
             });
+            // else   it is polygon 
+            // polys.push({
+            //   ...BASE_RECT,
+            //   id: rois.length + i,
+            //   fill: color,
+            //   stroke: color,
+            //   imageId: images[0].id,
+            //   polyType: RECTANGLE_TYPE.ROI,
+            //   roiId: i,
+            //   title: conf.rois.name,
+            //   points: [],  //points will get from 393 line of code
+            //   uuid,
+            // });
           }
           if (!partsMap[roiId]) {
             partsMap[roiId] = [];
@@ -423,6 +487,7 @@ export default function Assembly() {
           // rois: sortedRois
         }));
         setRectangles((prev) => [...prev, ...rects]);
+        setPolygons((prev) => [...prev, ...polys]);
 
         // if (configUpdateRequired) {
         //   setConfiguration((prev) => ({
@@ -457,15 +522,16 @@ export default function Assembly() {
     const imgMap = {};
     let temp = cloneDeep(configuration);
     // const temp = configuration;
-    console.log('prepareApiData', { temp }, { configuration });
+    // console.log('prepareApiData', { temp }, { configuration });
     temp = {
       ...temp,
     };
     temp.direction = parseInt(temp.productFlow);
     temp.id = configurationId;
     delete temp.productFlow;
+    console.log({configuration});
     temp.rois = configuration.rois.map((roi, index) => {
-      console.log('roi11', { roi });
+      // console.log('roi11', { roi });
       const tempParts = roi.parts.map((part) => {
         return {
           classify: part.classify == 'on',
@@ -476,10 +542,12 @@ export default function Assembly() {
         };
       });
       let x1, x2, y1, y2;
-      console.log(
-        roi.id,
-        rois.map((ele) => ele.roiId)
-      );
+      let points = [];
+      // console.log(
+      //   roi.id,
+      //   rois.map((ele) => ele.roiId)
+      // );
+      console.log({rois})
       rois.forEach((roiRect) => {
         if (roi.id == roiRect.roiId) {
           x1 = parseFloat(roiRect.x.toFixed(4));
@@ -514,7 +582,7 @@ export default function Assembly() {
     //   const blob = await resp.blob()
     //   formData.append('images', blob, img.name)
     // }))
-    console.log('formData', { temp });
+    // console.log('formData', { temp });
     formData.append('data', JSON.stringify(temp));
     formData.append('configurationId', configurationId);
     formData.append(
@@ -555,6 +623,11 @@ export default function Assembly() {
       rect.rectType == RECTANGLE_TYPE.ANNOTATION_LABEL &&
       imageIdStore.add(rect.imageId);
   });
+  polygons.forEach((poly) => {
+    poly.imageId &&
+      poly.polyType == RECTANGLE_TYPE.ANNOTATION_LABEL &&
+      imageIdStore.add(poly.imageId);
+  })
   const isAllImagesLabeled = imageIdStore.size == 10;
 
   return (

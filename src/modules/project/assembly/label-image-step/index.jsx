@@ -22,6 +22,7 @@ import {
   labelEditedAtom,
   lastActionNameAtom,
   rectanglesAtom,
+  polygonsAtom,
   rectanglesTypeAtom,
   selectedFileAtom,
   selectedRoiSelector,
@@ -73,6 +74,7 @@ export default function LabelImage({ save }) {
 
   const [selectedFile, setSelectedFile] = useRecoilState(selectedFileAtom);
   const [rectangles, setRectangle] = useRecoilState(rectanglesAtom);
+  const [polygons, setPolygons] = useRecoilState(polygonsAtom);
   const [initialLabels, setInitialLabels] = useRecoilState(initialLabelsAtom);
 
   const [labelId, setLabelId] = useRecoilState(currentLabelIdAtom);
@@ -104,6 +106,7 @@ export default function LabelImage({ save }) {
     //   return;
     // }
     setRectangle((t) => t.filter((k) => k.uuid !== uuid));
+    setPolygons((t) => t.filter((k) => k.id !== uuid));
     // setRectangleColor((t) => t.filter((k) => k.name !== name))
     const temp = { ...annotationMap };
     delete temp[uuid];
