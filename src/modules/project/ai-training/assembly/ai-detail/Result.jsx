@@ -10,6 +10,7 @@ import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader';
 import { getRandomHexColor } from '@/util/util';
 import ResultPagination from '@/shared/ui/ResultPagination';
 import Select from '@/shared/ui/Select';
+import NoData from '@/shared/ui/NoData';
 
 export default function Result() {
   const canvasSize = 500;
@@ -297,6 +298,10 @@ export default function Result() {
       setCachedImages(new Map());
     }
   }, [])
+
+  if(!loader && imageWithConfigs.length == 0){
+    return <NoData />
+  }
 
   return (
     <div className="grid gap-4">

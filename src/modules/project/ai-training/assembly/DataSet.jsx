@@ -171,6 +171,7 @@ export default function DataSet({ setLoading, formRef }) {
   }
 
   formRef.current = {handleSubmit}
+  console.log({folders})
 
   return (
     <div className="flex flex-col gap-8">

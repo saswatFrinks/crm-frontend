@@ -73,3 +73,22 @@ export const compareArrays = (annotRects, iniLabels) => {
   }
   return flag;
 };
+
+export function validateRegexString(input) {
+  const allowedPattern = /^[a-zA-Z0-9 ]+$/;
+
+  if (allowedPattern.test(input)) {
+      return '';
+  }
+
+  const invalidCharacters = new Set();
+  for (let char of input) {
+      if (!/[a-zA-Z0-9 ]/.test(char)) {
+          invalidCharacters.add(char);
+      }
+  }
+
+  let errorMessage = `Invalid characters: "${Array.from(invalidCharacters).join(", ")}" ${Array.from(invalidCharacters).length > 1 ? 'are' : 'is'} not allowed.`;
+
+  return errorMessage;
+}
