@@ -329,7 +329,7 @@ export default function AnnotationJob() {
         data?.forEach((conf, i) => {
           const roiId = conf.rois.id;
           if (!roiMap[roiId]) {
-            const { x1, x2, y1, y2 } = conf.rois;
+            const [ x1, y1, x2, y2 ] = conf.rois.coordinates;
             const color = getRandomHexColor();
             rects.push({
               ...BASE_RECT,
@@ -548,7 +548,7 @@ export default function AnnotationJob() {
     cacheRef.current = cachedImages;
   }, [cachedImages]);
 
-  console.log('outside', { modalOpen });
+  console.log('outside', { modalOpen }, annotationClasses[selectedImage?.id]?.rectangles,);
 
   return (
     <>

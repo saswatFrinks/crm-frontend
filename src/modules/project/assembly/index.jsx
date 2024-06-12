@@ -73,7 +73,7 @@ export default function Assembly() {
   const [step, setStep] = useRecoilState(stepAtom);
 
   const [imageStatus, setImageStatus] = useRecoilState(imageStatusAtom);
-  
+
   // const rois = useRecoilValue(rectanglesAtom).filter(
   //   (t) => t.rectType == RECTANGLE_TYPE.ROI
   // );
@@ -108,7 +108,8 @@ export default function Assembly() {
   const [selectedRectId, setSelectedRectId] = useRecoilState(
     currentRectangleIdAtom
   );
-  const [selectedPolyId, setSelectedPolyId] = useRecoilState(currentPolygonIdAtom);
+  const [selectedPolyId, setSelectedPolyId] =
+    useRecoilState(currentPolygonIdAtom);
   const setLastAction = useSetRecoilState(lastActionNameAtom);
   const [rectangles, setRectangles] = useRecoilState(rectanglesAtom);
   const [polygons, setPolygons] = useRecoilState(polygonsAtom);
@@ -158,7 +159,7 @@ export default function Assembly() {
       );
       return;
     }
-    // console.log({ annotationRects }); // has all the label rectangles
+    console.log({ annotationRects }); // has all the label rectangles
     // console.log('initial', initialLabels);
 
     if (
@@ -177,16 +178,37 @@ export default function Assembly() {
       console.log('labelsedited', labelsEdited[rect.imageId], rect.imageId);
       if (!labelsEdited[rect.imageId]) return;
       const classNo = annotationMap[rect.uuid];
-      const height = rect.height.toFixed(4);
-      const width = rect.width.toFixed(4);
-      const x = (rect.x + rect.width / 2).toFixed(4);
-      const y = (rect.y + rect.height / 2).toFixed(4);
-      if (imgMap[rect.imageId]) {
-        imgMap[rect.imageId] += `${classNo} ${x} ${y} ${width} ${height}\n`;
+      if (rect?.x) {
+        const height = rect.height.toFixed(4);
+        const width = rect.width.toFixed(4);
+        const x = (rect.x + rect.width / 2).toFixed(4);
+        const y = (rect.y + rect.height / 2).toFixed(4);
+        if (imgMap[rect.imageId]) {
+          imgMap[rect.imageId] += `${classNo} ${x} ${y} ${width} ${height}\n`;
+        } else {
+          imgMap[rect.imageId] = `${classNo} ${x} ${y} ${width} ${height}\n`;
+        }
       } else {
-        imgMap[rect.imageId] = `${classNo} ${x} ${y} ${width} ${height}\n`;
+        const points = rect.points;
+        if (imgMap[rect.imageId]) {
+          imgMap[rect.imageId] += `${classNo}`;
+          points.map((point, i) => {
+            point = point.toFixed(4);
+            imgMap[rect.imageId] += ` ${point}`;
+          });
+          imgMap[rect.imageId] += `\n`;
+        } else {
+          imgMap[rect.imageId] = `${classNo}`;
+          points.map((point, i) => {
+            point = point.toFixed(4);
+            imgMap[rect.imageId] += ` ${point}`;
+          });
+          imgMap[rect.imageId] += `\n`;
+        }
       }
     });
+
+    console.log({ imgMap });
     const formData = new FormData();
     const imageIds = [];
     // console.log({images}) // conatins the 10 uploaded images
@@ -332,10 +354,10 @@ export default function Assembly() {
         // status: k.id == currentRoiId ? STATUS.FINISH : k.status,
 
         status:
-          k.id === currentRoiId &&
-          (prevStatus === 'finish' ||
-            rectangles.find((rect) => rect.title === k.title)) || 
-            polygons.find((poly) => poly.title === k.title)
+          (k.id === currentRoiId &&
+            (prevStatus === 'finish' ||
+              rectangles.find((rect) => rect.title === k.title))) ||
+          polygons.find((poly) => poly.title === k.title)
             ? STATUS.FINISH
             : k.id === currentRoiId
               ? STATUS.DEFAULT
@@ -410,40 +432,45 @@ export default function Assembly() {
               parts: [],
             };
             //!do rectangle here too
-            const { x1, x2, y1, y2 } = conf.rois;
-            // const points = conf.rois.points;
-
+            // const [ x1, y1, x2, y2] = conf.rois.coordinates.length > 4 ? ;
+            const points = conf.rois.coordinates;
             const color = getRandomHexColor();
             const uuid = v4();
-            // if(points.length === 4) it is rectangle
-            rects.push({
-              ...BASE_RECT,
-              id: rois.length + i,
-              fill: color,
-              stroke: color,
-              imageId: images[0].id,
-              rectType: RECTANGLE_TYPE.ROI,
-              roiId: i,
-              title: conf.rois.name,
-              x: parseFloat(x1),
-              y: parseFloat(y1),
-              width: parseFloat(x2 - x1),
-              height: parseFloat(y2 - y1),
-              uuid,
-            });
-            // else   it is polygon 
-            // polys.push({
-            //   ...BASE_RECT,
-            //   id: rois.length + i,
-            //   fill: color,
-            //   stroke: color,
-            //   imageId: images[0].id,
-            //   polyType: RECTANGLE_TYPE.ROI,
-            //   roiId: i,
-            //   title: conf.rois.name,
-            //   points: [],  //points will get from 393 line of code
-            //   uuid,
-            // });
+
+            if (points.length === 4) {
+              // it is rectangle
+              const [x1, y1, x2, y2] = points;
+              rects.push({
+                ...BASE_RECT,
+                id: rois.length + i,
+                fill: color,
+                stroke: color,
+                imageId: images[0].id,
+                rectType: RECTANGLE_TYPE.ROI,
+                roiId: i,
+                title: conf.rois.name,
+                x: parseFloat(x1),
+                y: parseFloat(y1),
+                width: parseFloat(x2 - x1),
+                height: parseFloat(y2 - y1),
+                uuid,
+              });
+            } else {
+              //  it is polygon
+              polys.push({
+                ...BASE_RECT,
+                id: rois.length + i,
+                fill: color,
+                stroke: color,
+                imageId: images[0].id,
+                polyType: RECTANGLE_TYPE.ROI,
+                roiId: i,
+                title: conf.rois.name,
+                points: points, 
+                uuid,
+                closed: true
+              });
+            }
           }
           if (!partsMap[roiId]) {
             partsMap[roiId] = [];
@@ -529,7 +556,7 @@ export default function Assembly() {
     temp.direction = parseInt(temp.productFlow);
     temp.id = configurationId;
     delete temp.productFlow;
-    console.log({configuration});
+    console.log('llll', { configuration });
     temp.rois = configuration.rois.map((roi, index) => {
       // console.log('roi11', { roi });
       const tempParts = roi.parts.map((part) => {
@@ -541,19 +568,26 @@ export default function Assembly() {
           operator: part.operation,
         };
       });
-      let x1, x2, y1, y2;
-      let points = [];
-      // console.log(
-      //   roi.id,
-      //   rois.map((ele) => ele.roiId)
-      // );
-      console.log({rois})
+      const points = [];
+      console.log(
+        roi.id,
+        rois.map((ele) => ele.roiId)
+      );
+      console.log({ rois });
       rois.forEach((roiRect) => {
         if (roi.id == roiRect.roiId) {
-          x1 = parseFloat(roiRect.x.toFixed(4));
-          x2 = parseFloat((roiRect.x + roiRect.width).toFixed(4));
-          y1 = parseFloat(roiRect.y.toFixed(4));
-          y2 = parseFloat((roiRect.y + roiRect.height).toFixed(4));
+          if (roiRect?.x) {
+            points.push(parseFloat(roiRect.x.toFixed(4)));
+            points.push(parseFloat(roiRect.y.toFixed(4)));
+            points.push(parseFloat((roiRect.x + roiRect.width).toFixed(4)));
+            points.push(parseFloat((roiRect.y + roiRect.height).toFixed(4)));
+          } else {
+            points.push(...roiRect.points);
+          }
+          // points.push(parseFloat(roiRect.x.toFixed(4)));
+          // points.push(parseFloat(roiRect.y.toFixed(4)));
+          // points.push(parseFloat((roiRect.x + roiRect.width).toFixed(4)));
+          // points.push(parseFloat((roiRect.y + roiRect.height).toFixed(4)));
         }
       });
       // console.log("id of rois",roi?.id)
@@ -561,10 +595,7 @@ export default function Assembly() {
         id: roi?.identity || '',
         name: roi?.title ?? `ROI ${roi?.id}`,
         // name: `ROI ${roi?.id}`,
-        x1,
-        x2,
-        y1,
-        y2,
+        coordinates: points,
         parts: tempParts,
       };
     });
@@ -627,7 +658,7 @@ export default function Assembly() {
     poly.imageId &&
       poly.polyType == RECTANGLE_TYPE.ANNOTATION_LABEL &&
       imageIdStore.add(poly.imageId);
-  })
+  });
   const isAllImagesLabeled = imageIdStore.size == 10;
 
   return (

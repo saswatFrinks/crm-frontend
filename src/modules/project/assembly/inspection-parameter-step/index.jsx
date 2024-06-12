@@ -312,7 +312,7 @@ export default function InspectionParameterStep(props) {
     let idx = rectangles.findIndex(
       (rect) => rect.title == title && rect.rectType == RECTANGLE_TYPE.ROI
     );
-    console.log({idx, title})
+
     if (idx === -1) {
       idx = polygons.findIndex(
         (poly) => poly.title == title && poly.polyType == RECTANGLE_TYPE.ROI
@@ -320,7 +320,6 @@ export default function InspectionParameterStep(props) {
       type = "pol";
     }
 
-    console.log(id, idx, rectangles[idx]?.uuid, polygons[idx]?.uuid);
     if (idx >= 0) {
       if (type === "rec" && rectangles[idx]?.uuid) {
         setSelectedRectId(rectangles[idx].uuid);

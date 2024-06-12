@@ -10,6 +10,7 @@ const Polygon = ({
   scale,
   ...rest
 }) => {
+  console.log({shape})
   const shapeRef = React.useRef(null);
 
   const getNormalizedPoints = (arr) => {
@@ -34,16 +35,38 @@ const Polygon = ({
     return [points, grouped];
   };
 
-  React.useEffect(() => {
-    const cb = () => {
-      if (shapeRef.current) {
-        const [pts] = getNormalizedPoints(shape.points);
-        shapeRef.current.points(pts);
-      }
-    };
-    cb();
-  }, [shape, shapeRef, offset]);
-  console.log(offset, scale)
+  // React.useEffect(() => {
+    // const getNormalizedPoints = (arr) => {
+    //   let points = [];
+    //   let grouped = [];
+    //   console.log(offset);
+    //   const sc = scale || 1;
+    //   const ox = offset?.x || 0;
+    //   const oy = offset?.y || 0;
+    //   for (let i = 0; i < arr?.length; i += 2) {
+    //     const x = arr[i] * sc + ox;
+    //     const y = arr[i + 1] * sc + oy;
+    //     const xPoint = arr[i] + ox;
+    //     const yPoint = arr[i + 1] + oy;
+    //     console.log(x, y,"Grouped")
+    //     points.push(x);
+    //     points.push(y);
+    //     grouped.push([x, y]);
+    //     // grouped.push([xPoint, yPoint]);
+    //     // console.log({points, grouped})
+    //   }
+    //   return [points, grouped];
+    // };
+    // const cb = () => {
+    //   if (shapeRef.current) {
+    //     const [pts] = getNormalizedPoints(shape.points);
+    //     shapeRef.current.points(pts);
+    //   }
+    // };
+    // console.log('changed', shape)
+    // cb();
+  // }, [shape, shapeRef, offset, scale]);
+  // console.log(offset, scale)
   const [points, polyPoints] = getNormalizedPoints(shape.points);
 
   console.log('Polygon component rendered', {
@@ -74,7 +97,22 @@ const Polygon = ({
         ref={shapeRef}
         {...shape}
         draggable={Boolean(isSelected)}
-        onChange={onChange}
+        onDragMove={(e) => {
+          if (isSelected) e.cancelBubble = true;
+        }}
+        onDragStart={(e) => {
+          if (isSelected) e.cancelBubble = true;
+        }}
+        onDragEnd={e=>{
+          // console.log('ddfdfdfdfd',e.target.getAttrs())
+          e.cancelBubble = true
+          // e.evt.bubbles = false
+          const newPoints = e.currentTarget.position();
+          const sc = scale || 0
+          const modifiedPoints = points.map((p,i)=> i%2==0 ? p+(newPoints.x * sc): p+newPoints.y* sc);
+          console.log("MODS", modifiedPoints, newPoints, offset)
+          onChange({uuid: shape.uuid, points: shapeRef.current.points()})
+        }}
         stroke={isSelected ? '#505050' : shape.stroke}
         {...rest}
         points={points}

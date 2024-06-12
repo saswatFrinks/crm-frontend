@@ -60,7 +60,8 @@ const KonvaImageView = ({
   const [selectedRectId, setSelectedRectId] = useRecoilState(
     currentRectangleIdAtom
   );
-  const [selectedPolyId, setSelectedPolyId] = useRecoilState(currentPolygonIdAtom);
+  const [selectedPolyId, setSelectedPolyId] =
+    useRecoilState(currentPolygonIdAtom);
   const [currentPoly, setCurrentPoly] = React.useState(null);
   const roiId = useRecoilValue(currentRoiIdAtom);
   const rectangleType = useRecoilValue(rectanglesTypeAtom);
@@ -70,6 +71,7 @@ const KonvaImageView = ({
   const [lastPolyId, setLastPolyId] = React.useState(null);
   const [lastAction, setLastAction] = useRecoilState(lastActionNameAtom);
   const [scaledRectangles, setScaledRectangles] = useState([]);
+  const [scaledPolygons, setScaledPolygons] = useState([]);
 
   const [curPoly, setCurPoly] = React.useState(null);
 
@@ -105,11 +107,10 @@ const KonvaImageView = ({
 
     const stage = coverRef.current;
 
-    if (imageStatus.drawMode === "POLY" || imageStatus.drawMode === "RECT") {
+    if (imageStatus.drawMode === 'POLY' || imageStatus.drawMode === 'RECT') {
       //called when rectangle is drawn
-      console.log("cond check",imageStatus.drawMode)
+      console.log('cond check', imageStatus.drawMode);
       if (imageStatus.drawMode === 'POLY') {
-
         console.log('points1', { pointerPosition, currentPoly });
 
         const newPoints = currentPoly?.points?.concat([
@@ -128,7 +129,11 @@ const KonvaImageView = ({
                   ele.imageId == imageId
               ).length || 0;
 
-        const color = getRandomHexColor();
+        // const color = getRandomHexColor();
+        const color =
+          rectangleColor.selectedColor === '#fff' || rectangleType === 'ROI'
+            ? getRandomHexColor()
+            : rectangleColor.selectedColor;
         setCurrentPoly({
           ...BASE_RECT,
           // ...polygonPoints,
@@ -136,11 +141,11 @@ const KonvaImageView = ({
           fill: color,
           stroke: color,
           imageId: imageId,
-          polyType: rectangleType,
+          polyType: polygonType,
           roiId,
           title,
           uuid,
-          points: newPoints
+          points: newPoints,
         });
 
         // const newPoints = currentPoly?.points?.concat([
@@ -151,7 +156,7 @@ const KonvaImageView = ({
 
         setImageStatus((p) => ({ ...p, drawMode: 'POLY' }));
         setLastPolyId(uuid);
-      // } else if(imageStatus.drawMode === "RECT"){
+        // } else if(imageStatus.drawMode === "RECT"){
       } else {
         console.log('drawing rect1');
         setImageStatus((a) => ({ ...a, drawing: true, drawMode: 'RECT' }));
@@ -191,7 +196,7 @@ const KonvaImageView = ({
 
         setLastPolyId(uuid);
       }
-    } else  {
+    } else {
       // called when image is dragged
       console.log('starting dragging here:', e.clientX);
       setImageStatus((a) => ({ ...a, dragging: true }));
@@ -204,7 +209,7 @@ const KonvaImageView = ({
 
   React.useEffect(() => {
     console.log('Started drawing poly');
-    if(imageStatus.drawMode !== 'POLY' || !polyDraw) return;
+    if (imageStatus.drawMode !== 'POLY' || !polyDraw) return;
     const color = getRandomHexColor();
     // const color =
     //       rectangleColor.selectedColor === '#fff' || polygonType === 'ROI'
@@ -241,17 +246,25 @@ const KonvaImageView = ({
   const normalizePolygonPoints = (arr) => {
     return arr.map((pt, i) => {
       if (i % 2 == 0) {
-        return (pt - origin.x) / origin.scale;
+        return (pt - origin.x) / origin.scale / image.width;
       }
-      return (pt - origin.y) / origin.scale;
+      return (pt - origin.y) / origin.scale / image.width;
     });
+
+    // return {
+    //   x: (x - origin.x) / origin.scale / image.width,
+    //   y: (y - origin.y) / origin.scale / image.height,
+    //   width: width / origin.scale / image.width,
+    //   height: height / origin.scale / image.height,
+    // };
   };
 
   const handleDoubleClick = (e) => {
-    if (imageStatus.drawMode === 'POLY' && currentPoly?.points?.length>2) {
+    if (imageStatus.drawMode === 'POLY' && currentPoly?.points?.length > 2) {
       const pos = stageRef.current.getPointerPosition();
       const poly = { ...currentPoly, closed: true };
       poly.points = normalizePolygonPoints(poly.points);
+      console.log('points values', poly.points);
       onPolyUpdate([...polygons, poly]);
       setSelectedPolyId(currentPoly.uuid);
     }
@@ -274,7 +287,10 @@ const KonvaImageView = ({
     const { width, height } = stage.getBoundingClientRect();
 
     // console.log(stage, stage.offsetLeft)
-    if (imageStatus.drawing && (imageStatus.drawMode === "POLY" || imageStatus.drawMode === "RECT")) {
+    if (
+      imageStatus.drawing &&
+      (imageStatus.drawMode === 'POLY' || imageStatus.drawMode === 'RECT')
+    ) {
       const stage2 = evt.target.getStage();
       const pointerPosition = stage2.getPointerPosition();
 
@@ -315,6 +331,7 @@ const KonvaImageView = ({
       handleValueReset(normalizedValue);
       console.log(normalizedValue);
       if (normalizedValue.width !== 0 && normalizedValue.height !== 0) {
+        console.log(normalizedValue);
         onDrawStop([...rectangles, normalizedValue]);
       }
       setCurrentPoly(null);
@@ -330,7 +347,10 @@ const KonvaImageView = ({
       draw: false,
       dragging: false,
       drawing: false,
-      drawMode: prev.drawMode === "RECT" || prev.drawMode === "POLY" ? true : prev.drawMode,
+      drawMode:
+        prev.drawMode === 'RECT' || prev.drawMode === 'POLY'
+          ? true
+          : prev.drawMode,
     }));
   };
 
@@ -474,7 +494,6 @@ const KonvaImageView = ({
   React.useEffect(() => {
     const modified = [];
     if (image?.width) {
-      console.log();
       rectangles.forEach((rect) => {
         const x = rect.x * image.width;
         const y = rect.y * image.height;
@@ -487,8 +506,21 @@ const KonvaImageView = ({
     setScaledRectangles(modified);
   }, [rectangles, image?.width]);
 
+  useEffect(() => {
+    const modified = [];
+    if (image?.width) {
+      polygons.forEach((poly) => {
+        const points = poly.points.map((point) => point * image.width);
+        console.log('points values1', { points });
+        modified.push({ ...poly, points });
+      });
+    }
+    console.log('modified1', { modified });
+    setScaledPolygons(modified);
+  }, [polygons, image?.width]);
+
   React.useEffect(() => {
-    console.log({lastPolyId})
+    console.log({ lastPolyId });
     if (lastAction && lastAction !== ACTION_NAMES.SELECTED) {
       if (lastAction == ACTION_NAMES.CANCEL) {
         onDrawStop(rectangles.filter((r) => r.uuid !== lastPolyId));
@@ -613,46 +645,58 @@ const KonvaImageView = ({
             </>
           )}
 
-          {polygons.map((poly, i) => {
-            return (
-              <Polygon
-                key={i}
-                shape={poly}
-                isSelected={selectedPolyId == poly.uuid}
-                // onChange={() => console.log('Trying to change in poly')}
-                onChange={(e) => {
-                  console.log('Trying to change in poly', e);
-                  const unchanged = polygons.filter(
-                    (ele) => ele.uuid !== poly.uuid
-                  );
-                  const index = polygons.findIndex((r) => r.uuid == e.uuid);
-                  if (index >= 0) {
-                    const normalizedValue = {
-                      ...e,
-                      ...normalizeDimensions(e),
-                    };
-                    handleValueReset(normalizedValue);
-                    onDrawStop([...unchanged, normalizedValue]);
-                  } else onDrawStop(unchanged);
-                }}
-                offset={origin}
-                scale={origin.scale}
-                fill={
-                  selectedPolyId == poly.uuid ? `${poly.fill}4D` : `transparent`
-                }
-                onTransform={(res) => {
-                  const polyCp = [...polygons];
-                  const points = normalizePolygonPoints(res.points);
-                  polyCp[i] = { ...res, points };
-                  onPolyUpdate(polyCp);
-                }}
-                onClick={(e) => {
-                  setSelectedPolyId(poly.uuid);
-                  e.evt.cancelBubble = true;
-                }}
-              />
-            );
-          })}
+          {scaledPolygons
+            .filter(
+              (e) =>
+                e.polyType == RECTANGLE_TYPE.ROI ||
+                ([2, 3].includes(step) && e.imageId === imageId)
+            )
+            ?.map((poly, i) => {
+              return (
+                <Polygon
+                  key={i}
+                  shape={poly}
+                  isSelected={selectedPolyId === poly.uuid}
+                  // onChange={() => console.log('Trying to change in poly')}
+                  onChange={(e) => {
+                    const unchanged = polygons.filter(
+                      (ele) => ele.uuid !== poly.uuid
+                    );
+                    const index = polygons.findIndex((r) => r.uuid == e.uuid);
+                    console.log('Trying to change in poly', e, index);
+                    if (index >= 0) {
+                      const buf = normalizePolygonPoints(e.points)
+                      console.log(buf)
+                      // const ref = e.target.attrs
+                      const normalizedValue = {
+                        ...polygons[index],
+                        // ...normalizeDimensions(e),
+                        points: buf
+                      };
+                      // handleValueReset(normalizedValue);
+                      onPolyUpdate([...unchanged, normalizedValue]);
+                    }
+                  }}
+                  offset={origin}
+                  scale={origin.scale}
+                  fill={
+                    selectedPolyId == poly.uuid
+                      ? `${poly.fill}4D`
+                      : `transparent`
+                  }
+                  onTransform={(res) => {
+                    const polyCp = [...polygons];
+                    const points = normalizePolygonPoints(res.points);
+                    polyCp[i] = { ...res, points };
+                    onPolyUpdate(polyCp);
+                  }}
+                  onClick={(e) => {
+                    setSelectedPolyId(poly.uuid);
+                    e.evt.cancelBubble = true;
+                  }}
+                />
+              );
+            })}
           {currentPoly?.points && (
             <Polygon
               shape={currentPoly}

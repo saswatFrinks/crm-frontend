@@ -20,6 +20,7 @@ import { Link, useParams } from 'react-router-dom';
 import axiosInstance from '@/core/request/aixosinstance';
 import toast, { Toaster } from 'react-hot-toast';
 import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader';
+import RadialProgressBar from '../../assembly/components/RadialProgressBar';
 
 export const augmentationsMap = {
   HorizontalFlip: 'Horizontal Flip',
@@ -30,19 +31,30 @@ export const augmentationsMap = {
   RandomBrightnessContrast: 'Random Brightness Contrast',
 };
 
+// const trainingStatus = {
+//   0: {name: 'Training Queued', color: 'text-gray-500'},
+//   1: {name: 'Initiating Training', color: 'text-green-300'},
+//   2: {name: 'Initiating Training', color: 'text-green-300'},
+//   3: {name: 'Training Started', color: 'text-green-400'},
+//   4: {name: 'Files Downloaded', color: 'text-orange-400'},
+//   5: {name: 'Training The Model', color: 'text-orange-500'},
+//   6: {name: 'Uploading File', color: 'text-orange-500'},
+//   7: {name: 'Completed', color: 'text-green-500'},
+//   8: {name: 'Error While Training', color: 'text-red-400'},
+//   9: {name: 'Network Disconnection: Status Not Available', color: 'text-red-400' }
+// }
+
 const trainingStatus = {
-  0: {name: 'Training Queued', color: 'text-gray-500'},
-  1: {name: 'Initiating Training', color: 'text-green-300'},
-  2: {name: 'Initiating Training', color: 'text-green-300'},
-  3: {name: 'Training Started', color: 'text-green-400'},
-  4: {name: 'Files Downloaded', color: 'text-orange-400'},
-  5: {name: 'Training The Model', color: 'text-orange-500'},
-  6: {name: 'Uploading File', color: 'text-orange-500'},
-  7: {name: 'Completed', color: 'text-green-500'},
-  8: {name: 'Error While Training', color: 'text-red-400'}
+  'TRAINING': [5],
+  'PRETRAINING': [1,2,,3,4],
+  'ERROR': [8,9],
+  'QUEUED': [0]
 }
 
-const totalStatusCount = Object.keys(trainingStatus).length;
+const ERRORS = {
+  8: 'Error During Training',
+  9: 'Server Disconnected'
+}
 
 export default function AIAssembly() {
   const params = useParams();
@@ -60,6 +72,7 @@ export default function AIAssembly() {
   const [modelInfo, setModelInfo] = useRecoilState(modelInfoAtom);
   
   const formRefs = Array.from({length: 5}, () => useRef(null));
+  const sseRef = useRef(null);
 
   const handleNext = async () => {
     try {
@@ -126,6 +139,8 @@ export default function AIAssembly() {
       });
       setLoading(false);
       setModelsList(res.data.data);
+      sseRef.current?.close();
+      startTrainingSSE();
     } catch (error) {
       setLoading(false);
       toast.error(JSON.stringify(error));
@@ -134,10 +149,41 @@ export default function AIAssembly() {
 
   useEffect(() => {
     fetchModelsList();
+    return ()=> sseRef.current?.close();
   }, []);
 
+  const startTrainingSSE = async () =>{
+    console.log('Starting Training SSE');
+    const sse = new EventSource(
+      `${import.meta.env.VITE_BASE_API_URL}/model/detection/sse?projectId=${params.projectId}`,
+      { withCredentials: true }
+    );
+
+    sse.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      console.log('[STATUS UPDATE]', data);
+      setModelsList(prev=>{
+        const cp = [...prev];
+        let index = cp.findIndex(ele=> ele.jobId==data.jobId);
+        if(index>=0){
+          cp[index].status = data.status;
+          if(data.epoch){
+            let [n, d] = String(data.epoch).split('/')
+            if(d){
+              cp[index].info = {value: parseInt(n), max: parseInt(d)}
+            }
+          }
+          else delete cp[index].info
+        }
+        return cp;
+      })
+    }
+
+    sseRef.current = sse;
+  }
+
   const startTraining = async () => {
-    console.log('starting training');
+    console.log('starting training', configuration);
     setLoading(true);
     try {
       const roiList = configuration
@@ -242,10 +288,25 @@ export default function AIAssembly() {
                         {model.totalImages != 1 && 's'}
                       </td>
                       <td
-                        className={`px-6 py-4 ${trainingStatus[model.status]?.color}`}
+                        className='px-6 py-3 text-center'
                       >
-                        {trainingStatus[model.status]?.name}
+                        {
+                          trainingStatus.QUEUED.includes(model.status) ? 'Training Queued' : 
+                          trainingStatus.PRETRAINING.includes(model.status) ?
+                            <RadialProgressBar value={0} max={10} size={45} strokeWidth={4}/> :
+                          trainingStatus.TRAINING.includes(model.status) ?
+                            <RadialProgressBar value={model.info?.value || 0} max={model.info?.max || 10} size={45} strokeWidth={4}/> :
+                          trainingStatus.ERROR.includes(model.status) ? <span className='text-red-400'>{ERRORS[model.status]}</span> :
+                            <RadialProgressBar value={10} max={10} size={45} strokeWidth={4} showMax/>
+                        }
                       </td>
+                      {/* <td
+                        className={`px-6 py-4 ${trainingStatus[model.status]?.color || 'text-green-500'}`}
+                      >
+                        {trainingStatus[model.status]?.name || "Training Completed"}
+                        {model.info && <p>{model.info}</p>}
+                      </td>
+                    */}
                       <td className="flex flex-wrap gap-2 px-6 py-4">
                         {model?.classes?.length > 0 &&
                           model.classes.map((item, index) => (
