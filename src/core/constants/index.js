@@ -25,6 +25,7 @@ export const IMAGE_STATUS = {
   drag: false,
   oneToOne: false,
   fitToCenter: false,
+  drawMode: false
 };
 
 export const POSITION = {
@@ -93,6 +94,11 @@ export const ASSEMBLY_STEPS = [
 ];
 
 export const RECTANGLE_TYPE = {
+  ANNOTATION_LABEL: 'ANNOTATION_LABEL',
+  ROI: 'ROI',
+};
+
+export const POLYGON_TYPE = {
   ANNOTATION_LABEL: 'ANNOTATION_LABEL',
   ROI: 'ROI',
 };
