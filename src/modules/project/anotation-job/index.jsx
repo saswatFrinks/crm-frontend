@@ -29,8 +29,11 @@ import {
   labelEditedAtom,
   lastActionNameAtom,
   rectanglesAtom,
+  polygonsAtom,
   selectedFileAtom,
   uploadedFileListAtom,
+  currentPolygonIdAtom,
+  imageStatusAtom,
 } from '../state';
 import { compareArrays, getRandomHexColor } from '@/util/util';
 import {
@@ -52,6 +55,7 @@ export default function AnnotationJob() {
   // const setIsEditing = useSetRecoilState(editingAtom);
   const [isEditing, setIsEditing] = useRecoilState(editingAtom);
   const [rectangles, setRectangles] = useRecoilState(rectanglesAtom);
+  const [polygons, setPolygons] = useRecoilState(polygonsAtom);
   const [labelClass, setLabelClass] = React.useState([]);
   const [selectedImage, setSelectedImage] = useRecoilState(selectedFileAtom);
   const selectedClass = useRecoilValue(labelClassAtom);
@@ -68,7 +72,8 @@ export default function AnnotationJob() {
     annotationClassesAtom
   );
   const selectedClassId = useRecoilValue(labelClassAtom);
-  const setSelectedPloyId = useSetRecoilState(currentRectangleIdAtom);
+  const setSelectedRectId = useSetRecoilState(currentRectangleIdAtom);
+  const setSelectedPolyId = useSetRecoilState(currentPolygonIdAtom);
   const [modalOpen, setModalOpen] = useRecoilState(modalAtom);
 
   const cacheRef = useRef(null);
@@ -78,6 +83,9 @@ export default function AnnotationJob() {
 
   const [labelsEdited, setLabelsEdited] = useRecoilState(labelEditedAtom);
   const [labelId, setLabelId] = useRecoilState(currentLabelIdAtom);
+
+  const [imageStatus, setImageStatus] = useRecoilState(imageStatusAtom);
+  const [polyDraw, setPolyDraw] = useState(false);
 
   const [initialLabels, setInitialLabels] = useRecoilState(initialLabelsAtom);
 
@@ -89,6 +97,7 @@ export default function AnnotationJob() {
   const getAllImages = async () => {
     setFile(null);
     setRectangles([]);
+    setPolygons([]);
     try {
       const allImages = await axiosInstance.get('/dataset/allImages', {
         params: {
@@ -192,13 +201,16 @@ export default function AnnotationJob() {
     );
 
     const imageSpecificRects = changedList.reduce((prev, cur) => {
-      return [...prev, ...cur.rectangles];
+      return [...prev, ...cur.rectangles, ...cur.polygons];
     }, []);
 
+    const cls = [
+      ...annotationClasses[selectedImage.id].rectangles,
+      ...annotationClasses[selectedImage.id].polygons,
+    ];
 
     if (
-      initialLabels[selectedImage.id]?.length ===
-        annotationClasses[selectedImage.id].rectangles.length &&
+      initialLabels[selectedImage.id]?.length === cls.length &&
       !compareArrays(imageSpecificRects, initialLabels[selectedImage.id])
     ) {
       setModalOpen(false);
@@ -228,7 +240,7 @@ export default function AnnotationJob() {
     // console.log({ changedList });
 
     const imageSpecificRects = changedList.reduce((prev, cur) => {
-      return [...prev, ...cur.rectangles];
+      return [...prev, ...cur.rectangles, ...cur.polygons];
     }, []);
 
     console.log({ imageSpecificRects }, { changedList }, { annotationClasses });
@@ -236,13 +248,14 @@ export default function AnnotationJob() {
 
     // console.log("comp",compareArrays(imageSpecificRects, initialLabels))
 
+    const cls = [
+      ...annotationClasses[selectedImage.id].rectangles,
+      ...annotationClasses[selectedImage.id].polygons,
+    ];
+
     if (
-      initialLabels[selectedImage.id]?.length ===
-        annotationClasses[selectedImage.id].rectangles.length &&
-      !compareArrays(
-        annotationClasses[selectedImage.id].rectangles,
-        initialLabels[selectedImage.id]
-      )
+      initialLabels[selectedImage.id]?.length === cls.length &&
+      !compareArrays(cls, initialLabels[selectedImage.id])
     ) {
       toast.success('No changes to update');
       setModalOpen(false);
@@ -329,7 +342,7 @@ export default function AnnotationJob() {
         data?.forEach((conf, i) => {
           const roiId = conf.rois.id;
           if (!roiMap[roiId]) {
-            const [ x1, y1, x2, y2 ] = conf.rois.coordinates;
+            const [x1, y1, x2, y2] = conf.rois.coordinates;
             const color = getRandomHexColor();
             rects.push({
               ...BASE_RECT,
@@ -373,6 +386,7 @@ export default function AnnotationJob() {
     setAnnotationClasses({});
     setStep(2);
     setRectangles([]);
+    setPolygons([]);
     getAllImages();
     getClasses();
   }, []);
@@ -397,9 +411,14 @@ export default function AnnotationJob() {
         rect.rectType == RECTANGLE_TYPE.ANNOTATION_LABEL &&
         imageSet.add(rect.imageId)
     );
+    polygons.forEach(
+      (poly) =>
+        poly.polyType == RECTANGLE_TYPE.ANNOTATION_LABEL &&
+        imageSet.add(poly.imageId)
+    );
     images.forEach((img) => img.annotated && imageSet.add(img.id));
     setAnnotatedCount(imageSet.size);
-  }, [rectangles, images]);
+  }, [rectangles, polygons, images]);
 
   //load annotation file and load rectangles
   React.useEffect(() => {
@@ -427,7 +446,8 @@ export default function AnnotationJob() {
             prevData.split('\n').forEach((entry, i) => {
               const line = entry.split(' ');
               if (line.length >= 5) {
-                let [cls, x, y, width, height] = line;
+                // let [cls, x, y, width, height] = line;
+                let [cls, ...vals] = line;
 
                 const className = labelRef.current?.find(
                   (ele) => ele.id == cls
@@ -439,36 +459,63 @@ export default function AnnotationJob() {
                   (obj) => obj.name === className
                 );
                 // const color = "#e02113";
-                console.log('dd', color);
-
-                console.log('bb', { rectangleColor });
 
                 const id = selectedImage.id;
                 const uuid = v4();
-                configuredData.push({
-                  ...BASE_RECT,
-                  id: rectangles.length + i,
-                  fill: color?.color,
-                  stroke: color?.color,
-                  imageId: id,
-                  rectType: RECTANGLE_TYPE.ANNOTATION_LABEL,
-                  // roiId: roi.id,
-                  title: className,
-                  x: parseFloat(x - width / 2),
-                  y: parseFloat(y - height / 2),
-                  width: parseFloat(width),
-                  height: parseFloat(height),
-                  uuid,
-                });
+
+                if (vals.length === 4) {
+                  let [x, y, width, height] = vals;
+                  configuredData.push({
+                    ...BASE_RECT,
+                    id: rectangles.length + i,
+                    fill: color?.color,
+                    stroke: color?.color,
+                    imageId: id,
+                    rectType: RECTANGLE_TYPE.ANNOTATION_LABEL,
+                    // roiId: roi.id,
+                    title: className,
+                    x: parseFloat(x - width / 2),
+                    y: parseFloat(y - height / 2),
+                    width: parseFloat(width),
+                    height: parseFloat(height),
+                    uuid,
+                  });
+                } else {
+                  configuredData.push({
+                    ...BASE_RECT,
+                    id: polygons.length + i,
+                    fill: color?.color,
+                    stroke: color?.color,
+                    imageId: id,
+                    polyType: RECTANGLE_TYPE.ANNOTATION_LABEL,
+                    // roiId: roi.id,
+                    title: className,
+                    points: vals.map((point) => parseFloat(point)),
+                    uuid,
+                    closed: true,
+                  });
+                }
+
                 annotUpdates[uuid] = cls;
               }
             });
             // console.log('UPdate from txt', annotUpdates, configuredData);
             setAnnotationMap((prev) => ({ ...prev, ...annotUpdates }));
             // setRectangles(prev=>[...prev, ...configuredData]);
-            newStat.rectangles = configuredData;
-            console.log('Annotation labels', configuredData);
-            console.log('prevData', { configuredData });
+            // newStat.rectangles = configuredData;
+            const recs = [];
+            const polys = [];
+            configuredData.map((conf, i) => {
+              if (conf?.x) {
+                recs.push(conf);
+              } else {
+                polys.push(conf);
+              }
+            });
+            newStat.rectangles = recs;
+            newStat.polygons = polys;
+
+            console.log({ newStat });
             setInitialLabels((prev) => ({
               ...prev,
               [selectedImage.id]: configuredData,
@@ -476,7 +523,7 @@ export default function AnnotationJob() {
           } else {
             setInitialLabels((prev) => ({ ...prev, [selectedImage.id]: [] }));
           }
-          // console.log('prevData.length', prevData.length);
+
           // if (!(prevData.length && typeof prevData == 'string')) {
           //   console.log('empty');
           //   setInitialLabels((prev) => ({ ...prev, [selectedImage.id]: [] }));
@@ -486,7 +533,6 @@ export default function AnnotationJob() {
             return { ...prev, [selectedImage.id]: true };
           });
         } catch (e) {
-          // console.log('empty');
           setInitialLabels((prev) => ({ ...prev, [selectedImage.id]: [] }));
         } finally {
           setAnnotationClasses((prev) => ({
@@ -502,8 +548,6 @@ export default function AnnotationJob() {
         [selectedImage.id]: true,
       }));
     }
-
-    console.log('ee', { annotationLoadeFlag });
   }, [selectedImage, rectangleColor]);
 
   console.log({ initialLabels });
@@ -519,8 +563,11 @@ export default function AnnotationJob() {
   React.useEffect(() => {
     if (selectedImage?.id) {
       setRectangles(annotationClasses[selectedImage.id]?.rectangles || []);
+      setPolygons(annotationClasses[selectedImage.id]?.polygons || []);
       // console.log("new rectangle", annotationClasses[selectedImage.id]?.rectangles[rectangles.length])
-      setLabelId(annotationClasses[selectedImage.id]?.rectangles[rectangles.length]?.uuid)
+      setLabelId(
+        annotationClasses[selectedImage.id]?.rectangles[rectangles.length]?.uuid
+      );
     }
   }, [annotationClasses, selectedImage]);
 
@@ -541,6 +588,7 @@ export default function AnnotationJob() {
   React.useEffect(() => {
     if (selectedImage?.id) {
       setRectangles(annotationClasses[selectedImage.id]?.rectangles || []);
+      setPolygons(annotationClasses[selectedImage.id]?.polygons || []);
     }
   }, [annotationClasses, selectedImage]);
 
@@ -548,7 +596,19 @@ export default function AnnotationJob() {
     cacheRef.current = cachedImages;
   }, [cachedImages]);
 
-  console.log('outside', { modalOpen }, annotationClasses[selectedImage?.id]?.rectangles,);
+  console.log(
+    'outside',
+    { modalOpen },
+    annotationClasses[selectedImage?.id]?.rectangles
+  );
+
+  useEffect(() => {
+    if (imageStatus.drawMode === 'POLY') {
+      setPolyDraw(true);
+    } else if (imageStatus.drawMode == false) {
+      setPolyDraw(false);
+    }
+  }, [imageStatus.drawMode]);
 
   return (
     <>
@@ -664,13 +724,13 @@ export default function AnnotationJob() {
                             });
                             return { ...prev, ...updates };
                           });
-                          setSelectedPloyId(annotations[0].uuid);
+                          setSelectedRectId(annotations[0].uuid);
                         }
                       }}
                       rectangles={
                         annotationClasses[selectedImage?.id]
                           ? [
-                              ...rois,
+                              ...rois.filter((roi) => roi?.x),
                               ...annotationClasses[selectedImage?.id]
                                 .rectangles,
                             ]
@@ -679,6 +739,44 @@ export default function AnnotationJob() {
                       title={selectedClass?.name || 'Label'}
                       image={image}
                       imageId={selectedImage?.id}
+                      polygons={
+                        annotationClasses[selectedImage?.id]
+                          ? [
+                              ...rois.filter((roi) => roi?.points),
+                              ...annotationClasses[selectedImage?.id].polygons || [],
+                            ]
+                          : rois
+                      }
+                      onPolyUpdate={(polys) => {
+                        console.log('poly updated');
+                        const annots = polys.filter(
+                          (poly) =>
+                            poly.polyType == RECTANGLE_TYPE.ANNOTATION_LABEL
+                        );
+                        console.log("anonos", {annots}, {polys})
+                        setAnnotationClasses((prev) => ({
+                          ...prev,
+                          [selectedImage.id]: {
+                            ...prev[selectedImage.id],
+                            polygons: [...annots],
+                            changed: true,
+                          },
+                        }));
+                        let annotations = annots.filter(
+                          (e) => annotationMap[e.uuid] === undefined
+                        );
+                        if (annotations.length) {
+                          setAnnotationMap((prev) => {
+                            const updates = {};
+                            annotations.forEach((annot) => {
+                              updates[annot.uuid] = selectedClassId.id;
+                            });
+                            return { ...prev, ...updates };
+                          });
+                          setSelectedPolyId(annotations[0].uuid);
+                        }
+                      }}
+                      polyDraw={polyDraw}
                     />
                   )}
                 </>

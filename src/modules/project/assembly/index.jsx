@@ -46,6 +46,7 @@ import {
   polygonsTypeAtom,
   uploadedFileListAtom,
   imageStatusAtom,
+  selectedFileAtom,
 } from '../state';
 import { useNavigate } from 'react-router-dom';
 import { cloneDeep } from 'lodash';
@@ -73,6 +74,9 @@ export default function Assembly() {
   const [step, setStep] = useRecoilState(stepAtom);
 
   const [imageStatus, setImageStatus] = useRecoilState(imageStatusAtom);
+
+  const [selectedImage, setSelectedImage] = useRecoilState(selectedFileAtom);
+  // const [images, setImages] = useRecoilState(uploadedFileListAtom);
 
   // const rois = useRecoilValue(rectanglesAtom).filter(
   //   (t) => t.rectType == RECTANGLE_TYPE.ROI
@@ -175,7 +179,6 @@ export default function Assembly() {
     //   return true;
     // }
     annotationRects.forEach((rect) => {
-      console.log('labelsedited', labelsEdited[rect.imageId], rect.imageId);
       if (!labelsEdited[rect.imageId]) return;
       const classNo = annotationMap[rect.uuid];
       if (rect?.x) {
@@ -189,21 +192,22 @@ export default function Assembly() {
           imgMap[rect.imageId] = `${classNo} ${x} ${y} ${width} ${height}\n`;
         }
       } else {
-        const points = rect.points;
         if (imgMap[rect.imageId]) {
           imgMap[rect.imageId] += `${classNo}`;
-          points.map((point, i) => {
-            point = point.toFixed(4);
+          rect.points.map((point) => {
+            point = Number(point).toFixed(4);
             imgMap[rect.imageId] += ` ${point}`;
           });
-          imgMap[rect.imageId] += `\n`;
+          imgMap[rect.imageId] += "\n";
+          console.log("old", imgMap[rect.imageId])
         } else {
           imgMap[rect.imageId] = `${classNo}`;
-          points.map((point, i) => {
-            point = point.toFixed(4);
+          rect.points.map((point) => {
+            console.log("point11", point)
+            point = Number(point).toFixed(4);
             imgMap[rect.imageId] += ` ${point}`;
           });
-          imgMap[rect.imageId] += `\n`;
+          imgMap[rect.imageId] += "\n";
         }
       }
     });
@@ -302,6 +306,7 @@ export default function Assembly() {
       );
       return;
     }
+    setSelectedImage(images[0]);
     setStep((t) => {
       if (t == 0) return t;
       return t - 1;
@@ -556,9 +561,7 @@ export default function Assembly() {
     temp.direction = parseInt(temp.productFlow);
     temp.id = configurationId;
     delete temp.productFlow;
-    console.log('llll', { configuration });
     temp.rois = configuration.rois.map((roi, index) => {
-      // console.log('roi11', { roi });
       const tempParts = roi.parts.map((part) => {
         return {
           classify: part.classify == 'on',
@@ -584,13 +587,8 @@ export default function Assembly() {
           } else {
             points.push(...roiRect.points);
           }
-          // points.push(parseFloat(roiRect.x.toFixed(4)));
-          // points.push(parseFloat(roiRect.y.toFixed(4)));
-          // points.push(parseFloat((roiRect.x + roiRect.width).toFixed(4)));
-          // points.push(parseFloat((roiRect.y + roiRect.height).toFixed(4)));
         }
       });
-      // console.log("id of rois",roi?.id)
       return {
         id: roi?.identity || '',
         name: roi?.title ?? `ROI ${roi?.id}`,
@@ -615,34 +613,35 @@ export default function Assembly() {
     // }))
     // console.log('formData', { temp });
     formData.append('data', JSON.stringify(temp));
-    formData.append('configurationId', configurationId);
-    formData.append(
-      'isGood',
-      JSON.stringify([
-        true,
-        true,
-        true,
-        true,
-        true,
-        false,
-        false,
-        false,
-        false,
-        false,
-      ])
-    );
+    // formData.append('configurationId', configurationId);
+    // formData.append(
+    //   'isGood',
+    //   JSON.stringify([
+    //     true,
+    //     true,
+    //     true,
+    //     true,
+    //     true,
+    //     false,
+    //     false,
+    //     false,
+    //     false,
+    //     false,
+    //   ])
+    // );
     try {
       const data = await axiosInstance.post(
         '/configuration/assembly',
         formData
+        // JSON.stringify(temp)
       );
       toast.success('ROIs uploaded');
       return data.data?.success;
     } catch (e) {
       toast.error(
         e?.response?.data?.data?.message
-          ? // ? `${e?.response?.data?.data?.message}. All fields are required`
-            'All ROIs label are required!'
+          ?  // ? `${e?.response?.data?.data?.message}. All fields are required`
+             'All ROIs label are required!'
           : 'Failed'
       );
     }

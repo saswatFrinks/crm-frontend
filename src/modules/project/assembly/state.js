@@ -67,6 +67,11 @@ export const editingRectAtom = atom({
   default: false,
 });
 
+export const editingPolyAtom = atom({
+  key: 'editingPolyAtom', 
+  default: false
+})
+
 export const stepAtom = atom({
   key: 'stepAtom',
   default: 0,

@@ -34,9 +34,23 @@ export default function AnnotationLabels({ labelClass }) {
   // console.log("annotatio1n",{initialLabels})
 
   const selectedImageId = selecteFile?.id;
+
+  let labels = selectedImageId
+    ? [...(annotationClasses[selectedImageId]?.rectangles || [])]
+    : [];
+
+  if (annotationClasses[selectedImageId]?.polygons?.length > 0) {
+    const polygons = annotationClasses[selectedImageId]?.polygons || [];
+    labels = labels.concat(polygons);
+  }
+
   const rectangles = selectedImageId
     ? annotationClasses[selectedImageId]?.rectangles || []
     : [];
+
+  // const polygons = selectedImageId
+  //   ? annotationClasses[selectedImageId]?.polygons || []
+  //   : [];
 
   // useEffect(() => {
   //   setInitialLabels(rectangles)
@@ -54,6 +68,7 @@ export default function AnnotationLabels({ labelClass }) {
         rectangles: prev[selectedImageId].rectangles.filter(
           (e) => e.uuid !== uuid
         ),
+        polygons: prev[selectedImageId].polygons.filter((e) => e.uuid !== uuid),
       },
     }));
   };
@@ -69,7 +84,7 @@ export default function AnnotationLabels({ labelClass }) {
         className="flex h-[calc(100vh-478px)] flex-col gap-2 overflow-y-auto"
         onClick={() => selectClass('id')}
       >
-        {rectangles.map((t, i) => (
+        {labels.map((t, i) => (
           <div
             key={i}
             className="flex cursor-pointer items-center gap-4 px-4  py-1.5 duration-100 hover:bg-gray-100"
@@ -88,24 +103,47 @@ export default function AnnotationLabels({ labelClass }) {
                     const ind = rectangles.findIndex(
                       (ele) => ele.uuid == t.uuid
                     );
-                    const recCp = [...rectangles];
-                    const label = labelClass.find(
-                      (ele) => ele.id == e.target.value
-                    );
-                    recCp[ind] = {
-                      ...recCp[ind],
-                      title: label.name,
-                      stroke: label.color,
-                      fill: label.color,
-                    };
-                    setAnnotationClasses((prev) => ({
-                      ...prev,
-                      [selectedImageId]: {
-                        ...prev[selectedImageId],
-                        rectangles: recCp,
-                        changed: true,
-                      },
-                    }));
+
+                    if (ind === -1) {
+                      const recCp = [...rectangles];
+                      const label = labelClass.find(
+                        (ele) => ele.id == e.target.value
+                      );
+                      recCp[ind] = {
+                        ...recCp[ind],
+                        title: label.name,
+                        stroke: label.color,
+                        fill: label.color,
+                      };
+                      setAnnotationClasses((prev) => ({
+                        ...prev,
+                        [selectedImageId]: {
+                          ...prev[selectedImageId],
+                          rectangles: recCp,
+                          changed: true,
+                        },
+                      }));
+                    } else {
+                      const polCp = [...rectangles];
+                      const label = labelClass.find(
+                        (ele) => ele.id == e.target.value
+                      );
+                      polCp[ind] = {
+                        ...polCp[ind],
+                        title: label.name,
+                        stroke: label.color,
+                        fill: label.color,
+                      };
+                      setAnnotationClasses((prev) => ({
+                        ...prev,
+                        [selectedImageId]: {
+                          ...prev[selectedImageId],
+                          polygons: polCp,
+                          changed: true,
+                        },
+                      }));
+                    }
+
                     setAnnotMap((p) => ({ ...p, [t.uuid]: e.target.value }));
                   }}
                 />

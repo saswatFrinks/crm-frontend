@@ -81,26 +81,44 @@ export default function LabelImage({ save }) {
   const [initialLabels, setInitialLabels] = useRecoilState(initialLabelsAtom);
 
   const [labelId, setLabelId] = useRecoilState(currentLabelIdAtom);
+  
 
-  let selectedRois = rectangles.filter(
-    (rect) =>
-      rect.rectType == RECTANGLE_TYPE.ANNOTATION_LABEL &&
-      rect.imageId == selectedFile?.id
-  );
-
-  console.log("poly11",{polygons},polygons.filter(
-    (poly) =>
-      poly.polyType == RECTANGLE_TYPE.ANNOTATION_LABEL &&
-      poly.imageId == selectedFile?.id
-  ))
-
+  let selectedRois = [];
+  let idCntr = -1;
   selectedRois = selectedRois.concat(
-    polygons.filter(
-      (poly) =>
-        poly.polyType == RECTANGLE_TYPE.ANNOTATION_LABEL &&
-        poly.imageId == selectedFile?.id
-    )
+    rectangles
+      .filter(
+        (rect) =>
+          rect.rectType == RECTANGLE_TYPE.ANNOTATION_LABEL &&
+          rect.imageId == selectedFile?.id
+      )
+      .map((rect, index) => {
+        console.log("length1", idCntr)
+        idCntr += 1;
+        return {
+          ...rect,
+          id: idCntr, 
+        };
+      })
   );
+
+  selectedRois = selectedRois
+    .concat(
+      polygons.filter(
+        (poly) =>
+          poly.polyType == RECTANGLE_TYPE.ANNOTATION_LABEL &&
+          poly.imageId == selectedFile?.id
+      )
+    )
+    .map((poly, index) => {
+      idCntr += 1;
+      return {
+        ...poly,
+        id: idCntr, 
+      };
+    });
+
+
 
 
   const selectedRoisRef = React.useRef(selectedRois);
@@ -141,7 +159,7 @@ export default function LabelImage({ save }) {
     setLabelId(null);
   }, []);
 
-  console.log("labelstep",{ initialLabels }, { selectedRois });
+  console.log('labelstep', { initialLabels }, { selectedRois });
 
   const getUniqueHexColor = (colors) => {
     let hexColor;
@@ -278,7 +296,7 @@ export default function LabelImage({ save }) {
     }
     console.log({ annotations });
     if (annotations.length) {
-      if(annotations?.x) {
+      if (annotations?.x) {
         setSelectedRectId(annotations[0].uuid);
       } else {
         setSelectedPolyId(annotations[0].uuid);
@@ -313,7 +331,7 @@ export default function LabelImage({ save }) {
             image.onload = () => {
               const configuredData = [];
               const annotUpdates = {};
-              console.log({loadedData})
+              console.log({ loadedData });
               loadedData.forEach((prevData) => {
                 prevData.data.split('\n').forEach((entry, i) => {
                   const line = entry.split(' ');
@@ -333,7 +351,9 @@ export default function LabelImage({ save }) {
                       (obj) => obj.name === className
                     );
 
-                    if(vals.length === 4) {
+                    console.log({ selectedRoisRef });
+
+                    if (vals.length === 4) {
                       let [x, y, width, height] = vals;
                       configuredData.push({
                         ...BASE_RECT,
@@ -352,6 +372,10 @@ export default function LabelImage({ save }) {
                       });
                     } else {
                       // let [x, y, width, height] = vals;
+                      console.log({ vals });
+                      // vals = vals.map((point) => {
+                      //   point = parseFloat(point);
+                      // })
                       configuredData.push({
                         ...BASE_RECT,
                         id: selectedRoisRef.current.length + i,
@@ -361,12 +385,12 @@ export default function LabelImage({ save }) {
                         polyType: RECTANGLE_TYPE.ANNOTATION_LABEL,
                         // roiId: roi.id,
                         title: className,
-                        points: vals,
+                        points: vals.map((point) => parseFloat(point)),
                         closed: true,
                         uuid,
                       });
                     }
-                    
+
                     annotUpdates[uuid] = cls;
                   }
                 });
@@ -374,12 +398,12 @@ export default function LabelImage({ save }) {
               console.log('Update from txt', annotUpdates, configuredData);
               setAnnotationMap((prev) => ({ ...prev, ...annotUpdates }));
               configuredData.map((conf, i) => {
-                if(conf?.x) {
+                if (conf?.x) {
                   setRectangle((prev) => [...prev, conf]);
                 } else {
-                  setPolygons((prev) => [...prev, conf])
+                  setPolygons((prev) => [...prev, conf]);
                 }
-              })
+              });
               // setRectangle((prev) => [...prev, ...configuredData]);
               setInitialLabels(configuredData);
             };
@@ -390,7 +414,7 @@ export default function LabelImage({ save }) {
     }
   }, [selectedFile, rectangleColor, loadedLabelData]);
 
-  console.log({rectangles, polygons, annotationMap});
+  console.log({ rectangles, polygons, annotationMap });
 
   React.useEffect(() => {
     labelsRef.current = labelClasses;
@@ -510,7 +534,7 @@ export default function LabelImage({ save }) {
                     );
                     return;
                   }
-                  if(t?.x) {
+                  if (t?.x) {
                     setSelectedRectId(t.uuid);
                   } else {
                     setSelectedPolyId(t.uuid);

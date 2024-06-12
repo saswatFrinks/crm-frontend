@@ -109,7 +109,6 @@ const KonvaImageView = ({
 
     if (imageStatus.drawMode === 'POLY' || imageStatus.drawMode === 'RECT') {
       //called when rectangle is drawn
-      console.log('cond check', imageStatus.drawMode);
       if (imageStatus.drawMode === 'POLY') {
         console.log('points1', { pointerPosition, currentPoly });
 
@@ -131,7 +130,7 @@ const KonvaImageView = ({
 
         // const color = getRandomHexColor();
         const color =
-          rectangleColor.selectedColor === '#fff' || rectangleType === 'ROI'
+          rectangleColor.selectedColor === '#fff' || polygonType === 'ROI'
             ? getRandomHexColor()
             : rectangleColor.selectedColor;
         setCurrentPoly({
@@ -260,9 +259,11 @@ const KonvaImageView = ({
   };
 
   const handleDoubleClick = (e) => {
+    
     if (imageStatus.drawMode === 'POLY' && currentPoly?.points?.length > 2) {
       const pos = stageRef.current.getPointerPosition();
       const poly = { ...currentPoly, closed: true };
+      console.log("double", {currentPoly}, imageStatus.drawMode, poly)
       poly.points = normalizePolygonPoints(poly.points);
       console.log('points values', poly.points);
       onPolyUpdate([...polygons, poly]);
@@ -493,6 +494,7 @@ const KonvaImageView = ({
 
   React.useEffect(() => {
     const modified = [];
+    console.log("jjjjj", {rectangles})
     if (image?.width) {
       rectangles.forEach((rect) => {
         const x = rect.x * image.width;
@@ -509,8 +511,9 @@ const KonvaImageView = ({
   useEffect(() => {
     const modified = [];
     if (image?.width) {
-      polygons.forEach((poly) => {
-        const points = poly.points.map((point) => point * image.width);
+      console.log("jjjjl", {polygons})
+      polygons?.forEach((poly) => {
+        const points = poly?.points?.map((point) => point * image.width);
         console.log('points values1', { points });
         modified.push({ ...poly, points });
       });
@@ -523,8 +526,8 @@ const KonvaImageView = ({
     console.log({ lastPolyId });
     if (lastAction && lastAction !== ACTION_NAMES.SELECTED) {
       if (lastAction == ACTION_NAMES.CANCEL) {
-        onDrawStop(rectangles.filter((r) => r.uuid !== lastPolyId));
-        onPolyUpdate(polygons.filter((r) => r.uuid !== lastPolyId));
+        onDrawStop(rectangles?.filter((r) => r.uuid !== lastPolyId));
+        onPolyUpdate(polygons?.filter((r) => r.uuid !== lastPolyId));
       }
 
       setLastPolyId(null);
@@ -532,7 +535,7 @@ const KonvaImageView = ({
     }
   }, [lastAction]);
 
-  console.log('length', polygons.length);
+  console.log("annotss",{polygons})
 
   return (
     <div
