@@ -162,12 +162,20 @@ export default function AnnotationJob() {
   };
 
   const cancel = () => {
+    setImageStatus((prev) => ({
+      ...prev,
+      drawMode: false,
+    }));
     setIsEditing(false);
     setLabelId(null);
     setLastAction(ACTION_NAMES.CANCEL);
   };
 
   const submit = () => {
+    setImageStatus((prev) => ({
+      ...prev,
+      drawMode: false,
+    }));
     setIsEditing(false);
     setLabelId(null);
     setLastAction(ACTION_NAMES.SUBMIT);
