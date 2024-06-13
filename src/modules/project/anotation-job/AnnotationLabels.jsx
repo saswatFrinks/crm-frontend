@@ -48,9 +48,9 @@ export default function AnnotationLabels({ labelClass }) {
     ? annotationClasses[selectedImageId]?.rectangles || []
     : [];
 
-  // const polygons = selectedImageId
-  //   ? annotationClasses[selectedImageId]?.polygons || []
-  //   : [];
+  const polygons = selectedImageId
+    ? annotationClasses[selectedImageId]?.polygons || []
+    : [];
 
   // useEffect(() => {
   //   setInitialLabels(rectangles)
@@ -100,11 +100,9 @@ export default function AnnotationLabels({ labelClass }) {
                   value={annotMap[t.uuid]}
                   disabled={isEditing ? true : false}
                   onChange={(e) => {
-                    const ind = rectangles.findIndex(
-                      (ele) => ele.uuid == t.uuid
-                    );
+                    let ind = rectangles.findIndex((ele) => ele.uuid == t.uuid);
 
-                    if (ind === -1) {
+                    if (ind !== -1) {
                       const recCp = [...rectangles];
                       const label = labelClass.find(
                         (ele) => ele.id == e.target.value
@@ -124,7 +122,8 @@ export default function AnnotationLabels({ labelClass }) {
                         },
                       }));
                     } else {
-                      const polCp = [...rectangles];
+                      ind = polygons.findIndex((ele) => ele.uuid == t.uuid);
+                      const polCp = [...polygons];
                       const label = labelClass.find(
                         (ele) => ele.id == e.target.value
                       );

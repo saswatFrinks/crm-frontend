@@ -554,7 +554,6 @@ export default function Assembly() {
     const imgMap = {};
     let temp = cloneDeep(configuration);
     // const temp = configuration;
-    // console.log('prepareApiData', { temp }, { configuration });
     temp = {
       ...temp,
     };

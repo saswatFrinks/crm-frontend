@@ -27,6 +27,7 @@ import {
   selectedRoiSelector,
   stageAtom,
   polygonsTypeAtom,
+  inspectionReqAtom,
 } from '../../state';
 import { useState } from 'react';
 import { prevStatusAtom } from '../state';
@@ -54,6 +55,8 @@ export default function Actions({ cancel, submit }) {
 
   const selectedRectId = useRecoilValue(currentRectangleIdAtom);
   const [actionName, setActionName] = useRecoilState(lastActionNameAtom);
+
+  const [inspectionReq, setInspectionReq] = useRecoilState(inspectionReqAtom);
 
   //   const [isEditingRect, setEditingRect] = useRecoilState(editingRectAtom);
 
@@ -89,8 +92,10 @@ export default function Actions({ cancel, submit }) {
   };
 
   const handleDrawBox = () => {
-    console.log("drawModebox",imageStatus.drawMode)
-    if (!isEditing || imageStatus.drawMode === true || prevStatus === 'finish') return;
+    console.log('drawModebox', imageStatus.drawMode);
+    if (!isEditing || imageStatus.drawMode === true || prevStatus === 'finish' || inspectionReq === 2)
+      return;
+
     let ret = false;
     console.log('handleDrawBox', { rectangles, currentRoiId });
     rectangles.forEach((rect) => {
@@ -110,17 +115,17 @@ export default function Actions({ cancel, submit }) {
   };
 
   const handleDrawPolygon = () => {
-    console.log("drawModepoly",imageStatus.drawMode)
-    if (!isEditing || imageStatus.drawMode === true || prevStatus === 'finish') return;
+    console.log('drawModepoly', imageStatus.drawMode);
+    if (!isEditing || imageStatus.drawMode === true || prevStatus === 'finish' || inspectionReq !== 2)
+      return;
+
     let ret = false;
-    console.log('handleDrawBox', { polygons, currentRoiId });
     polygons.forEach((poly) => {
       if (poly.roiId && poly.roiId === currentRoiId) {
         ret = true;
       }
     });
     if (ret) return;
-    console.log('click polygon selection', { IMAGE_STATUS });
     setImageStatus((t) => ({
       ...IMAGE_STATUS,
       draw: !t.draw,
@@ -138,7 +143,6 @@ export default function Actions({ cancel, submit }) {
     setImageStatus((p) => ({ ...p, fitToCenter: true }));
   };
 
-  console.log("drawMode1",imageStatus.drawMode)
 
   const actions = [
     // {
@@ -180,9 +184,13 @@ export default function Actions({ cancel, submit }) {
       title: 'Rectangular Selection',
       icon: Box,
       action: handleDrawBox,
-      active: imageStatus.draw && prevStatus === 'default',
+      active:
+        (inspectionReq === 0 || inspectionReq === 1) &&
+        imageStatus.draw &&
+        prevStatus === 'default',
       canAction:
         isEditing &&
+        (inspectionReq === 0 || inspectionReq === 1) &&
         ((currentRectType == RECTANGLE_TYPE.ROI &&
           roiIndex >= 0 &&
           !rectangles.some(
@@ -195,9 +203,11 @@ export default function Actions({ cancel, submit }) {
       title: 'Polygon Selection',
       icon: Poly,
       action: handleDrawPolygon,
-      active: imageStatus.draw && prevStatus === 'default',
+      active:
+        inspectionReq === 2 && imageStatus.draw && prevStatus === 'default',
       canAction:
-        isEditing && 
+        isEditing &&
+        inspectionReq === 2 &&
         ((currentPolyType == RECTANGLE_TYPE.ROI &&
           roiIndex >= 0 &&
           !polygons.some(
@@ -208,7 +218,6 @@ export default function Actions({ cancel, submit }) {
     },
   ];
 
-  console.log('Actions', { isEditing }, {imageStatus}, {prevStatus});
 
   return (
     <>
@@ -216,7 +225,7 @@ export default function Actions({ cancel, submit }) {
         {actions.map((t) => (
           <div key={t.title} className="relative">
             <li
-              className={`flex cursor-pointer select-none flex-col items-center p-2 ${t.active ? 'text-f-primary' : ''} ${t.canAction ? '' : 'cursor-not-allowed opacity-30'}`}
+              className={`flex cursor-pointer select-none flex-col items-center p-2 ${t.active ? 'text-f-primary' : ''} ${t.canAction ? 'opacity-100' : 'cursor-not-allowed opacity-30'}`}
               onClick={t?.action}
               onMouseEnter={() => setIsHovered(t.title)}
               onMouseLeave={() => setIsHovered('')}

@@ -127,6 +127,7 @@ const KonvaImageView = ({
                   ele.polyType == RECTANGLE_TYPE.ANNOTATION_LABEL &&
                   ele.imageId == imageId
               ).length || 0;
+        
 
         // const color = getRandomHexColor();
         const color =
@@ -330,7 +331,6 @@ const KonvaImageView = ({
         ...normalizeDimensions({ ...currentPoly }),
       };
       handleValueReset(normalizedValue);
-      console.log(normalizedValue);
       if (normalizedValue.width !== 0 && normalizedValue.height !== 0) {
         console.log(normalizedValue);
         onDrawStop([...rectangles, normalizedValue]);
@@ -511,14 +511,11 @@ const KonvaImageView = ({
   useEffect(() => {
     const modified = [];
     if (image?.width) {
-      console.log("jjjjl", {polygons})
       polygons?.forEach((poly) => {
         const points = poly?.points?.map((point) => point * image.width);
-        console.log('points values1', { points });
         modified.push({ ...poly, points });
       });
     }
-    console.log('modified1', { modified });
     setScaledPolygons(modified);
   }, [polygons, image?.width]);
 

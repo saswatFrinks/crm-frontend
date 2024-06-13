@@ -79,14 +79,13 @@ const Polygon = ({
     ...rest,
   });
 
-  console.log(shape.title);
   return (
     <>
       {shape?.title && (
         <Text
           // x={(offset?.x || 0) + offset?.x * scale}
           // y={(offset?.y || 0) + offset?.y * scale }
-          x={shape.points[0] * scale + (offset?.x || 0)}
+          x={shape?.points[0] * scale + (offset?.x || 0)}
           y={shape.points[1] * scale + (offset?.y || 0) - 17}
           text={`${shape?.title}`}
           fontSize={15}
