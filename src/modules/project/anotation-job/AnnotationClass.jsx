@@ -74,29 +74,6 @@ export default function AnnotationClass({ labelClass }) {
   // }, [rectangles, annotationMap])
   return (
     <div className="">
-      <p className='font-medium'>First label the Primary Object Class in the image</p>
-      <div className="flex items-center gap-4 mt-4">
-        <Label main={false}>Primary Object Class Annotation:</Label>
-        <div className="w-44 max-w-xs">
-          <Button
-            size="tiny"
-            // color={genLabelClass(t.status)}
-            fullWidth={false}
-            onClick={() => {
-              // if (isEditing) {
-              //   toast('Please confirm the current Class', {
-              //     icon: '⚠️',
-              //   });
-              //   return;
-              // }
-            }}
-          >
-            <div className="flex items-center gap-2">
-              <Pen /> Label Class
-            </div>
-          </Button>
-        </div>
-      </div>
       <p className="mb-4 mt-10 break-all font-medium">Click the classes below to label them</p>
       <ul className="flex flex-wrap gap-4">
         {labelClass.map((t, i) => (

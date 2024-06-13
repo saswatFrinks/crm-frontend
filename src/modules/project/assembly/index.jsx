@@ -173,7 +173,7 @@ export default function Assembly() {
       initialLabels.length === annotationRects.length &&
       !compareArrays(annotationRects, initialLabels)
     ) {
-      toast.success('No1 changes to update');
+      toast.success('No changes to update');
       return true;
     }
 
@@ -235,7 +235,7 @@ export default function Assembly() {
     formData.append('imageIds', imageIds);
     console.log({ imageIds });
     if (!imageIds.length) {
-      toast.success('No changes1 to update');
+      toast.success('No changes to update');
       return true;
     }
 
