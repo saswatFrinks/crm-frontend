@@ -35,14 +35,19 @@ import {
   assemblyAtom,
   currentLabelIdAtom,
   currentRectangleIdAtom,
+  currentPolygonIdAtom,
   currentRoiIdAtom,
   editingAtom,
   labelClassAtom,
   labelEditedAtom,
   lastActionNameAtom,
   rectanglesAtom,
+  polygonsAtom,
   rectanglesTypeAtom,
+  polygonsTypeAtom,
   uploadedFileListAtom,
+  imageStatusAtom,
+  selectedFileAtom,
 } from '../state';
 import { useNavigate } from 'react-router-dom';
 import { cloneDeep } from 'lodash';
@@ -53,6 +58,7 @@ import { v4 } from 'uuid';
 export default function Assembly() {
   const [isEditing, setIsEditing] = useRecoilState(editingAtom);
   const setRectangleType = useSetRecoilState(rectanglesTypeAtom);
+  const setPolygonType = useSetRecoilState(polygonsTypeAtom);
 
   const { projectId, configurationId } = useParams();
 
@@ -69,18 +75,51 @@ export default function Assembly() {
   const [labelClass, setLabelClass] = useRecoilState(labelClassAtom);
 
   const [step, setStep] = useRecoilState(stepAtom);
-  const rois = useRecoilValue(rectanglesAtom).filter(
-    (t) => t.rectType == RECTANGLE_TYPE.ROI
-  );
-  const annotationRects = useRecoilValue(rectanglesAtom).filter(
-    (t) => t.rectType == RECTANGLE_TYPE.ANNOTATION_LABEL
-  );
+
+  const [imageStatus, setImageStatus] = useRecoilState(imageStatusAtom);
+
+  const [selectedImage, setSelectedImage] = useRecoilState(selectedFileAtom);
+  // const [images, setImages] = useRecoilState(uploadedFileListAtom);
+
+  // const rois = useRecoilValue(rectanglesAtom).filter(
+  //   (t) => t.rectType == RECTANGLE_TYPE.ROI
+  // );
+
+  const rois = [
+    ...useRecoilValue(rectanglesAtom).filter(
+      (t) => t.rectType === RECTANGLE_TYPE.ROI
+    ),
+    ...useRecoilValue(polygonsAtom).filter(
+      (t) => t.polyType === RECTANGLE_TYPE.ROI
+    ),
+  ];
+
+  // const annotationRects = useRecoilValue(rectanglesAtom).filter(
+  //   (t) => t.rectType == RECTANGLE_TYPE.ANNOTATION_LABEL
+  // );
+
+  const annotationRects = [
+    ...useRecoilValue(rectanglesAtom).filter(
+      (t) => t.rectType === RECTANGLE_TYPE.ANNOTATION_LABEL
+    ),
+    ...useRecoilValue(polygonsAtom).filter(
+      (t) => t.polyType === RECTANGLE_TYPE.ANNOTATION_LABEL
+    ),
+  ];
+
+  // const recValue = useRecoilValue(rectanglesAtom);
+  // const polyValue = useRecoilValue(polygonsAtom);
+  // console.log("all figures",{rois, annotationRects, recValue, polyValue})
+
   const [annotationMap, setAnnotationMap] = useRecoilState(annotationMapAtom);
   const [selectedRectId, setSelectedRectId] = useRecoilState(
     currentRectangleIdAtom
   );
+  const [selectedPolyId, setSelectedPolyId] =
+    useRecoilState(currentPolygonIdAtom);
   const setLastAction = useSetRecoilState(lastActionNameAtom);
   const [rectangles, setRectangles] = useRecoilState(rectanglesAtom);
+  const [polygons, setPolygons] = useRecoilState(polygonsAtom);
   const setLabelsLoaded = useSetRecoilState(loadedLabelsAtom);
   const [labelsEdited, setLabelsEdited] = useRecoilState(labelEditedAtom);
   const [roisLoaded, setRoisLoaded] = useState(false);
@@ -127,14 +166,14 @@ export default function Assembly() {
       );
       return;
     }
-    // console.log({ annotationRects }); // has all the label rectangles
+    console.log({ annotationRects }); // has all the label rectangles
     // console.log('initial', initialLabels);
 
     if (
       initialLabels.length === annotationRects.length &&
       !compareArrays(annotationRects, initialLabels)
     ) {
-      toast.success('No changes to update');
+      toast.success('No1 changes to update');
       return true;
     }
 
@@ -142,20 +181,43 @@ export default function Assembly() {
     //   toast.success('my check');
     //   return true;
     // }
+
+    // console.log({annotationRects});
     annotationRects.forEach((rect) => {
-      console.log('labelsedited', labelsEdited[rect.imageId], rect.imageId);
       if (!labelsEdited[rect.imageId]) return;
       const classNo = annotationMap[rect.uuid];
-      const height = rect.height.toFixed(4);
-      const width = rect.width.toFixed(4);
-      const x = (rect.x + rect.width / 2).toFixed(4);
-      const y = (rect.y + rect.height / 2).toFixed(4);
-      if (imgMap[rect.imageId]) {
-        imgMap[rect.imageId] += `${classNo} ${x} ${y} ${width} ${height}\n`;
+      if (rect?.x) {
+        const height = rect.height.toFixed(4);
+        const width = rect.width.toFixed(4);
+        const x = (rect.x + rect.width / 2).toFixed(4);
+        const y = (rect.y + rect.height / 2).toFixed(4);
+        if (imgMap[rect.imageId]) {
+          imgMap[rect.imageId] += `${classNo} ${x} ${y} ${width} ${height}\n`;
+        } else {
+          imgMap[rect.imageId] = `${classNo} ${x} ${y} ${width} ${height}\n`;
+        }
       } else {
-        imgMap[rect.imageId] = `${classNo} ${x} ${y} ${width} ${height}\n`;
+        if (imgMap[rect.imageId]) {
+          imgMap[rect.imageId] += `${classNo}`;
+          rect.points.map((point) => {
+            point = Number(point).toFixed(4);
+            imgMap[rect.imageId] += ` ${point}`;
+          });
+          imgMap[rect.imageId] += "\n";
+          console.log("old", imgMap[rect.imageId])
+        } else {
+          imgMap[rect.imageId] = `${classNo}`;
+          rect.points.map((point) => {
+            console.log("point11", point)
+            point = Number(point).toFixed(4);
+            imgMap[rect.imageId] += ` ${point}`;
+          });
+          imgMap[rect.imageId] += "\n";
+        }
       }
     });
+
+    console.log({ imgMap }, {labelsEdited});
     const formData = new FormData();
     const imageIds = [];
     // console.log({images}) // conatins the 10 uploaded images
@@ -168,11 +230,12 @@ export default function Assembly() {
         imageIds.push(img.id || '');
       }
     });
+    console.log({ imageIds });
     formData.append('configurationId', configurationId);
     formData.append('imageIds', imageIds);
     console.log({ imageIds });
     if (!imageIds.length) {
-      toast.success('No changes to update');
+      toast.success('No changes1 to update');
       return true;
     }
 
@@ -249,6 +312,7 @@ export default function Assembly() {
       );
       return;
     }
+    setSelectedImage(images[0]);
     setStep((t) => {
       if (t == 0) return t;
       return t - 1;
@@ -260,11 +324,17 @@ export default function Assembly() {
   };
 
   const cancel = () => {
+    // setPolygons((polys) => polys.filter((poly) => poly.roiId !== currentRoiId));
+    setImageStatus((prev) => ({
+      ...prev,
+      drawMode: false,
+    }));
     setEditingRect(false);
     setIsEditing(false);
     setLabelId(null);
     setCurrentRoiId(null);
     setRectangleType(RECTANGLE_TYPE.ROI);
+    setPolygonType(RECTANGLE_TYPE.ROI);
     setLastAction(ACTION_NAMES.CANCEL);
     setConfiguration((t) => ({
       ...t,
@@ -283,11 +353,16 @@ export default function Assembly() {
   };
 
   const submit = () => {
+    setImageStatus((prev) => ({
+      ...prev,
+      drawMode: false,
+    }));
     setLabelId(null);
     setEditingRect(false);
     setIsEditing(false);
     setCurrentRoiId(null);
     setSelectedRectId(null);
+    setSelectedPolyId(null);
     setLastAction(ACTION_NAMES.SUBMIT);
     setConfiguration((t) => ({
       ...t,
@@ -296,9 +371,10 @@ export default function Assembly() {
         // status: k.id == currentRoiId ? STATUS.FINISH : k.status,
 
         status:
-          k.id === currentRoiId &&
-          (prevStatus === 'finish' ||
-            rectangles.find((rect) => rect.title === k.title))
+          (k.id === currentRoiId &&
+            (prevStatus === 'finish' ||
+              rectangles.find((rect) => rect.title === k.title))) ||
+          polygons.find((poly) => poly.title === k.title)
             ? STATUS.FINISH
             : k.id === currentRoiId
               ? STATUS.DEFAULT
@@ -313,9 +389,10 @@ export default function Assembly() {
       }
     })
     setRectangleType(RECTANGLE_TYPE.ROI);
+    setPolygonType(RECTANGLE_TYPE.ROI);
   };
 
-  console.log({ configuration }, { rectangles });
+  console.log({ configuration }, { rectangles }, { polygons });
 
   const stepObj = {
     0: <UploadImageStep />,
@@ -334,7 +411,7 @@ export default function Assembly() {
         },
       });
       console.log({ roiData });
-      let data = roiData.data?.data;
+      let data = roiData.data?.data?.data;
       data = data.sort((a, b) => a.rois.name.localeCompare(b.rois.name));
       console.log({ data });
       const temp = [...data];
@@ -361,6 +438,7 @@ export default function Assembly() {
         const partsMap = {};
         const roiMap = {};
         const rects = [];
+        const polys = [];
         // let configUpdate = { productFlow: data[0].configuration.direction },
         //   configUpdateRequired = false;
         data?.forEach((conf, i) => {
@@ -378,24 +456,45 @@ export default function Assembly() {
               parts: [],
             };
             //!do rectangle here too
-            const [ x1, y1, x2, y2] = conf.rois.coordinates;
+            // const [ x1, y1, x2, y2] = conf.rois.coordinates.length > 4 ? ;
+            const points = conf.rois.coordinates;
             const color = getRandomHexColor();
             const uuid = v4();
-            rects.push({
-              ...BASE_RECT,
-              id: rois.length + i,
-              fill: color,
-              stroke: color,
-              imageId: images[0].id,
-              rectType: RECTANGLE_TYPE.ROI,
-              roiId: i,
-              title: conf.rois.name,
-              x: parseFloat(x1),
-              y: parseFloat(y1),
-              width: parseFloat(x2 - x1),
-              height: parseFloat(y2 - y1),
-              uuid,
-            });
+
+            if (points.length === 4) {
+              // it is rectangle
+              const [x1, y1, x2, y2] = points;
+              rects.push({
+                ...BASE_RECT,
+                id: rois.length + i,
+                fill: color,
+                stroke: color,
+                imageId: images[0].id,
+                rectType: RECTANGLE_TYPE.ROI,
+                roiId: i,
+                title: conf.rois.name,
+                x: parseFloat(x1),
+                y: parseFloat(y1),
+                width: parseFloat(x2 - x1),
+                height: parseFloat(y2 - y1),
+                uuid,
+              });
+            } else {
+              //  it is polygon
+              polys.push({
+                ...BASE_RECT,
+                id: rois.length + i,
+                fill: color,
+                stroke: color,
+                imageId: images[0].id,
+                polyType: RECTANGLE_TYPE.ROI,
+                roiId: i,
+                title: conf.rois.name,
+                points: points, 
+                uuid,
+                closed: true
+              });
+            }
           }
           if (!partsMap[roiId]) {
             partsMap[roiId] = [];
@@ -436,9 +535,12 @@ export default function Assembly() {
         setConfiguration((t) => ({
           ...t,
           rois: Object.values(roiMap),
+          primaryObject: roiData?.data?.data?.primaryClass?.name,
+          primaryObjectClass: roiData?.data?.data?.primaryClass?.id
           // rois: sortedRois
         }));
         setRectangles((prev) => [...prev, ...rects]);
+        setPolygons((prev) => [...prev, ...polys]);
 
         // if (configUpdateRequired) {
         //   setConfiguration((prev) => ({
@@ -473,7 +575,6 @@ export default function Assembly() {
     const imgMap = {};
     let temp = cloneDeep(configuration);
     // const temp = configuration;
-    console.log('prepareApiData', { temp }, { configuration });
     temp = {
       ...temp,
     };
@@ -481,7 +582,6 @@ export default function Assembly() {
     temp.id = configurationId;
     delete temp.productFlow;
     temp.rois = configuration.rois.map((roi, index) => {
-      console.log('roi11', { roi });
       const tempParts = roi.parts.map((part) => {
         return {
           classify: part.classify == 'on',
@@ -491,17 +591,22 @@ export default function Assembly() {
           operator: part.operation,
         };
       });
-      const points = []
+      const points = [];
       console.log(
         roi.id,
         rois.map((ele) => ele.roiId)
       );
+      console.log({ rois });
       rois.forEach((roiRect) => {
         if (roi.id == roiRect.roiId) {
-          points.push(parseFloat(roiRect.x.toFixed(4)));
-          points.push(parseFloat(roiRect.y.toFixed(4)));
-          points.push(parseFloat((roiRect.x + roiRect.width).toFixed(4)));
-          points.push(parseFloat((roiRect.y + roiRect.height).toFixed(4)));
+          if (roiRect?.x) {
+            points.push(parseFloat(roiRect.x.toFixed(4)));
+            points.push(parseFloat(roiRect.y.toFixed(4)));
+            points.push(parseFloat((roiRect.x + roiRect.width).toFixed(4)));
+            points.push(parseFloat((roiRect.y + roiRect.height).toFixed(4)));
+          } else {
+            points.push(...roiRect.points);
+          }
         }
       });
       // console.log("id of rois",roi?.id)
@@ -514,35 +619,41 @@ export default function Assembly() {
         parts: isPrimary ? [] : tempParts,
       };
     });
-    if (temp.direction != 0) {
-      temp.rois[0].primaryObject = null;
-    }
+    // if (temp.direction != 0) {
+    //   temp.rois[0].primaryObject = null;
+    // }
     delete temp.primaryObject;
     delete temp.primaryObjectClass;
+    if(type === ASSEMBLY_CONFIG.MOVING){
+      temp.primaryClass = {
+        id: configuration.primaryObjectClass,
+        name: configuration.primaryObject
+      }
+    }
     const formData = new FormData();
     // await Promise.all(images.map(async(img, index)=>{
     //   const resp = await fetch(img.url)
     //   const blob = await resp.blob()
     //   formData.append('images', blob, img.name)
     // }))
-    console.log('formData', { temp });
+    // console.log('formData', { temp });
     formData.append('data', JSON.stringify(temp));
-    formData.append('configurationId', configurationId);
-    formData.append(
-      'isGood',
-      JSON.stringify([
-        true,
-        true,
-        true,
-        true,
-        true,
-        false,
-        false,
-        false,
-        false,
-        false,
-      ])
-    );
+    // formData.append('configurationId', configurationId);
+    // formData.append(
+    //   'isGood',
+    //   JSON.stringify([
+    //     true,
+    //     true,
+    //     true,
+    //     true,
+    //     true,
+    //     false,
+    //     false,
+    //     false,
+    //     false,
+    //     false,
+    //   ])
+    // );
     try {
       const data = await axiosInstance.post(
         '/configuration/assembly',
@@ -553,8 +664,8 @@ export default function Assembly() {
     } catch (e) {
       toast.error(
         e?.response?.data?.data?.message
-          ? // ? `${e?.response?.data?.data?.message}. All fields are required`
-            'All ROIs label are required!'
+          ?  // ? `${e?.response?.data?.data?.message}. All fields are required`
+             'All ROIs label are required!'
           : 'Failed'
       );
     }
@@ -565,6 +676,11 @@ export default function Assembly() {
     rect.imageId &&
       rect.rectType == RECTANGLE_TYPE.ANNOTATION_LABEL &&
       imageIdStore.add(rect.imageId);
+  });
+  polygons.forEach((poly) => {
+    poly.imageId &&
+      poly.polyType == RECTANGLE_TYPE.ANNOTATION_LABEL &&
+      imageIdStore.add(poly.imageId);
   });
   const isAllImagesLabeled = imageIdStore.size == 10;
 

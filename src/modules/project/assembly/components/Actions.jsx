@@ -1,4 +1,5 @@
 import Box from '@/shared/icons/Box';
+import Poly from '@/shared/icons/Poly';
 import Pan from '@/shared/icons/Pan';
 import ZoomIn from '@/shared/icons/ZoomIn';
 import ZoomOut from '@/shared/icons/ZoomOut';
@@ -7,9 +8,29 @@ import OneIsToOne from '@/shared/icons/OneIsToOne';
 import Button from '@/shared/ui/Button';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 
-import { ACTION_NAMES, IMAGE_STATUS, RECTANGLE_TYPE, STATUS } from '@/core/constants';
-import { assemblyAtom, currentRectangleIdAtom, currentRoiIdAtom, editingAtom, imageStatusAtom, lastActionNameAtom, rectanglesAtom, rectanglesTypeAtom, selectedRoiSelector, stageAtom } from '../../state';
+import {
+  ACTION_NAMES,
+  IMAGE_STATUS,
+  RECTANGLE_TYPE,
+  STATUS,
+} from '@/core/constants';
+import {
+  assemblyAtom,
+  currentRectangleIdAtom,
+  currentRoiIdAtom,
+  editingAtom,
+  imageStatusAtom,
+  lastActionNameAtom,
+  rectanglesAtom,
+  polygonsAtom,
+  rectanglesTypeAtom,
+  selectedRoiSelector,
+  stageAtom,
+  polygonsTypeAtom,
+  inspectionReqAtom,
+} from '../../state';
 import { useState } from 'react';
+import { prevStatusAtom } from '../state';
 // import { editingRectAtom } from '../state';
 
 export default function Actions({ cancel, submit }) {
@@ -22,12 +43,20 @@ export default function Actions({ cancel, submit }) {
   const isEditing = useRecoilValue(editingAtom);
   const currentRoiId = useRecoilValue(currentRoiIdAtom);
   const rectangles = useRecoilValue(rectanglesAtom);
+  const polygons = useRecoilValue(polygonsAtom);
   const configuration = useRecoilValue(assemblyAtom);
+  const prevStatus = useRecoilValue(prevStatusAtom);
 
-  const roiIndex = configuration.rois.findIndex(ele=>ele.id == currentRoiId)
-  const currentRectType = useRecoilValue(rectanglesTypeAtom)
-  const selectedRectId = useRecoilValue(currentRectangleIdAtom)
-  const [actionName, setActionName] = useRecoilState(lastActionNameAtom)
+  const roiIndex = configuration?.rois?.findIndex(
+    (ele) => ele.id == currentRoiId
+  );
+  const currentRectType = useRecoilValue(rectanglesTypeAtom);
+  const currentPolyType = useRecoilValue(polygonsTypeAtom);
+
+  const selectedRectId = useRecoilValue(currentRectangleIdAtom);
+  const [actionName, setActionName] = useRecoilState(lastActionNameAtom);
+
+  const [inspectionReq, setInspectionReq] = useRecoilState(inspectionReqAtom);
 
   //   const [isEditingRect, setEditingRect] = useRecoilState(editingRectAtom);
 
@@ -63,35 +92,58 @@ export default function Actions({ cancel, submit }) {
   };
 
   const handleDrawBox = () => {
-    if (!isEditing) return;
-    let ret = false
-    console.log("handleDrawBox",{rectangles, currentRoiId})
-    rectangles.forEach((rect)=>{
-      if(rect.roiId && rect.roiId === currentRoiId){
-        ret = true
+    console.log('drawModebox', imageStatus.drawMode);
+    if (!isEditing || imageStatus.drawMode === true || prevStatus === 'finish' || inspectionReq === 2)
+      return;
+
+    let ret = false;
+    console.log('handleDrawBox', { rectangles, currentRoiId });
+    rectangles.forEach((rect) => {
+      if (rect.roiId && rect.roiId === currentRoiId) {
+        ret = true;
       }
-    })
-    if(ret) return;
-    console.log("click rectangular selection",{IMAGE_STATUS})
+    });
+    if (ret) return;
+    console.log('click rectangular selection', { IMAGE_STATUS });
     setImageStatus((t) => ({
       ...IMAGE_STATUS,
       draw: !t.draw,
       drawing: !t.drawing,
+      drawMode: 'RECT',
     }));
     setActionName(ACTION_NAMES.SELECTED);
   };
-  console.log({imageStatus})
+
+  const handleDrawPolygon = () => {
+    console.log('drawModepoly', imageStatus.drawMode);
+    if (!isEditing || imageStatus.drawMode === true || prevStatus === 'finish' || inspectionReq !== 2)
+      return;
+
+    let ret = false;
+    polygons.forEach((poly) => {
+      if (poly.roiId && poly.roiId === currentRoiId) {
+        ret = true;
+      }
+    });
+    if (ret) return;
+    setImageStatus((t) => ({
+      ...IMAGE_STATUS,
+      draw: !t.draw,
+      drawing: !t.drawing,
+      drawMode: 'POLY',
+    }));
+    setActionName(ACTION_NAMES.SELECTED);
+  };
 
   const handleOneToOne = () => {
-    setImageStatus((p)=>({...p, oneToOne: true}));
-  }
+    setImageStatus((p) => ({ ...p, oneToOne: true }));
+  };
 
   const handleFitToCenter = () => {
-    setImageStatus((p)=>({...p, fitToCenter: true}));
-  }
+    setImageStatus((p) => ({ ...p, fitToCenter: true }));
+  };
 
-  
-console.log({imageStatus})
+
   const actions = [
     // {
     //   title: 'zoom in',
@@ -132,23 +184,40 @@ console.log({imageStatus})
       title: 'Rectangular Selection',
       icon: Box,
       action: handleDrawBox,
-      active: imageStatus.draw,
-      canAction: isEditing && 
-        (
-          (
-            currentRectType == RECTANGLE_TYPE.ROI &&
-            roiIndex >= 0 && 
-            !rectangles.some(rec=>rec.roiId == configuration.rois[roiIndex].id)
-          ) || 
-          (
-            RECTANGLE_TYPE.ANNOTATION_LABEL === currentRectType &&
-            ACTION_NAMES.SELECTED!==actionName
-          )
-        ),
+      active:
+        (inspectionReq === 0 || inspectionReq === 1) &&
+        imageStatus.draw &&
+        prevStatus === 'default',
+      canAction:
+        isEditing &&
+        (inspectionReq === 0 || inspectionReq === 1) &&
+        ((currentRectType == RECTANGLE_TYPE.ROI &&
+          roiIndex >= 0 &&
+          !rectangles.some(
+            (rec) => rec.roiId == configuration.rois[roiIndex].id
+          )) ||
+          (RECTANGLE_TYPE.ANNOTATION_LABEL === currentRectType &&
+            ACTION_NAMES.SELECTED !== actionName)),
+    },
+    {
+      title: 'Polygon Selection',
+      icon: Poly,
+      action: handleDrawPolygon,
+      active:
+        inspectionReq === 2 && imageStatus.draw && prevStatus === 'default',
+      canAction:
+        isEditing &&
+        inspectionReq === 2 &&
+        ((currentPolyType == RECTANGLE_TYPE.ROI &&
+          roiIndex >= 0 &&
+          !polygons.some(
+            (poly) => poly.roiId == configuration.rois[roiIndex].id
+          )) ||
+          (RECTANGLE_TYPE.ANNOTATION_LABEL === currentPolyType &&
+            ACTION_NAMES.SELECTED !== actionName)),
     },
   ];
 
-  console.log("Actions", {isEditing})
 
   return (
     <>
@@ -156,7 +225,7 @@ console.log({imageStatus})
         {actions.map((t) => (
           <div key={t.title} className="relative">
             <li
-              className={`flex cursor-pointer select-none flex-col items-center p-2 ${t.active ? 'text-f-primary' : ''} ${t.canAction ? '' : 'cursor-not-allowed opacity-30'}`}
+              className={`flex cursor-pointer select-none flex-col items-center p-2 ${t.active ? 'text-f-primary' : ''} ${t.canAction ? 'opacity-100' : 'cursor-not-allowed opacity-30'}`}
               onClick={t?.action}
               onMouseEnter={() => setIsHovered(t.title)}
               onMouseLeave={() => setIsHovered('')}
@@ -165,7 +234,7 @@ console.log({imageStatus})
               {/* {t.title} */}
             </li>
             {isHovered === t.title && (
-              <div className="absolute bottom-12 left-1/2 transform w-auto -translate-x-1/2 bg-f-primary text-white py-2 px-4 rounded-md text-sm z-10">
+              <div className="absolute bottom-12 left-1/2 z-10 w-auto -translate-x-1/2 transform rounded-md bg-f-primary px-4 py-2 text-sm text-white">
                 {t.title}
               </div>
             )}

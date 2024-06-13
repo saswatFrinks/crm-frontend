@@ -63,6 +63,10 @@ export const currentRectangleIdAtom = atom({
   key: 'currentRectangleIdAtom',
   default: null,
 });
+export const currentPolygonIdAtom = atom({
+  key: 'currentPolygonIdAtom',
+  default: null,
+});
 
 export const mousePositionAtom = atom({
   key: 'mousePositionAtom',
@@ -75,6 +79,12 @@ export const rectanglesAtom = atom({
   dangerouslyAllowMutability: true,
 });
 
+export const polygonsAtom = atom({
+  key: 'polygonsAtom',
+  default: [],
+  dangerouslyAllowMutability: true,
+});
+
 export const imageDimensionAtom = atom({
   key: 'imageDimensionAtom',
   default: {height: 0, width: 0},
@@ -82,6 +92,11 @@ export const imageDimensionAtom = atom({
 
 export const rectanglesTypeAtom = atom({
   key: 'rectanglesTypeAtom',
+  default: RECTANGLE_TYPE.ROI
+})
+
+export const polygonsTypeAtom = atom({
+  key: 'polygonsTypeAtom',
   default: RECTANGLE_TYPE.ROI
 })
 
@@ -148,3 +163,9 @@ export const currentLabelIdAtom = atom({
   key: 'currentLabelIdAtom',
   default: null,
 });
+
+export const inspectionReqAtom = atom({
+  key: 'inspectionReqAtom',
+  default: '',
+});
+

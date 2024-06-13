@@ -10,6 +10,7 @@ import {
   currentRectangleIdAtom,
   editingAtom,
   labelClassAtom,
+  polygonsTypeAtom,
   rectanglesAtom,
   rectanglesTypeAtom,
 } from '../state';
@@ -23,6 +24,7 @@ export default function AnnotationClass({ labelClass }) {
   const { projectId } = useParams();
   const [selectedClassId, setSelectedClassId] = useRecoilState(labelClassAtom);
   const setRectangleType = useSetRecoilState(rectanglesTypeAtom);
+  const setPolygonType = useSetRecoilState(polygonsTypeAtom);
   // const setIsEditing = useSetRecoilState(editingAtom);
   const [isEditing, setIsEditing] = useRecoilState(editingAtom);
   const rectangles = useRecoilValue(rectanglesAtom);
@@ -45,6 +47,7 @@ export default function AnnotationClass({ labelClass }) {
     }
     setIsEditing(true);
     setRectangleType(RECTANGLE_TYPE.ANNOTATION_LABEL);
+    setPolygonType(RECTANGLE_TYPE.ANNOTATION_LABEL);
     setSelectedClassId(t);
     console.log({ labelClass });
   };
