@@ -47,7 +47,7 @@ export default function Actions({ cancel, submit }) {
   const configuration = useRecoilValue(assemblyAtom);
   const prevStatus = useRecoilValue(prevStatusAtom);
 
-  const roiIndex = configuration.rois.findIndex(
+  const roiIndex = configuration?.rois?.findIndex(
     (ele) => ele.id == currentRoiId
   );
   const currentRectType = useRecoilValue(rectanglesTypeAtom);

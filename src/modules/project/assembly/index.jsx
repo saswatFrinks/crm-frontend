@@ -178,6 +178,8 @@ export default function Assembly() {
     //   toast.success('my check');
     //   return true;
     // }
+
+    // console.log({annotationRects});
     annotationRects.forEach((rect) => {
       if (!labelsEdited[rect.imageId]) return;
       const classNo = annotationMap[rect.uuid];
@@ -212,7 +214,7 @@ export default function Assembly() {
       }
     });
 
-    console.log({ imgMap });
+    console.log({ imgMap }, {labelsEdited});
     const formData = new FormData();
     const imageIds = [];
     // console.log({images}) // conatins the 10 uploaded images
@@ -225,6 +227,7 @@ export default function Assembly() {
         imageIds.push(img.id || '');
       }
     });
+    console.log({ imageIds });
     formData.append('configurationId', configurationId);
     formData.append('imageIds', imageIds);
     console.log({ imageIds });
