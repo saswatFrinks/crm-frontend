@@ -6,13 +6,13 @@ import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import React from 'react';
 import { useRecoilState, useSetRecoilState } from 'recoil';
-import { classAtom, configurationAtom } from './state';
+import { classAtom, configurationAtom, primaryClassAtom } from './state';
 import { getRoisAndClasses } from '@/algo/algo';
 import toast from 'react-hot-toast';
 import { removeDuplicates } from '@/util/util';
 import { modalAtom } from '@/shared/states/modal.state';
 
-export default function Configuration({ setLoading, formRef }) {
+export default function Configuration({ setLoading, formRef, isMoving }) {
   const columns = [
     'Variant',
     'Camera Position',
@@ -24,6 +24,7 @@ export default function Configuration({ setLoading, formRef }) {
 
   const params = useParams();
   const [classes, setClasses] = useState([]);
+  const [selectedTracker, setSelectedTracker] = useRecoilState(primaryClassAtom);
   const [rois, setRois] = useState([]);
   const [roiClasses, setRoiClasses] = useState([]);
   const [classMap, setClassMap] = useState(new Map());
@@ -254,6 +255,8 @@ export default function Configuration({ setLoading, formRef }) {
     if(roiDataSets.size > 0)getDatasetImages();
   }, [roiDataSets])
 
+  const trackerClasses = ['Class 5', 'Class 4', 'Class 6']
+
   return (
     <div className="flex flex-col gap-8">
       <h3 className=" text-2xl font-semibold">Configurations & Classes</h3>
@@ -266,7 +269,7 @@ export default function Configuration({ setLoading, formRef }) {
       </p>
 
       <div className="flex flex-col gap-4">
-        <p>Select the classes you wish to train this AI model for:</p>
+        <p className='font-medium'>Select the classes you wish to train this AI model for:</p>
         <div className="flex gap-4">
           {classes.map((classObj) => {
             return (
@@ -295,8 +298,10 @@ export default function Configuration({ setLoading, formRef }) {
         </div>
       </div>
 
+      <div className="font-medium mx-auto my-[-1rem]">OR</div>
+
       <div className="flex flex-col gap-4">
-        <p>Select from the following ROI configurations you wish to build this AI model for:</p>
+        <p className='font-medium'>Select from the following ROI configurations you wish to build this AI model for:</p>
         <div className="placeholder:*: relative shadow-md sm:rounded-lg">
           <table className="w-full text-left text-sm text-gray-500 rtl:text-right ">
             <thead className="bg-white text-sm uppercase text-gray-700 ">
@@ -370,6 +375,27 @@ export default function Configuration({ setLoading, formRef }) {
           <p className="text-sm text-red-500">{error}</p>
         )}
       </div>
+
+      {isMoving && <div className="mt-4 flex items-center gap-4">
+        {trackerClasses.map((cl, index) => (
+          <div className="flex items-center gap-1">
+            <Checkbox
+              id={index}
+              checked={selectedTracker.includes(cl)}
+              onChange={() => {}}
+              onClick={() => {
+                setSelectedTracker(prev => {
+                  const newClasses = [...prev];
+                  if(prev.includes(cl))return newClasses.filter(c => c !== cl);
+                  else newClasses.push(cl);
+                  return newClasses;
+                })
+              }}
+            />
+            <div>{cl}</div>
+          </div>
+        ))}
+      </div>}
     </div>
   );
 }

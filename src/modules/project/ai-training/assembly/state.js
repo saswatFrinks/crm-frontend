@@ -55,6 +55,11 @@ export const classAtom = atom({
   default: [],
 });
 
+export const primaryClassAtom = atom({
+  key: 'primaryClasses',
+  default: [],
+});
+
 export const datasetAtom = atom({
   key: 'dataset',
   default: [],

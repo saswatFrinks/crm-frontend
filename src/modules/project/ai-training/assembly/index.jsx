@@ -70,6 +70,7 @@ export default function AIAssembly() {
   const [datasets, setDatasets] = useRecoilState(datasetAtom);
   const [augmentations, setAugmentations] = useRecoilState(augmentationsAtom);
   const [modelInfo, setModelInfo] = useRecoilState(modelInfoAtom);
+  const [project, setProject] = React.useState(null);
   
   const formRefs = Array.from({length: 5}, () => useRef(null));
   const sseRef = useRef(null);
@@ -147,8 +148,22 @@ export default function AIAssembly() {
     }
   };
 
+  const fetchProject = async () => {
+    try {
+      const res = await axiosInstance.get('/project', {
+        params: {
+          projectId: params.projectId,
+        },
+      })
+      setProject(res?.data?.data);
+    } catch (error) {
+      toast.error(error?.response?.data?.data?.message || 'Cannot fetch project details');
+    }
+  };
+
   useEffect(() => {
     fetchModelsList();
+    fetchProject();
     return ()=> sseRef.current?.close();
   }, []);
 
@@ -380,9 +395,10 @@ export default function AIAssembly() {
           </div>
         }
       >
-        <BuildNTrainDrawer 
+        {open && <BuildNTrainDrawer 
           formRefs = {formRefs}
-        />
+          isMoving = {!project?.isItemFixed}
+        />}
       </Drawer>
       {/* </Toaster> */}
     </>

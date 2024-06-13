@@ -477,7 +477,7 @@ export default function InspectionParameterStep(props) {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* <div className="flex items-center gap-2">
             <Label main={false}>Primary Object Class Annotation:</Label>
             <div className="ml-2 w-44 max-w-xs">
               <Button
@@ -498,7 +498,7 @@ export default function InspectionParameterStep(props) {
                 </div>
               </Button>
             </div>
-          </div>
+          </div> */}
 
           <Hr />
         </div>
@@ -791,7 +791,7 @@ export default function InspectionParameterStep(props) {
                                 e.target.value
                               );
                             }}
-                            options={classOptions}
+                            options={classOptions.filter(cl => cl.id !== configuration?.primaryObjectClass)}
                             errorMessage={
                               errors.get(`${t.id}-${objIndex}`)?.class
                             }

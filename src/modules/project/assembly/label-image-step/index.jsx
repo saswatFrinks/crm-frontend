@@ -7,6 +7,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Edit,
+  Plus,
   Trash,
 } from 'react-feather';
 import Select from '@/shared/ui/Select';
@@ -28,7 +29,7 @@ import {
   uploadedFileListAtom,
   // rectangleColorAtom
 } from '../../state';
-import { ACTION_NAMES, BASE_RECT, RECTANGLE_TYPE } from '@/core/constants';
+import { ACTION_NAMES, ASSEMBLY_CONFIG, BASE_RECT, RECTANGLE_TYPE, STATUS } from '@/core/constants';
 import Button from '@/shared/ui/Button';
 import axiosInstance from '@/core/request/aixosinstance';
 import { useParams } from 'react-router-dom';
@@ -36,6 +37,7 @@ import { getRandomHexColor } from '@/util/util';
 import {
   initialLabelsAtom,
   loadedLabelsAtom,
+  prevStatusAtom,
   rectangleColorAtom,
   stepAtom,
 } from '../state';
@@ -46,8 +48,10 @@ import toast from 'react-hot-toast';
 import Label from '@/shared/ui/Label';
 import Pen from '@/shared/icons/Pen';
 import Box from '@/shared/icons/Box';
+import Hr from '@/shared/ui/Hr';
+import Checkbox from '@/shared/ui/Checkbox';
 
-export default function LabelImage({ save }) {
+export default function LabelImage({ type, save }) {
   const configuration = useRecoilValue(assemblyAtom);
   const colors = [
     '#C6C4FF',
@@ -63,9 +67,11 @@ export default function LabelImage({ save }) {
 
   const [labelClasses, setLabelClasses] = useState([]);
   const [page, setPage] = useState(1);
+  const [selectedLabelIdx, setSelectedLabelIdx] = useState([]);
   const [annotationMap, setAnnotationMap] = useRecoilState(annotationMapAtom);
   const [selectedLabel, setLabel] = useRecoilState(labelClassAtom);
   const setRectangleType = useSetRecoilState(rectanglesTypeAtom);
+  const [prevStatus, setPrevStatus] = useRecoilState(prevStatusAtom);
 
   const selectedImage = useRecoilValue(selectedFileAtom);
 
@@ -84,6 +90,13 @@ export default function LabelImage({ save }) {
     (rect) =>
       rect.rectType == RECTANGLE_TYPE.ANNOTATION_LABEL &&
       rect.imageId == selectedFile?.id
+  );
+
+  let selectedPrimaryRois = rectangles.filter(
+    (rect) =>
+      rect.rectType == RECTANGLE_TYPE.ANNOTATION_LABEL &&
+      rect.imageId == selectedFile?.id &&
+      rect.title == configuration.primaryObject
   );
 
   const selectedRoisRef = React.useRef(selectedRois);
@@ -130,6 +143,53 @@ export default function LabelImage({ save }) {
     return hexColor;
   };
 
+  const genLabelClass = (status) => {
+    const obj = {
+      [STATUS.DEFAULT]: 'primary',
+      [STATUS.EDITING]: 'warn',
+      [STATUS.FINISH]: 'success',
+    };
+    return obj[status];
+  };
+
+  const addPrimaryClass = (colors) => {
+    if(type === ASSEMBLY_CONFIG.MOVING){
+      const newColors = [...colors];
+      if(labelClasses.filter(cl => cl.id === configuration.primaryObjectClass).length !== 0 && labelClasses.filter(cl => cl.id === configuration.primaryObjectClass).length !== selectedPrimaryRois.length){
+        toast(
+          'Please label the added primary classes first',
+          {
+            icon: '⚠️',
+          }
+        );
+        return;
+      }
+      const primaryClassId = configuration.primaryObjectClass;
+      const primayClassName = configuration.primaryObject;
+      const color = getUniqueHexColor(colors);
+      const newClass = {
+        id: primaryClassId,
+        name: primayClassName,
+        count: 0,
+        color: color,
+        status: STATUS.DEFAULT
+      }
+      newColors.push(newClass);
+      setLabelClasses(prev => {
+        const prevClasses = [...prev];
+        
+        console.log('extensible', Array.isArray(colors), Object.isExtensible(newClass))
+        console.log({colors, newClass})
+        return [
+          ...prevClasses,
+          newClass
+        ];
+      })
+      return newColors;
+    }
+    return null;
+  }
+
   const addClasses = () => {
     const temp = {};
     const idMap = {};
@@ -165,14 +225,16 @@ export default function LabelImage({ save }) {
         })
     );
 
+    const newColors = addPrimaryClass(colors);
+
     setRectangleColor((prev) => ({
       ...prev,
-      all: prev.all.length === colors.length ? [...prev.all] : colors,
+      all: prev.all.length === colors.length ? [...prev.all] : (newColors ? newColors : colors),
     }));
   };
 
   const handleClassClick = async (e, i, col) => {
-    console.log({isEditing});
+    console.log({isEditing}, 'editing');
     if (isEditing) {
       toast(
         'Please confirm the creation of the new label first before proceeding',
@@ -183,6 +245,10 @@ export default function LabelImage({ save }) {
       return;
     }
 
+    if(labelClasses[i]?.status){
+      setPrevStatus(labelClasses[i]?.status);
+    }
+    console.log({label: labelClasses[i]})
     setIsEditing(true);
     setRectangleType(RECTANGLE_TYPE.ANNOTATION_LABEL);
     setRectangleColor({
@@ -195,6 +261,7 @@ export default function LabelImage({ save }) {
       count: labelClasses[i].count,
       id: labelClasses[i].id,
       color: col,
+      status: STATUS.EDITING
     };
     setLabel(update);
     selectedLabelRef.current = {
@@ -202,6 +269,7 @@ export default function LabelImage({ save }) {
       count: labelClasses[i].count,
       id: labelClasses[i].id,
       color: col,
+      status: STATUS.EDITING
     };
   };
 
@@ -299,6 +367,7 @@ export default function LabelImage({ save }) {
                     // const color = rectangleColor.all[i].color;
                     const id = prevData.imageId;
                     const uuid = v4();
+                    console.log({all: rectangleColor.all})
                     const color = rectangleColor.all.find(
                       (obj) => obj.name === className
                     );
@@ -344,46 +413,115 @@ export default function LabelImage({ save }) {
     { labelId }
   );
 
+  const renderLabelHeading = () => {
+    if(type !== ASSEMBLY_CONFIG.MOVING)return <></>
+    return <div className="mb-4 flex flex-col gap-4">
+      <p className='font-medium'>First label the Primary Object Class in the image</p>
+      <div className="mb-4 flex gap-4">
+        <Button
+          size="tiny"
+          variant="border"
+          onClick={() => addPrimaryClass([...rectangleColor.all])}
+          fullWidth={false}
+        >
+          <div className="flex items-center justify-center gap-2">
+            <Plus size={18} /> Add Primary Object Annotation
+          </div>
+        </Button>
+        {/* )} */}
+      </div>
+      <div className="flex flex-col gap-2">
+        {labelClasses.map((t, index) => {
+          const labelIdx = labelClasses.filter(cl => cl.id == t.id).findIndex(r => r?.color === t?.color);
+          console.log({labelIdx, selectedPrimaryRois})
+          if(t.id !== configuration.primaryObjectClass)return <></>
+          return (
+            <div className="flex items-center gap-2">
+              <Label main={false}>Primary Object Class Annotation {labelIdx+1}:</Label>
+              <div className="ml-2 w-44 max-w-xs">
+                <Button
+                  size="tiny"
+                  color={genLabelClass(t?.color === selectedLabel?.color ? selectedLabel?.status : t?.status)}
+                  fullWidth={false}
+                  onClick={(e) => {
+                    if(labelIdx > -1 && selectedPrimaryRois.length - 1 >= labelIdx){
+                      if (isEditing) {
+                        toast(
+                          'Please confirm the creation of the new label first before proceeding',
+                          {
+                            icon: '⚠️',
+                          }
+                        );
+                        return;
+                      }
+                      setSelectedPloyId(selectedPrimaryRois[labelIdx].uuid);
+                      setLabelsEdited((prev) => ({ ...prev, [selectedPrimaryRois[labelIdx].imageId]: true }));
+                    }else{
+                      handleClassClick(e, index, t.color);
+                    }
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <Pen /> Label Class
+                  </div>
+                </Button>
+              </div>
+              <Trash
+                size={18}
+                className="cursor-pointer"
+                onClick={() => {
+                  if(labelIdx > -1 && selectedPrimaryRois.length - 1 >= labelIdx){
+                    if (isEditing && labelId === selectedPrimaryRois[labelIdx].uuid) {
+                      removeRectangle(selectedPrimaryRois[labelIdx].uuid, selectedPrimaryRois[labelIdx].imageId);
+                      setIsEditing(false);
+                    } else if (isEditing) {
+                      toast(
+                        'Please confirm the creation of the new label first before proceeding',
+                        {
+                          icon: '⚠️',
+                        }
+                      );
+                    } else {
+                      removeRectangle(selectedPrimaryRois[labelIdx].uuid, selectedPrimaryRois[labelIdx].imageId);
+                    }
+                  }
+                  setLabelClasses(prev => {
+                    const newPrev = [...prev];
+                    return newPrev.filter(p => p.color !== t.color)
+                  })
+                }}
+              />
+            </div>
+          )
+        })}
+      </div>
+      <Hr />
+    </div>
+  }
+
+  console.log({selectedRois, labelClasses, selectedLabelIdx})
+
   return (
     <div className="flex grow flex-col gap-4">
-      <p className='font-medium'>First label the Primary Object Class in the image</p>
-      <div className="flex items-center gap-2">
-        <Label main={false}>Primary Object Class Annotation:</Label>
-        <div className="ml-2 w-44 max-w-xs">
-          <Button
-            size="tiny"
-            // color={genLabelClass(t.status)}
-            fullWidth={false}
-            onClick={() => {
-              // if (isEditing) {
-              //   toast('Please confirm the current Class', {
-              //     icon: '⚠️',
-              //   });
-              //   return;
-              // }
-            }}
-          >
-            <div className="flex items-center gap-2">
-              <Pen /> Label Class
-            </div>
-          </Button>
-        </div>
-      </div>
+      {renderLabelHeading()}
       <p className='font-medium mt-5'>Choose the class below you wish to label in the image</p>
       <ul className="flex flex-wrap gap-4">
-        {labelClasses.map((t, index) => (
-          <li
-            key={t.name}
-            className={`bg-[${t.color}] flex items-center gap-1 cursor-pointer rounded-md px-3 py-1.5`}
-            style={{ backgroundColor: t.color }}
-            onClick={(e) => {
-              handleClassClick(e, index, t.color);
-            }}
-          >
-            <Box size="xs" />
-            {t.name}
-          </li>
-        ))}
+        {labelClasses.map((t, index) => {
+          if(t.id === configuration.primaryObjectClass)return <></>
+          return (
+            <li
+              key={t.name}
+              className={`bg-[${t.color}] flex items-center gap-1 cursor-pointer rounded-md px-3 py-1.5`}
+              style={{ backgroundColor: t.color }}
+              onClick={(e) => {
+                handleClassClick(e, index, t.color);
+              }}
+            >
+              <Box size="xs" />
+              {t.name}
+            </li>
+          )
+        })}
       </ul>
 
       <div className='mt-2'>
@@ -392,7 +530,7 @@ export default function LabelImage({ save }) {
       </div>
       <div className="flex grow flex-col gap-4 overflow-y-auto">
         {selectedRois
-          .filter((e) => e.rectType !== RECTANGLE_TYPE.ROI)
+          .filter((e) => e.rectType !== RECTANGLE_TYPE.ROI && e.title !== configuration.primaryObject)
           .map((t, i) => (
             <div key={t.id} className="flex items-center gap-4 ">
               <span>{i + 1}.</span>

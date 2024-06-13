@@ -37,6 +37,7 @@ import {
   currentRectangleIdAtom,
   currentRoiIdAtom,
   editingAtom,
+  labelClassAtom,
   labelEditedAtom,
   lastActionNameAtom,
   rectanglesAtom,
@@ -64,6 +65,8 @@ export default function Assembly() {
   const [currentRoiId, setCurrentRoiId] = useRecoilState(currentRoiIdAtom);
 
   const [isEditingRect, setEditingRect] = useRecoilState(editingRectAtom);
+
+  const [labelClass, setLabelClass] = useRecoilState(labelClassAtom);
 
   const [step, setStep] = useRecoilState(stepAtom);
   const rois = useRecoilValue(rectanglesAtom).filter(
@@ -271,6 +274,12 @@ export default function Assembly() {
         status: k.id == currentRoiId ? prevStatus : k.status,
       })),
     }));
+    setLabelClass(prev => {
+      return {
+        ...prev,
+        status: prevStatus
+      }
+    })
   };
 
   const submit = () => {
@@ -296,6 +305,13 @@ export default function Assembly() {
               : k.status,
       })),
     }));
+    setLabelClass(prev => {
+      if(!prev.id)return null
+      return {
+        ...prev,
+        status: STATUS.FINISH
+      }
+    })
     setRectangleType(RECTANGLE_TYPE.ROI);
   };
 
@@ -304,7 +320,7 @@ export default function Assembly() {
   const stepObj = {
     0: <UploadImageStep />,
     1: <InspectionParameterStep type={type} nextRef={nextRef} />,
-    2: <LabelImage save={updateAnnotation} />,
+    2: <LabelImage type={type} save={updateAnnotation} />,
     3: <PreTrainingStep />,
   };
 
@@ -489,19 +505,17 @@ export default function Assembly() {
         }
       });
       // console.log("id of rois",roi?.id)
+      const isPrimary = roi?.primaryObject !== null;
       return {
         id: roi?.identity || '',
         name: roi?.title ?? `ROI ${roi?.id}`,
         // name: `ROI ${roi?.id}`,
         coordinates: points,
-        parts: tempParts,
+        parts: isPrimary ? [] : tempParts,
       };
     });
     if (temp.direction != 0) {
-      temp.rois[0].primaryObject = {
-        name: temp.primaryObject,
-        class: temp.primaryObjectClass,
-      };
+      temp.rois[0].primaryObject = null;
     }
     delete temp.primaryObject;
     delete temp.primaryObjectClass;
@@ -532,7 +546,7 @@ export default function Assembly() {
     try {
       const data = await axiosInstance.post(
         '/configuration/assembly',
-        formData
+        temp
       );
       toast.success('ROIs uploaded');
       return data.data?.success;

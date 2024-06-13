@@ -7,6 +7,7 @@ import {
   configurationAtom,
   datasetAtom,
   modelInfoAtom,
+  primaryClassAtom,
   // modelSizeAtom,
 } from './state';
 import { augmentationsMap } from '.';
@@ -45,7 +46,7 @@ const filterDataSet = (data) => {
   return dataset;
 };
 
-export default function Finish() {
+export default function Finish({isMoving}) {
   const modelInfo = useRecoilValue(modelInfoAtom);
   const configuration = useRecoilValue(configurationAtom);
   // const modelSize = useRecoilValue(modelSizeAtom);
@@ -57,7 +58,8 @@ export default function Finish() {
     })
     .map((classObj) => classObj.name);
   const dataset = filterDataSet(useRecoilValue(datasetAtom));
-  console.log(dataset);
+  const primaryClasses = useRecoilValue(primaryClassAtom);
+  console.log(dataset, {primaryClasses});
 
   return (
     <div className="flex flex-col gap-8">
@@ -80,6 +82,21 @@ export default function Finish() {
         </label>
         <span> {modelInfo.modelDescription} </span>
       </div>
+
+      {isMoving && (
+        <div className="flex items-center gap-2">
+          <label htmlFor="" className="font-semibold">
+            Primary Object Classes:
+          </label>
+          <div className="flex gap-2">
+            {primaryClasses.map((className, index) => (
+              <Chip key={className} color={`color-${(index + 1)%10}`}>
+                {className}
+              </Chip>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="flex items-center gap-2">
         <label htmlFor="" className="font-semibold">
