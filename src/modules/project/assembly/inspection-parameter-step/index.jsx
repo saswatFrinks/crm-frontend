@@ -28,7 +28,10 @@ import {
   currentRoiIdAtom,
   editingAtom,
   rectanglesAtom,
+  polygonsAtom,
   selectedFileAtom,
+  imageStatusAtom,
+  currentPolygonIdAtom,
 } from '../../state';
 import ArrowUp from '@/shared/icons/ArrowUp';
 import DeleteObjectModal from './DeleteObjectModal';
@@ -41,7 +44,7 @@ import {
 } from '../../project-configuration/state';
 import { cloneDeep } from 'lodash';
 import toast from 'react-hot-toast';
-import { prevStatusAtom } from '../state';
+import { prevStatusAtom, statusCheckAtom } from '../state';
 
 export default function InspectionParameterStep(props) {
   // type: moving | stationary {{ASSEMBLY_CONFIG}}
@@ -63,7 +66,11 @@ export default function InspectionParameterStep(props) {
 
   const setCurrentRoiId = useSetRecoilState(currentRoiIdAtom);
   const setSelectedRectId = useSetRecoilState(currentRectangleIdAtom);
+  const setSelectedPolyId = useSetRecoilState(currentPolygonIdAtom);
   const [rectangles, setRectangles] = useRecoilState(rectanglesAtom);
+  const [polygons, setPolygons] = useRecoilState(polygonsAtom);
+  const [imageStatus, setImageStatus] = useRecoilState(imageStatusAtom);
+  const [statusCheck, setStatusCheck] = useRecoilState(statusCheckAtom);
 
   const [formData, setFormData] = useState(new Map());
   const [errors, setErrors] = useState(new Map());
@@ -81,7 +88,6 @@ export default function InspectionParameterStep(props) {
 
   const [isEditing, setIsEditing] = useRecoilState(editingAtom);
   const [prevStatus, setPrevStatus] = useRecoilState(prevStatusAtom);
-
 
   const handleSubmit = () => {
     const res1 = validate(formData);
@@ -275,6 +281,7 @@ export default function InspectionParameterStep(props) {
     });
     if (roiId) {
       setRectangles((rects) => rects.filter((rect) => rect.roiId !== roiId));
+      setPolygons((polys) => polys.filter((poly) => poly.roiId !== roiId));
     }
     // console.log("deleteRoi2",{configuration})
   };
@@ -285,15 +292,48 @@ export default function InspectionParameterStep(props) {
 
   // console.log('rects:', rectangles);
 
-  const handleClickLabel = (id) => {
+  const handleClickLabel = (id, title) => {
     setIsEditing(true);
     setCurrentRoiId(id);
+    let type = "rec";
+    // console.log('imageStatus1', { configuration, rectangles, polygons });
+    // let ind = configuration.rois.findIndex(
+    //   (rect) => rect.title == title && rect.rectType == RECTANGLE_TYPE.ROI
+    // );  
+
+    // if(ind === -1) {
+    //   ind = configuration.rois.findIndex(
+    //     (poly) => poly.title == title && poly.polyType == RECTANGLE_TYPE.ROI
+    //   );
+    // }
+
+    // setStatusCheck(configuration.rois[ind].status )
+
     let idx = rectangles.findIndex(
-      (rect) => rect.roiId == id && rect.rectType == RECTANGLE_TYPE.ROI
+      (rect) => rect.title == title && rect.rectType == RECTANGLE_TYPE.ROI
     );
-    if (idx >= 0) {
-      setSelectedRectId(rectangles[idx].uuid);
+
+    if (idx === -1) {
+      idx = polygons.findIndex(
+        (poly) => poly.title == title && poly.polyType == RECTANGLE_TYPE.ROI
+      );
+      type = "pol";
     }
+
+    if (idx >= 0) {
+      if (type === "rec" && rectangles[idx]?.uuid) {
+        setSelectedRectId(rectangles[idx].uuid);
+      } else {
+        setSelectedPolyId(polygons[idx]?.uuid);
+      }
+    }
+
+    // let idx = rectangles.findIndex(
+    //   (rect) => rect.roiId == id && rect.rectType == RECTANGLE_TYPE.ROI
+    // );
+    // if (idx >= 0) {
+    //   setSelectedRectId(rectangles[idx].uuid);
+    // }
     setConfiguration((t) => ({
       ...t,
       rois: t.rois.map((k) => ({
@@ -604,7 +644,7 @@ export default function InspectionParameterStep(props) {
                       return;
                     }
                     setPrevStatus(t.status);
-                    handleClickLabel(t.id);
+                    handleClickLabel(t.id, t.title);
                   }}
                 >
                   <div className="flex items-center gap-2">

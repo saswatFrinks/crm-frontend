@@ -50,6 +50,14 @@ export const setUniqueClassColors = (allClasses) => {
 }
 
 
+const arraysEqual = (a, b) => {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+};
+
 export const compareArrays = (annotRects, iniLabels) => {
   let flag = false;
 
@@ -57,11 +65,12 @@ export const compareArrays = (annotRects, iniLabels) => {
     let initialLabel = iniLabels.find((label) => label.uuid === rect.uuid);
     if (initialLabel) {
       if (
-        rect.title !== initialLabel.title ||
-        rect.x !== initialLabel.x ||
-        rect.y !== initialLabel.y ||
-        rect.width !== initialLabel.width ||
-        rect.height !== initialLabel.height
+        rect?.title !== initialLabel?.title ||
+        rect?.x !== initialLabel?.x ||
+        rect?.y !== initialLabel?.y ||
+        rect?.width !== initialLabel?.width ||
+        rect?.height !== initialLabel?.height ||
+        !arraysEqual(rect?.points || [], initialLabel?.points || [])
       ) {
         flag = true;
         break;

@@ -8,7 +8,7 @@ import React, { useEffect } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { useRecoilState, useSetRecoilState } from 'recoil';
 import { selectedConfigurationAtom } from './state';
-import { assemblyAtom, labelClassAtom, rectanglesAtom } from '../state';
+import { assemblyAtom, labelClassAtom, polygonsAtom, rectanglesAtom } from '../state';
 import { loadedLabelsAtom, stepAtom } from '../assembly/state';
 import { removeDuplicateFromArray } from '@/util/util';
 import Modal from '@/shared/ui/Modal';
@@ -67,6 +67,7 @@ export default function ProjectConfiguration() {
   const [modal, setModal] = useRecoilState(modalAtom);
   const [preTrainingData, setPreTrainingData] = React.useState([]);
   const setRectangles = useSetRecoilState(rectanglesAtom);
+  const setPolygons = useSetRecoilState(polygonsAtom);
   const setSteps = useSetRecoilState(stepAtom);
   const setLabelsLoaded = useSetRecoilState(loadedLabelsAtom);
   const setConfiguration = useSetRecoilState(assemblyAtom);
@@ -95,6 +96,7 @@ export default function ProjectConfiguration() {
   useEffect(() => {
     getConfigurations();
     setRectangles([]);
+    setPolygons([]);
     setSteps(0);
     setLabelsLoaded(Array.from({ length: 10 }, () => false));
     setConfiguration(DEFAULT_ASSEMBLY);
