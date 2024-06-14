@@ -126,7 +126,7 @@ const KonvaImageView = ({
 
         // const color = getRandomHexColor();
         const color =
-          rectangleColor.selectedColor === '#fff' || polygonType === 'ROI'
+          rectangleColor.selectedColor === '#fff' || polygonType === RECTANGLE_TYPE.ROI
             ? getRandomHexColor()
             : rectangleColor.selectedColor;
         setCurrentPoly({
@@ -250,28 +250,6 @@ const KonvaImageView = ({
     // };
   };
 
-  const handleDoubleClick = (e) => {
-    
-    if (imageStatus.drawMode === 'POLY' && currentPoly?.points?.length > 2) {
-      const pos = stageRef.current.getPointerPosition();
-      const poly = { ...currentPoly, closed: true };
-      poly.points = normalizePolygonPoints(poly.points);
-      poly.points = cropPolygonPoints(poly.points);
-      onPolyUpdate([...polygons, poly]);
-      setSelectedPolyId(currentPoly.uuid);
-    }
-    setCurrentPoly(null);
-    // setImageStatus((prev) => ({ ...prev, drawMode: false }));
-    // setPolyDraw(false)
-    setImageStatus((prev) => ({
-      ...prev,
-      draw: false,
-      dragging: false,
-      drawing: false,
-      drawMode: true,
-    }));
-  };
-
   const handleMouseMove = (evt) => {
     const e = evt.evt;
 
@@ -330,6 +308,7 @@ const KonvaImageView = ({
       setSelectedRectId(null);
     }
     // setImageStatus((a) => ({ ...a, ...updateObj }));
+    console.log(imageStatus)
     setImageStatus((prev) => ({
       ...prev,
       draw: false,
@@ -404,10 +383,37 @@ const KonvaImageView = ({
         snappedPoints[(i+2)% totalPoints] = changedPoints.x2;
         snappedPoints[(i+3) % totalPoints] = changedPoints.y2;
       }
+      console.log("iterating", i, snappedPoints)
     }
+    const result = snappedPoints.filter(ele=>ele!==null);
+
+    if(result.length < 6) throw new Error();
     
-    return snappedPoints.filter(ele=>ele!==null);
+    return result;
   }
+
+  const handleDoubleClick = (e) => {
+    
+    if (imageStatus.drawMode === 'POLY' && currentPoly?.points?.length > 2) {
+      const pos = stageRef.current.getPointerPosition();
+      const poly = { ...currentPoly, closed: true };
+      poly.points = normalizePolygonPoints(poly.points);
+      try{
+        poly.points = cropPolygonPoints(poly.points);
+        onPolyUpdate([...polygons, poly]);
+        setSelectedPolyId(currentPoly.uuid);
+      }
+      catch(e){}
+    }
+    setCurrentPoly(null);
+    setImageStatus((prev) => ({
+      ...prev,
+      draw: false,
+      dragging: false,
+      drawing: false,
+      drawMode: true,
+    }));
+  };
 
   const handleValueReset = (rectObj) => {
     const imageBoundaryX = 1;
@@ -669,15 +675,20 @@ const KonvaImageView = ({
                     const index = polygons.findIndex((r) => r.uuid == e.uuid);
                     if (index >= 0) {
                       let buf = normalizePolygonPoints(e.points)
-                      buf = cropPolygonPoints(buf)
+                      try{
+                        buf = cropPolygonPoints(buf)
+                        const normalizedValue = {
+                          ...polygons[index],
+                          // ...normalizeDimensions(e),
+                          points: buf
+                        };
+                        // handleValueReset(normalizedValue);
+                        onPolyUpdate([...unchanged, normalizedValue]);
+                      }
+                      catch(e){
+                        onPolyUpdate([...polygons]);
+                      }
                       // const ref = e.target.attrs
-                      const normalizedValue = {
-                        ...polygons[index],
-                        // ...normalizeDimensions(e),
-                        points: buf
-                      };
-                      // handleValueReset(normalizedValue);
-                      onPolyUpdate([...unchanged, normalizedValue]);
                     }
                   }}
                   offset={origin}
@@ -689,9 +700,14 @@ const KonvaImageView = ({
                   }
                   onTransform={(res) => {
                     const polyCp = [...polygons];
-                    let points = normalizePolygonPoints(res.points);
-                    points = cropPolygonPoints(points);
-                    polyCp[i] = { ...res, points };
+                    try{
+                      let points = normalizePolygonPoints(res.points);
+                      points = cropPolygonPoints(points);
+                      polyCp[i] = { ...res, points };
+                    }
+                    catch(e){
+                      polyCp[i] = { ...res, points: [...(polyCp[i].points)] };
+                    }
                     onPolyUpdate(polyCp);
                   }}
                   onClick={(e) => {

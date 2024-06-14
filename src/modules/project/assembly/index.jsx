@@ -49,6 +49,7 @@ import {
   uploadedFileListAtom,
   imageStatusAtom,
   selectedFileAtom,
+  inspectionReqAtom,
 } from '../state';
 import { useNavigate } from 'react-router-dom';
 import { cloneDeep } from 'lodash';
@@ -132,6 +133,9 @@ export default function Assembly() {
   const [rectangleColor, setRectangleColor] = useRecoilState(rectangleColorAtom);
 
   const [prevStatus, setPrevStatus] = useRecoilState(prevStatusAtom);
+
+  const setInspectionReq = useSetRecoilState(inspectionReqAtom);
+
 
   const getProject = async () => {
     try {
@@ -271,6 +275,20 @@ export default function Assembly() {
     }
   };
 
+  const fetchProject = async () => {
+    try {
+      const res = await axiosInstance.get('/project', {
+        params: {
+          projectId: projectId,
+        },
+      })
+      console.log(res.data, 'project result')
+      setInspectionReq(res?.data?.data?.inspectionType)
+    } catch (error) {
+      toast.error(error?.response?.data?.data?.message || 'Cannot fetch project details');
+    }
+  };
+
   const nextRef = useRef();
 
   const handleNext = async () => {
@@ -395,7 +413,7 @@ export default function Assembly() {
     setPolygonType(RECTANGLE_TYPE.ROI);
   };
 
-  console.log({ configuration }, { rectangles }, { polygons });
+  // console.log({ configuration }, { rectangles }, { polygons });
 
   const stepObj = {
     0: <UploadImageStep />,
@@ -560,11 +578,13 @@ export default function Assembly() {
     }
   };
 
+
   useEffect(() => {
     setLabelsEdited({});
     setLabelId(null);
     getProject();
     setIsEditing(false);
+    fetchProject()
 
     return () => {
       uploadedFileList.forEach((value) => {

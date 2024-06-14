@@ -166,6 +166,6 @@ export const currentLabelIdAtom = atom({
 
 export const inspectionReqAtom = atom({
   key: 'inspectionReqAtom',
-  default: '',
+  default: 0,
 });
 

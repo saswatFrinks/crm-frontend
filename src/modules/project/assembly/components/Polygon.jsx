@@ -21,8 +21,6 @@ const Polygon = ({
     for (let i = 0; i < arr?.length; i += 2) {
       const x = arr[i] * sc + ox;
       const y = arr[i + 1] * sc + oy;
-      const xPoint = arr[i] + ox;
-      const yPoint = arr[i + 1] + oy;
       points.push(x);
       points.push(y);
       grouped.push([x, y]);
@@ -46,8 +44,6 @@ const Polygon = ({
       for (let i = 0; i < arr?.length; i += 2) {
         const x = arr[i] * sc + ox;
         const y = arr[i + 1] * sc + oy;
-        const xPoint = arr[i] + ox;
-        const yPoint = arr[i + 1] + oy;
         points.push(x);
         points.push(y);
         grouped.push([x, y]);
@@ -57,6 +53,7 @@ const Polygon = ({
     const cb = () => {
       if (shapeRef.current) {
         const [pts, grouped] = getNormalizedPoints(shape.points);
+        console.log(grouped);
         setPolyPoints(grouped)
         setPoints(pts)
         shapeRef.current.points(pts);
@@ -64,6 +61,7 @@ const Polygon = ({
         shapeRef.current.y(0);
       }
     };
+    console.log("NaN case", shape.points, offset, scale)
     cb();
   }, [shape, shapeRef, offset, scale]);
 

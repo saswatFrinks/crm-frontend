@@ -200,6 +200,7 @@ export default function LabelImage({ type, save }) {
   const addClasses = () => {
     const temp = {};
     const idMap = {};
+    console.log("config", configuration.rois);
     configuration.rois.forEach((roi) => {
       roi.parts.forEach((obj) => {
         temp[obj.className] = temp[obj.className] ? temp[obj.className] + 1 : 0;

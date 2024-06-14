@@ -12,33 +12,18 @@ import PlusFile from '../../../shared/icons/PlusFile';
 import ThreeDots from '../../../shared/icons/File';
 import toast from 'react-hot-toast';
 import axiosInstance from '@/core/request/aixosinstance';
-import { assemblyAtom, inspectionReqAtom } from '../state';
+import { assemblyAtom } from '../state';
 
 function Card({ project, setProjectForDelete, handleEdit, editIndex}) {
   const setOpenModal = useSetRecoilState(modalAtom);
 
   const [open, setOpen] = React.useState(false);
 
-  const [inspectionReq, setInspectionReq] = useRecoilState(inspectionReqAtom);
   const [configuration, setConfiguration] = useRecoilState(assemblyAtom);
 
   const ref = React.useRef(null);
 
   useClickOutSide(ref, () => setOpen(false));
-
-  const fetchProject = async () => {
-    try {
-      const res = await axiosInstance.get('/project', {
-        params: {
-          projectId: project.id,
-        },
-      })
-      setInspectionReq(res?.data?.data?.inspectionType)
-      setConfiguration({});
-    } catch (error) {
-      toast.error(error?.response?.data?.data?.message || 'Cannot fetch project details');
-    }
-  };
 
   return (
     <div className="group relative basis-80 rounded-md border border-gray-300/90 bg-white px-10 py-8 shadow-sm">
@@ -91,7 +76,7 @@ function Card({ project, setProjectForDelete, handleEdit, editIndex}) {
         <Button size="xs" color="flat" onClick={() => handleEdit(editIndex)}>
           Edit
         </Button>
-        <Button size="xs" onClick={fetchProject}>
+        <Button size="xs">
           <Link
             to={`/project/${project.id}`}
             className="block h-full w-full"

@@ -609,7 +609,7 @@ export default function InspectionParameterStep(props) {
     setErrors(newErrors);
   };
 
-  console.log({ configuration });
+  // console.log({ configuration });
 
   return (
     <>

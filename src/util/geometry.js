@@ -1,15 +1,14 @@
 export const cropLine = ({ x1, y1, x2, y2, boundaryX, boundaryY }) => {
   // Check if the line is completely outside the rectangle
   if (
-    (x1 <= 0 && x2 <= 0) ||
-    (y1 <= 0 && y2 <= 0) ||
-    (x1 >= boundaryX && x2 >= boundaryX) ||
-    (y1 >= boundaryY && y2 >= boundaryY)
+    (x1 < 0 && x2 < 0) ||
+    (y1 < 0 && y2 < 0) ||
+    (x1 > boundaryX && x2 > boundaryX) ||
+    (y1 > boundaryY && y2 > boundaryY)
   ) {
     return null;
   }
 
-  // Check if the line is completely inside the rectangle
   if (
     x1 >= 0 &&
     x1 <= boundaryX &&
@@ -23,61 +22,11 @@ export const cropLine = ({ x1, y1, x2, y2, boundaryX, boundaryY }) => {
     return { x1, y1, x2, y2 };
   }
 
-  // Calculate the slope and intercept of the line
-  const slope = (y2 - y1) / (x2 - x1);
-  const intercept = y1 - slope * x1;
+  x1 = Math.max(Math.min(boundaryX, x1), 0);
+  x2 = Math.max(Math.min(boundaryX, x2), 0);
 
-  // Check intersection with left boundary
-  let x = 0;
-  let y = slope * x + intercept;
-  if (y >= 0 && y <= boundaryY) {
-    if (x1 < 0) {
-      x1 = x;
-      y1 = y;
-    } else {
-      x2 = x;
-      y2 = y;
-    }
-  }
-
-  // Check intersection with right boundary
-  x = boundaryX;
-  y = slope * x + intercept;
-  if (y >= 0 && y <= boundaryY) {
-    if (x1 > boundaryX) {
-      x1 = x;
-      y1 = y;
-    } else {
-      x2 = x;
-      y2 = y;
-    }
-  }
-
-  // Check intersection with top boundary
-  y = 0;
-  x = (y - intercept) / slope;
-  if (x >= 0 && x <= boundaryX) {
-    if (y1 < 0) {
-      x1 = x;
-      y1 = y;
-    } else {
-      x2 = x;
-      y2 = y;
-    }
-  }
-
-  // Check intersection with bottom boundary
-  y = boundaryY;
-  x = (y - intercept) / slope;
-  if (x >= 0 && x <= boundaryX) {
-    if (y1 > boundaryY) {
-      x1 = x;
-      y1 = y;
-    } else {
-      x2 = x;
-      y2 = y;
-    }
-  }
+  y1 = Math.max(Math.min(boundaryY, y1), 0);
+  y2 = Math.max(Math.min(boundaryY, y2), 0);
 
   return { x1, y1, x2, y2 };
 };
@@ -104,7 +53,7 @@ export const snapPolygonToBoundary = (points, boundaryX, boundaryY) => {
 
   if (isOutsideBoundary) {
     // Find the minimum and maximum x and y coordinates
-    let minX = boundaryX
+    let minX = boundaryX;
     let maxX = 0;
     let minY = boundaryY;
     let maxY = 0;
