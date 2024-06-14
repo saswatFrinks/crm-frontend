@@ -243,6 +243,7 @@ export default function LabelImage({ type, save }) {
       ...prev,
       primaryClassObj
     ]))
+    colors.push(primaryClassObj)
 
     setRectangleColor((prev) => ({
       ...prev,
@@ -393,14 +394,13 @@ export default function LabelImage({ type, save }) {
                     // const color = getRandomHexColor();
 
                     // const color = rectangleColor.all[i].color;
+                    const primaryClassObj = classOptions.find(cl => cl.id === configuration.primaryObjectClass);
                     const id = prevData.imageId;
                     const uuid = v4();
                     console.log({all: rectangleColor.all})
                     const color = rectangleColor.all.find(
                       (obj) => obj.name === className
-                    );
-
-                    console.log({ selectedRoisRef });
+                    ) || primaryClass;
 
                     if (vals.length === 4) {
                       let [x, y, width, height] = vals;
@@ -462,8 +462,6 @@ export default function LabelImage({ type, save }) {
       getData();
     }
   }, [selectedFile, rectangleColor, loadedLabelData]);
-
-  console.log({ rectangles, polygons, annotationMap });
 
   React.useEffect(() => {
     labelsRef.current = labelClasses;
