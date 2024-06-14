@@ -42,6 +42,8 @@ export default function CameraConfiguration() {
 
   React.useEffect(() => {
     fetchAllCameraConfigs();
+
+    return () => setModalState(false);
   }, []);
 
   const ref = React.useRef(null);

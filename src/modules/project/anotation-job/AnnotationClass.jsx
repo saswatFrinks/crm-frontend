@@ -16,8 +16,11 @@ import {
 } from '../state';
 import { rectangleColorAtom } from '../assembly/state';
 import toast from 'react-hot-toast';
+import Label from '@/shared/ui/Label';
+import Button from '@/shared/ui/Button';
+import Pen from '@/shared/icons/Pen';
 
-export default function AnnotationClass({ labelClass }) {
+export default function AnnotationClass({ labelClass, isPrimary }) {
   const { projectId } = useParams();
   const [selectedClassId, setSelectedClassId] = useRecoilState(labelClassAtom);
   const setRectangleType = useSetRecoilState(rectanglesTypeAtom);
@@ -32,7 +35,6 @@ export default function AnnotationClass({ labelClass }) {
     useRecoilState(rectangleColorAtom);
 
   const handleClick = async (t) => {
-    console.log("isEditing1",{isEditing});
     if (isEditing === true) {
       toast(
         'Please confirm the creation of the new label first before proceeding',
@@ -46,15 +48,14 @@ export default function AnnotationClass({ labelClass }) {
     setRectangleType(RECTANGLE_TYPE.ANNOTATION_LABEL);
     setPolygonType(RECTANGLE_TYPE.ANNOTATION_LABEL);
     setSelectedClassId(t);
-    console.log({ labelClass });
   };
 
-  useEffect(() => {
-    setRectangleColor({
-      all: [],
-      selectedColor: getRandomHexColor(),
-    });
-  }, []);
+  // useEffect(() => {
+  //   setRectangleColor({
+  //     all: [],
+  //     selectedColor: getRandomHexColor(),
+  //   });
+  // }, []);
 
   // React.useEffect(() => {
   //   let annotations = rectangles.filter(e=>e.rectType==RECTANGLE_TYPE.ANNOTATION_LABEL && annotationMap[e.uuid]==undefined);
@@ -71,7 +72,11 @@ export default function AnnotationClass({ labelClass }) {
   // }, [rectangles, annotationMap])
   return (
     <div className="">
-      <p className="mb-4 break-all">Click the class below to label it</p>
+      {isPrimary ? (
+        <p className="mb-4 mt-10 break-all font-medium">Click the Primary Object Class below to label it in the image</p>
+      ) : (
+        <p className="mb-4 mt-10 break-all font-medium">Click the classes below to label them</p>
+      )}
       <ul className="flex flex-wrap gap-4">
         {labelClass.map((t, i) => (
           <li

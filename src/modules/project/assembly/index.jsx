@@ -26,6 +26,7 @@ import {
   initialLabelsAtom,
   loadedLabelsAtom,
   prevStatusAtom,
+  rectangleColorAtom,
   stepAtom,
 } from './state';
 import React, { useEffect, useRef, useState } from 'react';
@@ -38,6 +39,7 @@ import {
   currentPolygonIdAtom,
   currentRoiIdAtom,
   editingAtom,
+  labelClassAtom,
   labelEditedAtom,
   lastActionNameAtom,
   rectanglesAtom,
@@ -70,6 +72,8 @@ export default function Assembly() {
   const [currentRoiId, setCurrentRoiId] = useRecoilState(currentRoiIdAtom);
 
   const [isEditingRect, setEditingRect] = useRecoilState(editingRectAtom);
+
+  const [labelClass, setLabelClass] = useRecoilState(labelClassAtom);
 
   const [step, setStep] = useRecoilState(stepAtom);
 
@@ -124,6 +128,8 @@ export default function Assembly() {
   const [initialLabels, setInitialLabels] = useRecoilState(initialLabelsAtom);
   const [labelId, setLabelId] = useRecoilState(currentLabelIdAtom);
   const [initialRectangles, setInitialRectnagles] = useState([]);
+
+  const [rectangleColor, setRectangleColor] = useRecoilState(rectangleColorAtom);
 
   const [prevStatus, setPrevStatus] = useRecoilState(prevStatusAtom);
 
@@ -341,6 +347,12 @@ export default function Assembly() {
         status: k.id == currentRoiId ? prevStatus : k.status,
       })),
     }));
+    setLabelClass(prev => {
+      return {
+        ...prev,
+        status: prevStatus
+      }
+    })
   };
 
   const submit = () => {
@@ -372,6 +384,13 @@ export default function Assembly() {
               : k.status,
       })),
     }));
+    setLabelClass(prev => {
+      if(!prev.id)return null
+      return {
+        ...prev,
+        status: STATUS.FINISH
+      }
+    })
     setRectangleType(RECTANGLE_TYPE.ROI);
     setPolygonType(RECTANGLE_TYPE.ROI);
   };
@@ -381,7 +400,7 @@ export default function Assembly() {
   const stepObj = {
     0: <UploadImageStep />,
     1: <InspectionParameterStep type={type} nextRef={nextRef} />,
-    2: <LabelImage save={updateAnnotation} />,
+    2: <LabelImage type={type} save={updateAnnotation} />,
     3: <PreTrainingStep />,
   };
 
@@ -395,7 +414,7 @@ export default function Assembly() {
         },
       });
       console.log({ roiData });
-      let data = roiData.data?.data;
+      let data = roiData.data?.data?.data;
       data = data.sort((a, b) => a.rois.name.localeCompare(b.rois.name));
       console.log({ data });
       const temp = [...data];
@@ -519,6 +538,8 @@ export default function Assembly() {
         setConfiguration((t) => ({
           ...t,
           rois: Object.values(roiMap),
+          primaryObject: roiData?.data?.data?.primaryClass?.name,
+          primaryObjectClass: roiData?.data?.data?.primaryClass?.id
           // rois: sortedRois
         }));
         setRectangles((prev) => [...prev, ...rects]);
@@ -550,6 +571,10 @@ export default function Assembly() {
         URL.revokeObjectURL(value.url);
       });
       setUploadedFileList([]);
+      setRectangleColor({
+        all: [],
+        selectedColor: getRandomHexColor(),
+      })
     };
   }, []);
 
@@ -591,22 +616,27 @@ export default function Assembly() {
           }
         }
       });
+      // console.log("id of rois",roi?.id)
+      const isPrimary = roi?.primaryObject !== null;
       return {
         id: roi?.identity || '',
         name: roi?.title ?? `ROI ${roi?.id}`,
         // name: `ROI ${roi?.id}`,
         coordinates: points,
-        parts: tempParts,
+        parts: isPrimary ? [] : tempParts,
       };
     });
-    if (temp.direction != 0) {
-      temp.rois[0].primaryObject = {
-        name: temp.primaryObject,
-        class: temp.primaryObjectClass,
-      };
-    }
+    // if (temp.direction != 0) {
+    //   temp.rois[0].primaryObject = null;
+    // }
     delete temp.primaryObject;
     delete temp.primaryObjectClass;
+    if(type === ASSEMBLY_CONFIG.MOVING){
+      temp.primaryClass = {
+        id: configuration.primaryObjectClass,
+        name: configuration.primaryObject
+      }
+    }
     const formData = new FormData();
     // await Promise.all(images.map(async(img, index)=>{
     //   const resp = await fetch(img.url)
@@ -634,8 +664,7 @@ export default function Assembly() {
     try {
       const data = await axiosInstance.post(
         '/configuration/assembly',
-        formData
-        // JSON.stringify(temp)
+        temp
       );
       toast.success('ROIs uploaded');
       return data.data?.success;

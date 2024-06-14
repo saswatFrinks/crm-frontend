@@ -60,6 +60,7 @@ export const DEFAULT_ROI = {
   status: STATUS.DEFAULT,
   open: true,
   parts: [DEFAULT_OBJECT],
+  primaryObject: null
 };
 
 export const OPERATIONS = [

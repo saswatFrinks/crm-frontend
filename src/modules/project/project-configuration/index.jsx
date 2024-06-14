@@ -100,6 +100,8 @@ export default function ProjectConfiguration() {
     setSteps(0);
     setLabelsLoaded(Array.from({ length: 10 }, () => false));
     setConfiguration(DEFAULT_ASSEMBLY);
+
+    return () => setModal(false);
   }, []);
 
   const getValidationForConfiguration = async (configId) => {

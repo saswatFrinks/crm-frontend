@@ -78,6 +78,8 @@ export default function Variants() {
 
   React.useEffect(() => {
     fetchAllVariants();
+
+    return () => setModalState(false);
   }, []);
   return (
     <>

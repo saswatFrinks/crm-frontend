@@ -38,6 +38,7 @@ import {
 import { compareArrays, getRandomHexColor } from '@/util/util';
 import {
   ACTION_NAMES,
+  ASSEMBLY_CONFIG,
   BASE_RECT,
   DEFAULT_ANNOTATION,
   RECTANGLE_TYPE,
@@ -75,6 +76,9 @@ export default function AnnotationJob() {
   const setSelectedRectId = useSetRecoilState(currentRectangleIdAtom);
   const setSelectedPolyId = useSetRecoilState(currentPolygonIdAtom);
   const [modalOpen, setModalOpen] = useRecoilState(modalAtom);
+  const [type, setType] = useState(ASSEMBLY_CONFIG.STATIONARY);
+
+  // const [primaryClass, setPrimaryClass] = useState(null);
 
   const cacheRef = useRef(null);
 
@@ -88,11 +92,25 @@ export default function AnnotationJob() {
   const [polyDraw, setPolyDraw] = useState(false);
 
   const [initialLabels, setInitialLabels] = useRecoilState(initialLabelsAtom);
+  const [primaryClass, setPrimaryClass] = useState(null);
 
   const getImageUrl = (id) => {
     return `${import.meta.env.VITE_BASE_API_URL}/dataset/image?imageId=${id}`;
   };
   const [image] = useImage(file);
+
+  const getProject = async () => {
+    try {
+      const { data } = await axiosInstance.get('/project', {
+        params: {
+          projectId,
+        },
+      });
+      !data.data.isItemFixed && setType(ASSEMBLY_CONFIG.MOVING);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   const getAllImages = async () => {
     setFile(null);
@@ -109,7 +127,6 @@ export default function AnnotationJob() {
         mapObj[ele.id] = false;
         return { ...ele, url: getImageUrl(ele.id) };
       });
-      console.log('loaded images', loadedImages);
       setAllImages(loadedImages);
       setAnnotationLoadedFlag(mapObj);
     } catch (e) {
@@ -150,7 +167,7 @@ export default function AnnotationJob() {
           return { ...cls, color: color };
         })
       );
-     
+      
       getRois();
       // setRectangleColor((prev) => ({
       //   ...prev,
@@ -354,7 +371,9 @@ export default function AnnotationJob() {
           configurationId,
         },
       });
-      const data = roiData.data?.data;
+      const data = roiData.data?.data?.data;
+      const primaryClassObj = roiData?.data?.data?.primaryClass;
+      setPrimaryClass(primaryClassObj);
       console.log('configuration/class', { data });
       if (data.length) {
         const rects = [];
@@ -402,6 +421,7 @@ export default function AnnotationJob() {
           roiMap[roiId] = true;
           classesSet.add(conf.parts.classId);
         });
+        if(primaryClassObj?.id)classesSet.add(primaryClassObj?.id)
         setLabelClass((prev) =>
           prev.filter((cls) => {
             return classesSet.has(cls.id);
@@ -425,6 +445,9 @@ export default function AnnotationJob() {
     setPolygons([]);
     getAllImages();
     getClasses();
+    getProject();
+
+    return () => setModalOpen(false);
   }, []);
 
   React.useEffect(() => {
@@ -458,12 +481,14 @@ export default function AnnotationJob() {
 
   //load annotation file and load rectangles
   React.useEffect(() => {
+    console.log('check', annotationLoadeFlag[selectedImage?.id], selectedImage, rectangleColor.all.length)
     if (
       selectedImage &&
       !annotationLoadeFlag[selectedImage.id] &&
       rectangleColor.all.length
     ) {
       const getData = async () => {
+        console.log(`getting ${selectedImage?.id}`)
         const newStat = {
           ...DEFAULT_ANNOTATION,
           imageId: selectedImage.id,
@@ -587,8 +612,6 @@ export default function AnnotationJob() {
     }
   }, [selectedImage, rectangleColor]);
 
-  console.log({ initialLabels });
-
   console.log(rectangles);
 
   const udpateAndExit = async () => {
@@ -647,6 +670,20 @@ export default function AnnotationJob() {
     }
   }, [imageStatus.drawMode]);
 
+  const renderAnnotationHeading = () => {
+    if(type === ASSEMBLY_CONFIG.MOVING){
+      return <div className="flex flex-col gap-4 p-4">
+        <AnnotationClass labelClass={labelClass.filter(lc => lc.id === primaryClass?.id)} isPrimary={true} />
+        <AnnotationLabels
+          labelClass={labelClass.filter(lc => lc.id === primaryClass?.id)}
+          selectedImageId={selectedImage?.id}
+          isPrimary={true}
+        />
+      </div>
+    }
+    return <></>
+  }
+
   return (
     <>
       {modalOpen && (
@@ -687,10 +724,11 @@ export default function AnnotationJob() {
             <h1 className=" border-b-[1px] px-6 pb-6 pt-6 text-3xl font-bold">
               Annotation Job
             </h1>
+            {renderAnnotationHeading()}
             <div className="flex grow flex-col gap-4 p-4">
-              <AnnotationClass labelClass={labelClass} />
+              <AnnotationClass labelClass={labelClass.filter(lc => lc.id !== primaryClass?.id)} />
               <AnnotationLabels
-                labelClass={labelClass}
+                labelClass={labelClass.filter(lc => lc.id !== primaryClass?.id)}
                 selectedImageId={selectedImage?.id}
               />
             </div>

@@ -166,6 +166,7 @@ export default function InspectionParameterStep(props) {
   useEffect(() => {
     getClasses();
     // console.log('configuration:', selectedConfiguration);
+    return () => setModalState(false);
   }, []);
 
   useEffect(() => {
@@ -516,6 +517,29 @@ export default function InspectionParameterStep(props) {
             </div>
           </div>
 
+          {/* <div className="flex items-center gap-2">
+            <Label main={false}>Primary Object Class Annotation:</Label>
+            <div className="ml-2 w-44 max-w-xs">
+              <Button
+                size="tiny"
+                // color={genLabelClass(t.status)}
+                fullWidth={false}
+                onClick={() => {
+                  if (isEditing) {
+                    toast('Please confirm the current Class', {
+                      icon: '⚠️',
+                    });
+                    return;
+                  }
+                }}
+              >
+                <div className="flex items-center gap-2">
+                  <Pen /> Label Class
+                </div>
+              </Button>
+            </div>
+          </div> */}
+
           <Hr />
         </div>
       );
@@ -807,7 +831,7 @@ export default function InspectionParameterStep(props) {
                                 e.target.value
                               );
                             }}
-                            options={classOptions}
+                            options={classOptions.filter(cl => cl.id !== configuration?.primaryObjectClass)}
                             errorMessage={
                               errors.get(`${t.id}-${objIndex}`)?.class
                             }

@@ -82,6 +82,8 @@ export default function DataSet({ setLoading, formRef }) {
 
   React.useEffect(() => {
     fetchAllFolders();
+
+    return () => setOpenModal(false);
   }, []);
 
   // const columns = ['Variant 1', 'CP1', 'CC1'];
@@ -171,6 +173,7 @@ export default function DataSet({ setLoading, formRef }) {
   }
 
   formRef.current = {handleSubmit}
+  console.log({folders})
 
   return (
     <div className="flex flex-col gap-8">

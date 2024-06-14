@@ -156,6 +156,8 @@ const Instances = () => {
   useEffect(() => {
     fetchAllInstances()
     fetchProject()
+
+    return () => setModalOpen(false);
   }, [])
 
   const columns = ['Instance Name', 'Date Created', 'Validity', 'Plant', 'Instance ID', 'Download', '']

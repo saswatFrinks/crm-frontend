@@ -31,7 +31,7 @@ export default function Input({ errorMessage, size, value, ...props }) {
         {...props}
       />
       {errorMessage ? (
-        <p className="text-xs text-red-500">{errorMessage}</p>
+        <p className="text-sm text-red-500">{errorMessage}</p>
       ) : null}
     </div>
   );

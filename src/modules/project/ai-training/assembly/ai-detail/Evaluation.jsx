@@ -1,4 +1,5 @@
 import axiosInstance from '@/core/request/aixosinstance';
+import NoData from '@/shared/ui/NoData';
 import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader';
 import ResultPagination from '@/shared/ui/ResultPagination'
 import Select from '@/shared/ui/Select';
@@ -152,6 +153,8 @@ const Evaluation = () => {
       fetchClassImageByName(classWithImageId)
     }
   }, [selectedClass, imagePage])
+
+  if(!loading && imagesList.length == 0)return <NoData />;
 
   return (
     <div className='w-full'>

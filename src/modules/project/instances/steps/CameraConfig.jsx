@@ -48,6 +48,8 @@ const CameraConfig = ({formRef, configUploaded}) => {
 
     const uniqueData = removeDuplicates(cameraConfigData);
     setData(uniqueData);
+
+    return () => setOpen(false);
   }, [])
 
   React.useEffect(() => {
