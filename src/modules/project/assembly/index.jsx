@@ -612,7 +612,7 @@ export default function Assembly() {
             points.push(parseFloat((roiRect.x + roiRect.width).toFixed(4)));
             points.push(parseFloat((roiRect.y + roiRect.height).toFixed(4)));
           } else {
-            points.push(...roiRect.points);
+            if(roiRect.points.length) points.push(...roiRect.points);
           }
         }
       });
