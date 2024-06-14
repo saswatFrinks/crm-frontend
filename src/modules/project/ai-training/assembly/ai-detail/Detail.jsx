@@ -7,7 +7,7 @@ import axiosInstance from '@/core/request/aixosinstance';
 import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader';
 import { useParams } from 'react-router-dom';
 import { augmentationsMap } from '..';
-import { setUniqueClassColors } from '@/util/util';
+import { removeDuplicates, setUniqueClassColors } from '@/util/util';
 
 export default function Detail({ loader, modelInfo, datasets }) {
   React.useEffect(() => {
@@ -48,22 +48,39 @@ export default function Detail({ loader, modelInfo, datasets }) {
             <span> {modelInfo?.comment} </span>
           </div>
 
-          <div className="flex items-center gap-2">
-            <label htmlFor="" className="font-semibold">
-              Classes:
-            </label>
-            <div className="flex gap-2">
-              {modelInfo?.hasOwnProperty('classes') &&
-                modelInfo.classes?.length &&
-                modelInfo.classes.map((item, index) => {
-                  return (
-                    <Chip key={index} color={classColors.get(item)?.color}>
-                      {item}
-                    </Chip>
-                  );
-                })}
+          {modelInfo?.isTracker ? (
+            <div className="flex items-center gap-2">
+              <label htmlFor="" className="font-semibold">
+                Primary Object Class:
+              </label>
+              <div className="flex gap-2">
+                {removeDuplicates(modelInfo?.rois?.map(r => r?.primaryClass?.className)).map((item, index) => {
+                    return (
+                      <Chip key={index} color={classColors.get(item)?.color}>
+                        {item}
+                      </Chip>
+                    );
+                  })}
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <label htmlFor="" className="font-semibold">
+                Classes:
+              </label>
+              <div className="flex gap-2">
+                {modelInfo?.hasOwnProperty('classes') &&
+                  modelInfo.classes?.length &&
+                  modelInfo.classes.map((item, index) => {
+                    return (
+                      <Chip key={index} color={classColors.get(item)?.color}>
+                        {item}
+                      </Chip>
+                    );
+                  })}
+              </div>
+            </div>
+          )}
 
           <div className='w-[80%]'>
             <p className="font-semibold">
@@ -79,17 +96,19 @@ export default function Detail({ loader, modelInfo, datasets }) {
                       <div className="flex-1">{roiItem.capturePositionName}</div>
                       <div className="flex-1">{roiItem.cameraConfig}</div>
                       <div className="flex-1">{roiItem.roi}</div>
-                      <div className="flex flex-1 gap-2">
-                        {roiItem?.hasOwnProperty('classes') &&
-                          roiItem.classes?.length &&
-                          roiItem.classes.map((item, index) => {
-                            return (
-                              <Chip key={index} color={classColors.get(item)?.color}>
-                                {item}
-                              </Chip>
-                            );
-                          })}
-                      </div>
+                      {!modelInfo?.isTracker && (
+                        <div className="flex flex-1 gap-2">
+                          {roiItem?.hasOwnProperty('classes') &&
+                            roiItem.classes?.length &&
+                            roiItem.classes.map((item, index) => {
+                              return (
+                                <Chip key={index} color={classColors.get(item)?.color}>
+                                  {item}
+                                </Chip>
+                              );
+                            })}
+                        </div>
+                      )}
                     </div>
                     <div></div>
                   </div>

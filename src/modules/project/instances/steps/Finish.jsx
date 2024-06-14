@@ -1,88 +1,182 @@
-import React from 'react'
-import { useRecoilState } from 'recoil'
-import { addInstanceAtom, defaultAddInstanceValue } from '../state'
+import React from 'react';
+import { useRecoilState } from 'recoil';
+import { addInstanceAtom, defaultAddInstanceValue } from '../state';
 import Chip from '@/shared/ui/Chip';
 import axiosInstance from '@/core/request/aixosinstance';
 
-const Finish = ({formRef}) => {
+const Finish = ({ formRef, project }) => {
   const [addInstance, setAddInstance] = useRecoilState(addInstanceAtom);
 
-  const keys = ['variantName', 'capturePositionName', 'cameraConfigName', 'roiName'];
+  const isMoving = !project?.isItemFixed;
+
+  const keys = [
+    'variantName',
+    'capturePositionName',
+    'cameraConfigName',
+    'roiName',
+  ];
 
   const handleSubmit = async () => {
     try {
       await axiosInstance.post('/instance/activate', {
-        instanceId: addInstance?.instanceId
+        instanceId: addInstance?.instanceId,
       });
       setAddInstance(defaultAddInstanceValue);
     } catch (error) {
-      throw new Error(error?.response?.data?.data?.message)
+      throw new Error(error?.response?.data?.data?.message);
     }
-  }
+  };
 
   formRef.current = {
-    handleSubmit
-  }
+    handleSubmit,
+  };
 
   return (
     <div>
       <h1 className="text-2xl font-semibold">Finish</h1>
-      <p className='my-4 text-xl'>Review the details below to finish the instance creation and process to deployment</p>
+      <p className="my-4 text-xl">
+        Review the details below to finish the instance creation and process to
+        deployment
+      </p>
 
-      <div className="flex gap-2 my-2 text-xl">
-        <h3 className='font-semibold'>Instance Name:</h3>
+      <div className="my-2 flex gap-2 text-xl">
+        <h3 className="font-semibold">Instance Name:</h3>
         <div>{addInstance?.basic?.instanceName}</div>
       </div>
 
-      <div className="flex gap-2 my-2 text-xl">
-        <h3 className='font-semibold'>Plant Name:</h3>
+      <div className="my-2 flex gap-2 text-xl">
+        <h3 className="font-semibold">Plant Name:</h3>
         <div>{addInstance?.basic?.plantName}</div>
       </div>
 
-      <h2 className='font-semibold my-4 text-xl'>Selected AI model will run in its respective ROI Configurations</h2>
+      <h2 className="my-4 text-xl font-semibold">
+        Selected AI model will run in its respective ROI Configurations
+      </h2>
 
       <div>
-        {addInstance?.mappingData?.map(data => (
+        {addInstance?.mappingData?.map((data) => (
           <div>
-            <div className='flex gap-4 justify-between my-2' style={{ width: '100%' }}>
+            <div
+              className="my-2 flex justify-between gap-4"
+              style={{ width: '100%' }}
+            >
               <div className="flex justify-between" style={{ width: '70%' }}>
-                {keys.map(key => (
+                {keys.map((key) => (
                   <div>{data[key]}</div>
                 ))}
               </div>
-              <div className='flex justify-end gap-2' style={{ width: '30%' }}>
-                {data.classes.map(classData => (
-                  <Chip color={addInstance?.colorClasses?.get(classData?.id)?.color}>
+              <div className="flex justify-end gap-2" style={{ width: '30%' }}>
+                {data.classes.map((classData) => (
+                  <Chip
+                    color={addInstance?.colorClasses?.get(classData?.id)?.color}
+                  >
                     {classData?.name}
                   </Chip>
                 ))}
               </div>
             </div>
-            <hr className='h-px border-0 bg-gray-400 dark:bg-gray-700' />
-            {data?.models?.map(model => {
-              if(addInstance?.modelSelection?.modelRoiMap?.get(data?.roiId) != model?.id)return <></>
+            <hr className="h-px border-0 bg-gray-400 dark:bg-gray-700" />
+            {data?.models?.map((model) => {
+              if (
+                addInstance?.modelSelection?.modelRoiMap?.get(data?.roiId) !=
+                model?.id
+              )
+                return <></>;
               return (
-                <div className='flex justify-between py-2' style={{ backgroundColor: '#E7E7FF' }}>
+                <div
+                  className="flex justify-between py-2"
+                  style={{ backgroundColor: '#E7E7FF' }}
+                >
                   <div style={{ textAlign: 'left' }}>{model?.name}</div>
-                  <div>{(new Date(Number(model?.createdAt))).toLocaleDateString()}</div>
-                  <div className='flex justify-end gap-2 mr-4'>
-                    {model?.classes?.map(id => {
+                  <div>
+                    {new Date(Number(model?.createdAt)).toLocaleDateString()}
+                  </div>
+                  <div className="mr-4 flex justify-end gap-2">
+                    {model?.classes?.map((id) => {
                       return (
                         <Chip color={addInstance?.colorClasses?.get(id)?.color}>
                           {addInstance?.colorClasses?.get(id)?.name}
                         </Chip>
-                      )
-                    }
-                    )}
+                      );
+                    })}
                   </div>
                 </div>
-              )
+              );
             })}
           </div>
         ))}
       </div>
-    </div>
-  )
-}
 
-export default Finish
+      {isMoving && (
+        <div className="my-4">
+          <h2 className="my-4 text-xl font-semibold">
+            Below selected AI models will run for their respective Primary
+            Objects
+          </h2>
+
+          <div>
+            {addInstance?.mappingData?.map((data) => (
+              <div>
+                <div
+                  className="my-2 flex justify-between gap-4"
+                  style={{ width: '100%' }}
+                >
+                  <div
+                    className="flex justify-between"
+                    style={{ width: '70%' }}
+                  >
+                    {keys.map((key) => {
+                      if(key === 'roiName')return <></>
+                      return <div>{data[key]}</div>
+                    })}
+                  </div>
+                  <div
+                    className="flex justify-end gap-2"
+                    style={{ width: '30%' }}
+                  >
+                    <Chip
+                      color={addInstance?.colorClasses?.get(data?.primaryClass?.id)?.color}
+                    >
+                      {addInstance?.colorClasses?.get(data?.primaryClass?.id)?.name}
+                    </Chip>
+                  </div>
+                </div>
+                <hr className="h-px border-0 bg-gray-400 dark:bg-gray-700" />
+                {data?.models?.map((model) => {
+                  if (
+                    addInstance?.modelSelection?.primaryRoiMap?.get(
+                      data?.roiId
+                    ) != model?.id
+                  )
+                    return <></>;
+                  return (
+                    <div
+                      className="flex justify-between py-2"
+                      style={{ backgroundColor: '#E7E7FF' }}
+                    >
+                      <div style={{ textAlign: 'left' }}>{model?.name}</div>
+                      <div>
+                        {new Date(
+                          Number(model?.createdAt)
+                        ).toLocaleDateString()}
+                      </div>
+                      <div className="mr-4 flex justify-end gap-2">
+                        <Chip
+                          color={addInstance?.colorClasses?.get(data?.primaryClass?.id)?.color}
+                        >
+                          {addInstance?.colorClasses?.get(data?.primaryClass?.id)?.name}
+                        </Chip>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Finish;

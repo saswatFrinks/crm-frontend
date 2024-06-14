@@ -11,6 +11,7 @@ import {
   // modelSizeAtom,
 } from './state';
 import { augmentationsMap } from '.';
+import { removeDuplicates } from '@/util/util';
 
 // const getModelName = (model) => {
 //   if (model['large']) {
@@ -89,8 +90,8 @@ export default function Finish({isMoving}) {
             Primary Object Classes:
           </label>
           <div className="flex gap-2">
-            {primaryClasses.map((className, index) => (
-              <Chip key={className} color={`color-${(index + 1)%10}`}>
+            {removeDuplicates(primaryClasses.map(cl => cl.className)).map((className, index) => (
+              <Chip key={className} color={`color-${index + 1}`}>
                 {className}
               </Chip>
             ))}
@@ -103,7 +104,7 @@ export default function Finish({isMoving}) {
           Classes:
         </label>
         <div className="flex gap-2">
-          {classes.map((className, index) => (
+          {classes.filter(cl => !primaryClasses.map(c => c.className).includes(cl)).map((className, index) => (
             <Chip key={className} color={`color-${index + 1}`}>
               {className}
             </Chip>

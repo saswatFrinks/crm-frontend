@@ -232,18 +232,20 @@ export default function LabelImage({ type, save }) {
         })
     );
 
-    const primaryClassObj = {
-      ...primaryClass,
-      color: getUniqueHexColor(colors),
-      count: 0
+    if(primaryClass){
+      const primaryClassObj = {
+        ...primaryClass,
+        color: getUniqueHexColor(colors),
+        count: 0
+      }
+  
+      setPrimaryClass(primaryClassObj)
+      setLabelClasses(prev => ([
+        ...prev,
+        primaryClassObj
+      ]))
+      colors.push(primaryClassObj)
     }
-
-    setPrimaryClass(primaryClassObj)
-    setLabelClasses(prev => ([
-      ...prev,
-      primaryClassObj
-    ]))
-    colors.push(primaryClassObj)
 
     setRectangleColor((prev) => ({
       ...prev,
