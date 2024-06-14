@@ -122,6 +122,7 @@ const KonvaImageView = ({
                   ele.polyType == RECTANGLE_TYPE.ANNOTATION_LABEL &&
                   ele.imageId == imageId
               ).length || 0;
+        
 
         // const color = getRandomHexColor();
         const color =

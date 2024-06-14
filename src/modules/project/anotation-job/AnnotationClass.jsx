@@ -16,6 +16,9 @@ import {
 } from '../state';
 import { rectangleColorAtom } from '../assembly/state';
 import toast from 'react-hot-toast';
+import Label from '@/shared/ui/Label';
+import Button from '@/shared/ui/Button';
+import Pen from '@/shared/icons/Pen';
 
 export default function AnnotationClass({ labelClass }) {
   const { projectId } = useParams();
@@ -71,7 +74,7 @@ export default function AnnotationClass({ labelClass }) {
   // }, [rectangles, annotationMap])
   return (
     <div className="">
-      <p className="mb-4 break-all">Click the class below to label it</p>
+      <p className="mb-4 mt-10 break-all font-medium">Click the classes below to label them</p>
       <ul className="flex flex-wrap gap-4">
         {labelClass.map((t, i) => (
           <li

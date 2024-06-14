@@ -29,8 +29,6 @@ const Rectangle = ({
       shapeRef.current.height(shapeProps.height * effectiveScale);
     }
   }, [shapeProps, shapeRef]);
-  // console.log("shareProps title: ",shapeProps.title)
-  console.log("Rectangle component rendered")
 
   return (
     <React.Fragment>

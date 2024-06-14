@@ -6,6 +6,7 @@ import Input from '@/shared/ui/Input';
 import InputFile from '@/shared/ui/InputFile';
 import Label from '@/shared/ui/Label';
 import Modal, { ModalBody, ModalHeader } from '@/shared/ui/Modal';
+import { validateRegexString } from '@/util/util';
 import { useFormik } from 'formik';
 import React, { useEffect, useState } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
@@ -77,6 +78,10 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
         errors.name = 'Camera configuration name is required';
       }
 
+      if(formik.touched.name && values.name && validateRegexString(values.name) !== ''){
+        errors.name = validateRegexString(values.name);
+      }
+
       return errors;
     },
     onSubmit: async (values) => {
@@ -100,6 +105,8 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
             cameraConfigId: editConfig.id,
           };
           await axiosInstance.put('/cameraConfig/edit', data);
+          closeDrawer();
+          fetchAllCameraConfigs();
         } else {
           const instanceStatus = await axiosInstance.get('/cameraConfig/instance-status', {
             params: {
@@ -115,7 +122,7 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
           }
         }
       } catch (err) {
-        toast.error(err.response.data.data.message);
+        toast.error(err.response.data.data.details);
       }
     },
   });
@@ -148,7 +155,7 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
       setOpenConfirm(false);
       setDraftData(null)
     } catch(error) {
-      toast.error(error?.response?.data?.data?.message)
+      toast.error(error?.response?.data?.data?.details)
     }
   }
 
@@ -160,6 +167,8 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
 
   useEffect(() => {
     fetchAllClasses();
+
+    return () => setOpenConfirm(false);
   }, [])
 
   React.useEffect(() => {

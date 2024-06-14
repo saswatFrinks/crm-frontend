@@ -7,7 +7,7 @@ import InputList from '@/shared/ui/InputList';
 import Checkbox from '@/shared/ui/Checkbox';
 import { useFormik } from 'formik';
 import axiosInstance from '@/core/request/aixosinstance';
-import { getOrganizationId } from '@/util/util';
+import { getOrganizationId, validateRegexString } from '@/util/util';
 import storageService from '@/core/storage';
 import { v4 as uuidv4, validate } from 'uuid';
 import AutofilledDisabledInput from '@/shared/ui/AutofilledDisabledInput';
@@ -149,8 +149,12 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
     },
     validate: (values) => {
       const errors = {};
-      if(formik.touched.name && !values.name){
+      if(formik.touched.name && !(values.name.trim())){
         errors.name = 'Project name is required';
+      }
+
+      if(formik.touched.name && values.name && validateRegexString(values.name) !== ''){
+        errors.name = validateRegexString(values.name);
       }
 
       if(formik.touched.description && !values.description){

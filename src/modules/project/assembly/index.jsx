@@ -38,6 +38,7 @@ import {
   currentPolygonIdAtom,
   currentRoiIdAtom,
   editingAtom,
+  labelClassAtom,
   labelEditedAtom,
   lastActionNameAtom,
   rectanglesAtom,
@@ -70,6 +71,8 @@ export default function Assembly() {
   const [currentRoiId, setCurrentRoiId] = useRecoilState(currentRoiIdAtom);
 
   const [isEditingRect, setEditingRect] = useRecoilState(editingRectAtom);
+
+  const [labelClass, setLabelClass] = useRecoilState(labelClassAtom);
 
   const [step, setStep] = useRecoilState(stepAtom);
 
@@ -178,6 +181,8 @@ export default function Assembly() {
     //   toast.success('my check');
     //   return true;
     // }
+
+    // console.log({annotationRects});
     annotationRects.forEach((rect) => {
       if (!labelsEdited[rect.imageId]) return;
       const classNo = annotationMap[rect.uuid];
@@ -212,7 +217,7 @@ export default function Assembly() {
       }
     });
 
-    console.log({ imgMap });
+    console.log({ imgMap }, {labelsEdited});
     const formData = new FormData();
     const imageIds = [];
     // console.log({images}) // conatins the 10 uploaded images
@@ -225,6 +230,7 @@ export default function Assembly() {
         imageIds.push(img.id || '');
       }
     });
+    console.log({ imageIds });
     formData.append('configurationId', configurationId);
     formData.append('imageIds', imageIds);
     console.log({ imageIds });
@@ -338,6 +344,12 @@ export default function Assembly() {
         status: k.id == currentRoiId ? prevStatus : k.status,
       })),
     }));
+    setLabelClass(prev => {
+      return {
+        ...prev,
+        status: prevStatus
+      }
+    })
   };
 
   const submit = () => {
@@ -369,6 +381,13 @@ export default function Assembly() {
               : k.status,
       })),
     }));
+    setLabelClass(prev => {
+      if(!prev.id)return null
+      return {
+        ...prev,
+        status: STATUS.FINISH
+      }
+    })
     setRectangleType(RECTANGLE_TYPE.ROI);
     setPolygonType(RECTANGLE_TYPE.ROI);
   };
@@ -378,7 +397,7 @@ export default function Assembly() {
   const stepObj = {
     0: <UploadImageStep />,
     1: <InspectionParameterStep type={type} nextRef={nextRef} />,
-    2: <LabelImage save={updateAnnotation} />,
+    2: <LabelImage type={type} save={updateAnnotation} />,
     3: <PreTrainingStep />,
   };
 
@@ -392,7 +411,7 @@ export default function Assembly() {
         },
       });
       console.log({ roiData });
-      let data = roiData.data?.data;
+      let data = roiData.data?.data?.data;
       data = data.sort((a, b) => a.rois.name.localeCompare(b.rois.name));
       console.log({ data });
       const temp = [...data];
@@ -516,6 +535,8 @@ export default function Assembly() {
         setConfiguration((t) => ({
           ...t,
           rois: Object.values(roiMap),
+          primaryObject: roiData?.data?.data?.primaryClass?.name,
+          primaryObjectClass: roiData?.data?.data?.primaryClass?.id
           // rois: sortedRois
         }));
         setRectangles((prev) => [...prev, ...rects]);
@@ -554,7 +575,6 @@ export default function Assembly() {
     const imgMap = {};
     let temp = cloneDeep(configuration);
     // const temp = configuration;
-    // console.log('prepareApiData', { temp }, { configuration });
     temp = {
       ...temp,
     };
@@ -589,22 +609,27 @@ export default function Assembly() {
           }
         }
       });
+      // console.log("id of rois",roi?.id)
+      const isPrimary = roi?.primaryObject !== null;
       return {
         id: roi?.identity || '',
         name: roi?.title ?? `ROI ${roi?.id}`,
         // name: `ROI ${roi?.id}`,
         coordinates: points,
-        parts: tempParts,
+        parts: isPrimary ? [] : tempParts,
       };
     });
-    if (temp.direction != 0) {
-      temp.rois[0].primaryObject = {
-        name: temp.primaryObject,
-        class: temp.primaryObjectClass,
-      };
-    }
+    // if (temp.direction != 0) {
+    //   temp.rois[0].primaryObject = null;
+    // }
     delete temp.primaryObject;
     delete temp.primaryObjectClass;
+    if(type === ASSEMBLY_CONFIG.MOVING){
+      temp.primaryClass = {
+        id: configuration.primaryObjectClass,
+        name: configuration.primaryObject
+      }
+    }
     const formData = new FormData();
     // await Promise.all(images.map(async(img, index)=>{
     //   const resp = await fetch(img.url)
@@ -632,8 +657,7 @@ export default function Assembly() {
     try {
       const data = await axiosInstance.post(
         '/configuration/assembly',
-        formData
-        // JSON.stringify(temp)
+        temp
       );
       toast.success('ROIs uploaded');
       return data.data?.success;

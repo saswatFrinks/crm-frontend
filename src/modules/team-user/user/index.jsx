@@ -38,6 +38,8 @@ export default function User() {
 
   React.useEffect(() => {
     fetchAllUsers();
+
+    return () => setModalState(false);
   }, []);
 
   const deleteById = async () => {

@@ -53,6 +53,7 @@ export default function DataSet() {
 
   React.useEffect(() => {
     fetchAllFolders();
+    return () => setModalState(false);
   }, []);
 
   const renderModalAction = () => {

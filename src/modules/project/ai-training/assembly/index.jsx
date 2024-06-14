@@ -92,6 +92,7 @@ export default function AIAssembly() {
   const [datasets, setDatasets] = useRecoilState(datasetAtom);
   const [augmentations, setAugmentations] = useRecoilState(augmentationsAtom);
   const [modelInfo, setModelInfo] = useRecoilState(modelInfoAtom);
+  const [project, setProject] = React.useState(null);
   
   const formRefs = Array.from({length: 5}, () => useRef(null));
   const sseRef = useRef(null);
@@ -165,12 +166,26 @@ export default function AIAssembly() {
       startTrainingSSE();
     } catch (error) {
       setLoading(false);
-      toast.error(JSON.stringify(error));
+      toast.error(error?.response?.data?.data?.message);
+    }
+  };
+
+  const fetchProject = async () => {
+    try {
+      const res = await axiosInstance.get('/project', {
+        params: {
+          projectId: params.projectId,
+        },
+      })
+      setProject(res?.data?.data);
+    } catch (error) {
+      toast.error(error?.response?.data?.data?.message || 'Cannot fetch project details');
     }
   };
 
   useEffect(() => {
     fetchModelsList();
+    fetchProject();
     return ()=> sseRef.current?.close();
   }, []);
 
@@ -274,8 +289,8 @@ export default function AIAssembly() {
           <table className="w-full text-left text-sm text-gray-500 rtl:text-right ">
             <thead className="bg-white text-sm uppercase text-gray-700 ">
               <tr>
-                {columns.map((t) => (
-                  <th scope="col" className="px-6 py-3" key={t}>
+                {columns.map((t, i) => (
+                  <th scope="col" className={`px-6 py-3 ${i == 0 ? 'text-left' : (i === columns.length - 1 ? '' : 'text-center')}`} key={t}>
                     {t}
                   </th>
                 ))}
@@ -296,7 +311,7 @@ export default function AIAssembly() {
                     >
                       <th
                         scope="row"
-                        className={`whitespace-nowrap px-6 py-4 font-medium text-gray-900 ${model.status == validationCompleteStatus ? 'underline' : ''}`}
+                        className={`whitespace-nowrap px-6 py-4 text-left font-medium text-gray-900 ${model.status == validationCompleteStatus ? 'underline' : ''}`}
                       >
                         {model.status == validationCompleteStatus ?
                           <Link
@@ -311,10 +326,10 @@ export default function AIAssembly() {
                           model.name
                         }
                       </th>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4 text-center">
                         {new Date(Number(model.createdAt)).toLocaleString()}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4 text-center">
                         {model.totalImages} image
                         {model.totalImages != 1 && 's'}
                       </td>
@@ -415,9 +430,10 @@ export default function AIAssembly() {
           </div>
         }
       >
-        <BuildNTrainDrawer 
+        {open && <BuildNTrainDrawer 
           formRefs = {formRefs}
-        />
+          isMoving = {!project?.isItemFixed}
+        />}
       </Drawer>
       {/* </Toaster> */}
     </>

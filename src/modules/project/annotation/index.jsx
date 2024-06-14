@@ -100,6 +100,8 @@ export default function Annotation() {
       analysisStatus: ''
     })
     getConfigurations();
+
+    return () => setOpen(false);
   }, [])
   return (
     <>
