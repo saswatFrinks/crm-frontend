@@ -623,7 +623,7 @@ export default function Assembly() {
         name: roi?.title ?? `ROI ${roi?.id}`,
         // name: `ROI ${roi?.id}`,
         coordinates: points,
-        parts: isPrimary ? [] : tempParts,
+        parts: tempParts,
       };
     });
     // if (temp.direction != 0) {
