@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Input from '@/shared/ui/Input';
 import Label from '@/shared/ui/Label';
 import Radio from '@/shared/ui/Radio';
@@ -12,6 +12,7 @@ import storageService from '@/core/storage';
 import { v4 as uuidv4, validate } from 'uuid';
 import AutofilledDisabledInput from '@/shared/ui/AutofilledDisabledInput';
 import toast, { Toaster } from 'react-hot-toast';
+import Info from '@/shared/icons/Info';
 
 const CreateProjectDrawer = React.forwardRef((props, ref) => {
   const { closeDrawer, setShowLoader, fetchAllProjects, projectToEdit } = props;
@@ -21,56 +22,58 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
   const [assemblyClasses, setAssemblyClasses] = React.useState([]);
   const [cosmeticClasses, setCosmeticClasses] = React.useState([]);
   const [dimensionClasses, setDimensionClasses] = React.useState([]);
+
+  const [hover, setHover] = useState("");
   const user = JSON.parse(storageService.get('user'));
   const inspectionTypes = [
-    {id: '0', name: 'Fast'},
-    {id: '1', name: 'Balanced'},
-    {id: '2', name: 'Accurate'}
-  ]
+    { id: '0', name: 'Fast' },
+    { id: '1', name: 'Balanced' },
+    { id: '2', name: 'Accurate' },
+  ];
 
   const fetchAllVariants = async () => {
-    if(!projectToEdit)return;
+    if (!projectToEdit) return;
     const res = await axiosInstance.get('/variant/fetch', {
       params: {
-        projectId: projectToEdit.id
-      }
+        projectId: projectToEdit.id,
+      },
     });
     setVariants(res.data.data);
-  }
+  };
 
   const fetchAllClasses = async () => {
-    if(!projectToEdit)return;
+    if (!projectToEdit) return;
 
     const objectives = [];
     let res = await axiosInstance.get('/class/list', {
       params: {
-        projectId: projectToEdit.id
-      }
+        projectId: projectToEdit.id,
+      },
     });
-    if(res.data.data.length > 0)objectives.push('assemblyInspection')
+    if (res.data.data.length > 0) objectives.push('assemblyInspection');
     setAssemblyClasses(res.data.data);
 
     res = await axiosInstance.get('/cosmetic/list', {
       params: {
-        projectId: projectToEdit.id
-      }
+        projectId: projectToEdit.id,
+      },
     });
-    if(res.data.data.length > 0)objectives.push('cosmeticInspection')
+    if (res.data.data.length > 0) objectives.push('cosmeticInspection');
     setCosmeticClasses(res.data.data);
 
     res = await axiosInstance.get('/dimensioning/list', {
       params: {
-        projectId: projectToEdit.id
-      }
+        projectId: projectToEdit.id,
+      },
     });
-    if(res.data.data.length > 0)objectives.push('dimensioningInspection')
+    if (res.data.data.length > 0) objectives.push('dimensioningInspection');
     setDimensionClasses(res.data.data);
 
     formik.setValues({
       ...formik.values,
       objectives,
     });
-  }
+  };
 
   const fetchAllPlants = async () => {
     const res = await axiosInstance.get('/plant/getList', {
@@ -102,7 +105,7 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
   }, []);
 
   const getAutofilledObjectives = (value) => {
-    switch(value){
+    switch (value) {
       case 'assemblyInspection':
         return assemblyClasses;
       case 'cosmeticInspection':
@@ -112,7 +115,7 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
       default:
         return [];
     }
-  }
+  };
 
   const getPlantDropDown = () => {
     if (user?.plantId) {
@@ -136,8 +139,16 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
       description: projectToEdit?.description || '',
       inspectionSpeed: projectToEdit?.inspectionSpeed || null,
       cameraCount: projectToEdit?.cameraCount || null,
-      isCameraFixed: projectToEdit ? (projectToEdit?.isCameraFixed ? "fixed" : "robo") : '',
-      isItemFixed: projectToEdit ? (projectToEdit?.isItemFixed ? "stationary" : "moving") : '',
+      isCameraFixed: projectToEdit
+        ? projectToEdit?.isCameraFixed
+          ? 'fixed'
+          : 'robo'
+        : '',
+      isItemFixed: projectToEdit
+        ? projectToEdit?.isItemFixed
+          ? 'stationary'
+          : 'moving'
+        : '',
       inspectionType: projectToEdit ? projectToEdit.inspectionType : '',
       plantId: user?.plantId,
       teamId: user?.teamId,
@@ -157,11 +168,11 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
         errors.name = validateRegexString(values.name);
       }
 
-      if(formik.touched.description && !values.description){
+      if (formik.touched.description && !values.description) {
         errors.description = 'Project Description is required';
       }
 
-      if(projectToEdit)return errors;
+      if (projectToEdit) return errors;
 
       if (formik.touched.inspectionSpeed && values.inspectionSpeed <= 0) {
         errors.inspectionSpeed = 'Inspection speed must be greater than 0';
@@ -175,11 +186,15 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
         errors.item = 'Product flow is mandatory';
       }
 
-      if (formik.touched.variants && values.variants.length <= 1 && !variants.length) {
+      if (
+        formik.touched.variants &&
+        values.variants.length <= 1 &&
+        !variants.length
+      ) {
         errors.variants = 'One variant is required';
       }
 
-      if(formik.touched.inspectionType && !values.inspectionType){
+      if (formik.touched.inspectionType && !values.inspectionType) {
         errors.inspectionType = 'Inspection Type is required';
       }
 
@@ -227,27 +242,29 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
     },
     onSubmit: async (values) => {
       const errors = await formik.validateForm();
-      const canContinue = Object.values(errors).every(error => error.length === 0);
-      if(!canContinue)return;
+      const canContinue = Object.values(errors).every(
+        (error) => error.length === 0
+      );
+      if (!canContinue) return;
       setShowLoader(true);
       let projectJson = createProjectJSON(values);
       try {
-        if(projectToEdit){
+        if (projectToEdit) {
           projectJson = {
             projectId: projectToEdit.id,
             classes: projectJson.classes,
             variants: projectJson.variants,
             name: projectJson.name,
-            description: projectJson.description
-          }
+            description: projectJson.description,
+          };
           await axiosInstance.put('/project/edit', projectJson);
-        }else{
+        } else {
           await axiosInstance.post('/project/create', projectJson);
         }
         closeDrawer();
         await fetchAllProjects();
-      } catch(error) {
-        toast.error(error.response.data.data.message)
+      } catch (error) {
+        toast.error(error.response.data.data.message);
       } finally {
         setShowLoader(false);
       }
@@ -264,7 +281,7 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
       plantId: values.plantId,
       teamId: values.teamId,
       inspectionType: Number(values.inspectionType),
-      cameraCount: values.cameraCount
+      cameraCount: values.cameraCount,
     };
 
     json['variants'] = values.variants
@@ -303,7 +320,7 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
   };
 
   const handleCheckboxChange = (value) => {
-    if(getAutofilledObjectives(value).length > 0)return;
+    if (getAutofilledObjectives(value).length > 0) return;
     if (formik.values.objectives.includes(value)) {
       formik.setValues({
         ...formik.values,
@@ -371,8 +388,8 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
           value={formik.values.inspectionSpeed}
           errorMessage={formik.errors.inspectionSpeed}
           disabled={!!projectToEdit}
-          onKeyDown = {(e) => {
-            if(e.key === '.')e.preventDefault();
+          onKeyDown={(e) => {
+            if (e.key === '.') e.preventDefault();
           }}
         />
       </div>
@@ -389,8 +406,8 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
           value={formik.values.cameraCount}
           errorMessage={formik.errors.cameraCount}
           disabled={!!projectToEdit}
-          onKeyDown = {(e) => {
-            if(e.key === '.')e.preventDefault();
+          onKeyDown={(e) => {
+            if (e.key === '.') e.preventDefault();
           }}
         />
       </div>
@@ -468,20 +485,22 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
       <div>
         <Label>Inspection Requirement</Label>
         <div className="flex gap-8">
-          {inspectionTypes.map(type => {
-            return <div className="flex gap-2">
-              <Radio
-                id={type.name}
-                name={'inspectionType'}
-                value={type.id}
-                checked={formik.values.inspectionType == type.id}
-                onChange={formik.handleChange}
-                disabled={!!projectToEdit}
-              />{' '}
-              <Label htmlFor={type.name} main={false}>
-                {type.name}
-              </Label>
-            </div>
+          {inspectionTypes.map((type) => {
+            return (
+              <div className="flex gap-2">
+                <Radio
+                  id={type.name}
+                  name={'inspectionType'}
+                  value={type.id}
+                  checked={formik.values.inspectionType == type.id}
+                  onChange={formik.handleChange}
+                  disabled={!!projectToEdit}
+                />{' '}
+                <Label htmlFor={type.name} main={false}>
+                  {type.name}
+                </Label>
+              </div>
+            );
           })}
         </div>
         {formik.errors.inspectionType ? (
@@ -490,56 +509,62 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
       </div>
 
       <div>
-        <Label>Add variants</Label>
-        <div className="flex flex-wrap align-items-center gap-4">
-          {
-            projectToEdit && (
-              variants?.map(variant => {
-                return <AutofilledDisabledInput
-                  value={variant.name}
-                />
-              })
-            )
-          }
+        <div className="relative flex items-center gap-1">
+          <Label>Add variants</Label>
+          <div
+            onMouseEnter={() => setHover("variant")}
+            onMouseLeave={() => setHover("")}
+            className="relative my-2"
+          >
+            <Info />
+            {hover === "variant" && (
+              <span className="absolute bottom-full left-1/2 mb-2 w-[250px] -translate-x-1/2 -translate-y-2 transform rounded-md bg-f-primary px-2 py-1 text-center text-sm text-white transition-opacity duration-300">
+                Add the different names of the variants possible within this
+                inspection project here
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="align-items-center flex flex-wrap gap-4">
+          {projectToEdit &&
+            variants?.map((variant) => {
+              return <AutofilledDisabledInput value={variant.name} />;
+            })}
           <InputList
             placeholder="Enter variants"
             formik={formik}
             field="variants"
           />
         </div>
-        
+
         {formik.errors.variants ? (
           <p className="text-xs text-red-500">{formik.errors.variants}</p>
         ) : null}
       </div>
 
-      {
-        !projectToEdit && (
-          <div>
-            <Label>Plant</Label>
-            <Select
-              options={getPlantDropDown()}
-              formik={formik}
-              field="plantId"
-              errorMessage={formik.errors.plantId}
-            />
-          </div>
-        )
-      }
+      {!projectToEdit && (
+        <div>
+          <Label>Plant</Label>
+          <Select
+            options={getPlantDropDown()}
+            formik={formik}
+            field="plantId"
+            errorMessage={formik.errors.plantId}
+          />
+        </div>
+      )}
 
-      {
-        !projectToEdit && (
-          <div>
-            <Label>Team</Label>
-            <Select
-              options={getTeamDropDown()}
-              formik={formik}
-              field="teamId"
-              errorMessage={formik.errors.teamId}
-            />
-          </div>
-        )
-      }
+      {!projectToEdit && (
+        <div>
+          <Label>Team</Label>
+          <Select
+            options={getTeamDropDown()}
+            formik={formik}
+            field="teamId"
+            errorMessage={formik.errors.teamId}
+          />
+        </div>
+      )}
 
       <div>
         <Label>Select Objective</Label>
@@ -593,15 +618,28 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
 
       {formik.values.objectives.map((t) => (
         <div key={t}>
-          <Label>Add classes for {getClassNameTitle(t)} </Label>
-          <div className="flex flex-wrap align-items-center gap-4">
-            {
-              getAutofilledObjectives(t).map(objective => {
-                return <AutofilledDisabledInput
-                  value = {objective.name}
-                />
-              })
-            }
+          <div className="relative flex items-center gap-1">
+            <Label>Add classes for {getClassNameTitle(t)} </Label>
+            <div
+              onMouseEnter={() => setHover("assembly")}
+              onMouseLeave={() => setHover("")}
+              className="relative my-2"
+            >
+              <Info />
+              {hover === "assembly" && (
+                <span className="absolute bottom-full left-1/2 mb-2 w-[280px] -translate-x-1/2 -translate-y-2 transform rounded-md bg-f-primary px-2 py-1 text-center text-sm text-white transition-opacity duration-300">
+                  Add all the different objects as classes which you want to
+                  inspect (including the Primary Object class) within this
+                  inspection project here
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="align-items-center flex flex-wrap gap-4">
+            {getAutofilledObjectives(t).map((objective) => {
+              return <AutofilledDisabledInput value={objective.name} />;
+            })}
             <InputList placeholder="Enter class" formik={formik} field={t} />
           </div>
           {formik.errors[t] ? (

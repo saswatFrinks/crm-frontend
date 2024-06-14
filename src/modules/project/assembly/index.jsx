@@ -26,6 +26,7 @@ import {
   initialLabelsAtom,
   loadedLabelsAtom,
   prevStatusAtom,
+  rectangleColorAtom,
   stepAtom,
 } from './state';
 import React, { useEffect, useRef, useState } from 'react';
@@ -127,6 +128,8 @@ export default function Assembly() {
   const [initialLabels, setInitialLabels] = useRecoilState(initialLabelsAtom);
   const [labelId, setLabelId] = useRecoilState(currentLabelIdAtom);
   const [initialRectangles, setInitialRectnagles] = useState([]);
+
+  const [rectangleColor, setRectangleColor] = useRecoilState(rectangleColorAtom);
 
   const [prevStatus, setPrevStatus] = useRecoilState(prevStatusAtom);
 
@@ -568,6 +571,10 @@ export default function Assembly() {
         URL.revokeObjectURL(value.url);
       });
       setUploadedFileList([]);
+      setRectangleColor({
+        all: [],
+        selectedColor: getRandomHexColor(),
+      })
     };
   }, []);
 
@@ -605,7 +612,7 @@ export default function Assembly() {
             points.push(parseFloat((roiRect.x + roiRect.width).toFixed(4)));
             points.push(parseFloat((roiRect.y + roiRect.height).toFixed(4)));
           } else {
-            points.push(...roiRect.points);
+            if(roiRect.points.length) points.push(...roiRect.points);
           }
         }
       });
@@ -616,7 +623,7 @@ export default function Assembly() {
         name: roi?.title ?? `ROI ${roi?.id}`,
         // name: `ROI ${roi?.id}`,
         coordinates: points,
-        parts: isPrimary ? [] : tempParts,
+        parts: tempParts,
       };
     });
     // if (temp.direction != 0) {

@@ -127,7 +127,6 @@ export default function AnnotationJob() {
         mapObj[ele.id] = false;
         return { ...ele, url: getImageUrl(ele.id) };
       });
-      console.log('loaded images', loadedImages);
       setAllImages(loadedImages);
       setAnnotationLoadedFlag(mapObj);
     } catch (e) {
@@ -422,7 +421,7 @@ export default function AnnotationJob() {
           roiMap[roiId] = true;
           classesSet.add(conf.parts.classId);
         });
-        classesSet.add(primaryClassObj?.id)
+        if(primaryClassObj?.id)classesSet.add(primaryClassObj?.id)
         setLabelClass((prev) =>
           prev.filter((cls) => {
             return classesSet.has(cls.id);
@@ -482,12 +481,14 @@ export default function AnnotationJob() {
 
   //load annotation file and load rectangles
   React.useEffect(() => {
+    console.log('check', annotationLoadeFlag[selectedImage?.id], selectedImage, rectangleColor.all.length)
     if (
       selectedImage &&
       !annotationLoadeFlag[selectedImage.id] &&
       rectangleColor.all.length
     ) {
       const getData = async () => {
+        console.log(`getting ${selectedImage?.id}`)
         const newStat = {
           ...DEFAULT_ANNOTATION,
           imageId: selectedImage.id,
@@ -611,8 +612,6 @@ export default function AnnotationJob() {
     }
   }, [selectedImage, rectangleColor]);
 
-  console.log({ initialLabels });
-
   console.log(rectangles);
 
   const udpateAndExit = async () => {
@@ -674,7 +673,7 @@ export default function AnnotationJob() {
   const renderAnnotationHeading = () => {
     if(type === ASSEMBLY_CONFIG.MOVING){
       return <div className="flex flex-col gap-4 p-4">
-        <AnnotationClass labelClass={labelClass.filter(lc => lc.id === primaryClass?.id)} />
+        <AnnotationClass labelClass={labelClass.filter(lc => lc.id === primaryClass?.id)} isPrimary={true} />
         <AnnotationLabels
           labelClass={labelClass.filter(lc => lc.id === primaryClass?.id)}
           selectedImageId={selectedImage?.id}
