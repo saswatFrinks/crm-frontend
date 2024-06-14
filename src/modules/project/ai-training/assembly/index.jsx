@@ -48,13 +48,15 @@ export const augmentationsMap = {
 const trainingStatus = {
   'TRAINING': [5],
   'PRETRAINING': [1,2,,3,4],
-  'ERROR': [8,9],
+  'ERROR': [8,9, 28, 29],
   'QUEUED': [0]
 }
 
 const ERRORS = {
   8: 'Error During Training',
-  9: 'Server Disconnected'
+  9: 'Server Disconnected',
+  28: 'Error During Evaluation',
+  29: 'Server Disconnected'
 }
 
 const validationCompleteStatus = 27;
@@ -73,7 +75,7 @@ const actionDescriptions = [
 ]
 
 actionDescriptions[validationCompleteStatus] = "Training and Evaluation Completed. Your AI model is ready";
-actionDescriptions[validationCompleteStatus + 1] ="Failed to validate the AI model"
+actionDescriptions[validationCompleteStatus + 1] ="Failed to evaluate the AI model"
 const validationMessage = "Validating the AI model"
 
 export default function AIAssembly() {

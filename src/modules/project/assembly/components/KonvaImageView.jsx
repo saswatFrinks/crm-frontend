@@ -20,6 +20,7 @@ import {
 import { rectangleColorAtom, stepAtom } from '../state';
 import { v4 } from 'uuid';
 import Polygon from './Polygon';
+import { cropLine, snapPolygonToBoundary } from '@/util/geometry';
 
 const KonvaImageView = ({
   image,
@@ -31,7 +32,6 @@ const KonvaImageView = ({
   onPolyUpdate,
   polyDraw,
 }) => {
-  console.log(rectangles);
   const coverRef = React.useRef(null);
   const canvasRef = React.useRef(null);
   const stageRef = React.useRef(null);
@@ -83,18 +83,14 @@ const KonvaImageView = ({
 
     const stage = coverRef.current;
     const { width, height } = stage.getBoundingClientRect();
-    console.log(width, height, stage.offsetLeft, stage.offsetTop);
 
     const mouseX = e.clientX - stage.offsetLeft + (canvaSize - width) / 2;
     const mouseY = e.clientY - stage.offsetTop + (canvaSize - height) / 2;
 
     const wheel = e.deltaY < 0 ? 1.1 : 1 / 1.1;
     const newScale = Math.min(10, Math.max(0.2, origin.scale * wheel));
-    console.log(e.clientX, e.clientY);
-    console.log(mouseX - origin.x, mouseY - origin.y);
     const originX = mouseX - (mouseX - origin.x) * (newScale / origin.scale);
     const originY = mouseY - (mouseY - origin.y) * (newScale / origin.scale);
-    console.log(newScale / origin.scale);
     const cords = { x: originX, y: originY };
     setOrigin({ ...cords, scale: newScale });
   };
@@ -110,7 +106,6 @@ const KonvaImageView = ({
     if (imageStatus.drawMode === 'POLY' || imageStatus.drawMode === 'RECT') {
       //called when rectangle is drawn
       if (imageStatus.drawMode === 'POLY') {
-        console.log('points1', { pointerPosition, currentPoly });
 
         const newPoints = currentPoly?.points?.concat([
           pointerPosition.x,
@@ -157,7 +152,6 @@ const KonvaImageView = ({
         setLastPolyId(uuid);
         // } else if(imageStatus.drawMode === "RECT"){
       } else {
-        console.log('drawing rect1');
         setImageStatus((a) => ({ ...a, drawing: true, drawMode: 'RECT' }));
         const poly = {
           x: pointerPosition.x,
@@ -197,7 +191,6 @@ const KonvaImageView = ({
       }
     } else {
       // called when image is dragged
-      console.log('starting dragging here:', e.clientX);
       setImageStatus((a) => ({ ...a, dragging: true }));
       setDragStart({
         x: e.clientX - stage.offsetLeft - origin.x,
@@ -207,7 +200,6 @@ const KonvaImageView = ({
   };
 
   React.useEffect(() => {
-    console.log('Started drawing poly');
     if (imageStatus.drawMode !== 'POLY' || !polyDraw) return;
     const color = getRandomHexColor();
     // const color =
@@ -240,7 +232,6 @@ const KonvaImageView = ({
     setImageStatus((p) => ({ ...p, drawMode: 'POLY' }));
   }, [polyDraw, imageStatus.drawMode]);
 
-  console.log('polygon details', { curPoly });
 
   const normalizePolygonPoints = (arr) => {
     return arr.map((pt, i) => {
@@ -263,9 +254,8 @@ const KonvaImageView = ({
     if (imageStatus.drawMode === 'POLY' && currentPoly?.points?.length > 2) {
       const pos = stageRef.current.getPointerPosition();
       const poly = { ...currentPoly, closed: true };
-      console.log("double", {currentPoly}, imageStatus.drawMode, poly)
       poly.points = normalizePolygonPoints(poly.points);
-      console.log('points values', poly.points);
+      poly.points = cropPolygonPoints(poly.points);
       onPolyUpdate([...polygons, poly]);
       setSelectedPolyId(currentPoly.uuid);
     }
@@ -287,7 +277,6 @@ const KonvaImageView = ({
     const stage = coverRef.current;
     const { width, height } = stage.getBoundingClientRect();
 
-    // console.log(stage, stage.offsetLeft)
     if (
       imageStatus.drawing &&
       (imageStatus.drawMode === 'POLY' || imageStatus.drawMode === 'RECT')
@@ -304,7 +293,6 @@ const KonvaImageView = ({
       }));
     } else if (imageStatus.dragging) {
       //originX is the new 0,0 of image.
-      console.log('Draggingg');
       const originX = e.clientX - stage.offsetLeft - dragStart.x;
       const originY = e.clientY - stage.offsetTop - dragStart.y;
       const cords = { x: originX, y: originY };
@@ -330,9 +318,7 @@ const KonvaImageView = ({
         ...normalizeDimensions({ ...currentPoly }),
       };
       handleValueReset(normalizedValue);
-      console.log(normalizedValue);
       if (normalizedValue.width !== 0 && normalizedValue.height !== 0) {
-        console.log(normalizedValue);
         onDrawStop([...rectangles, normalizedValue]);
       }
       setCurrentPoly(null);
@@ -360,25 +346,18 @@ const KonvaImageView = ({
   }, []);
 
   const resetGraph = (newScale = null) => {
-    // console.log()
     if (image?.height && canvasRef?.current) {
-      console.log(canvasRef.current);
 
       const cover = coverRef.current;
       const { width, height } = cover.getBoundingClientRect();
-      console.log('cover', width, height);
 
       let scale =
         newScale ?? Math.min(width / image.width, height / image.height);
-      console.log('Image: ', image.width, image.height);
-      console.log('scale: ', scale);
 
       const originX = (canvaSize - image.width * scale) / 2;
       const originY = (canvaSize - image.height * scale) / 2;
       const cords = { x: originX, y: originY };
-      console.log('Initial', cords);
       setOrigin({ ...cords, scale: scale });
-      // console.log(cords)
       return cords;
     }
   };
@@ -397,6 +376,37 @@ const KonvaImageView = ({
   //       }
   //     }
   // };
+
+  const cropPolygonPoints = (polyPoints) => {
+    const imageBoundaryX = 1;
+    const imageBoundaryY = 1;
+
+    let snappedPoints = snapPolygonToBoundary(polyPoints, imageBoundaryX, imageBoundaryY);
+    console.log(snappedPoints);
+
+    const totalPoints = snappedPoints.length;
+    for(let i = 0; i<totalPoints; i+=2){
+      const x1 = snappedPoints[i];
+      const y1 = snappedPoints[i+1];
+
+      const x2 = snappedPoints[(i+2) % totalPoints];
+      const y2 = snappedPoints[(i+3) % totalPoints];
+
+      const changedPoints = cropLine({x1, x2, y1, y2, boundaryX: imageBoundaryX, boundaryY: imageBoundaryY});
+      console.log(changedPoints)
+      if(changedPoints==null){
+        for(let j = 0; j<3; j++) snappedPoints[i+j] =null;
+      }
+      else {
+        snappedPoints[i] = changedPoints.x1;
+        snappedPoints[i+1] = changedPoints.y1;
+        snappedPoints[(i+2)% totalPoints] = changedPoints.x2;
+        snappedPoints[(i+3) % totalPoints] = changedPoints.y2;
+      }
+    }
+    
+    return snappedPoints.filter(ele=>ele!==null);
+  }
 
   const handleValueReset = (rectObj) => {
     const imageBoundaryX = 1;
@@ -494,7 +504,6 @@ const KonvaImageView = ({
 
   React.useEffect(() => {
     const modified = [];
-    console.log("jjjjj", {rectangles})
     if (image?.width) {
       rectangles.forEach((rect) => {
         const x = rect.x * image.width;
@@ -504,26 +513,21 @@ const KonvaImageView = ({
         modified.push({ ...rect, x, y, width, height });
       });
     }
-    console.log('modiifed', modified);
     setScaledRectangles(modified);
   }, [rectangles, image?.width]);
 
   useEffect(() => {
     const modified = [];
     if (image?.width) {
-      console.log("jjjjl", {polygons})
       polygons?.forEach((poly) => {
         const points = poly?.points?.map((point) => point * image.width);
-        console.log('points values1', { points });
         modified.push({ ...poly, points });
       });
     }
-    console.log('modified1', { modified });
     setScaledPolygons(modified);
   }, [polygons, image?.width]);
 
   React.useEffect(() => {
-    console.log({ lastPolyId });
     if (lastAction && lastAction !== ACTION_NAMES.SELECTED) {
       if (lastAction == ACTION_NAMES.CANCEL) {
         onDrawStop(rectangles?.filter((r) => r.uuid !== lastPolyId));
@@ -535,7 +539,6 @@ const KonvaImageView = ({
     }
   }, [lastAction]);
 
-  console.log("annotss",{polygons})
 
   return (
     <div
@@ -575,7 +578,6 @@ const KonvaImageView = ({
                 ([2, 3].includes(step) && e.imageId == imageId)
             )
             ?.map((rect, i) => {
-              // console.log('rendering', i, origin)
               return (
                 <Rectangle
                   key={`rect_${rect.rectType}_${rect.uuid}`}
@@ -585,7 +587,6 @@ const KonvaImageView = ({
                   scale={origin.scale}
                   isSelected={rect.uuid == selectedRectId}
                   onChange={(e) => {
-                    console.log(e);
                     const unchanged = rectangles.filter(
                       (ele) => ele.uuid !== rect.uuid
                     );
@@ -660,16 +661,14 @@ const KonvaImageView = ({
                   key={i}
                   shape={poly}
                   isSelected={selectedPolyId === poly.uuid}
-                  // onChange={() => console.log('Trying to change in poly')}
                   onChange={(e) => {
                     const unchanged = polygons.filter(
                       (ele) => ele.uuid !== poly.uuid
                     );
                     const index = polygons.findIndex((r) => r.uuid == e.uuid);
-                    console.log('Trying to change in poly', e, index);
                     if (index >= 0) {
-                      const buf = normalizePolygonPoints(e.points)
-                      console.log(buf)
+                      let buf = normalizePolygonPoints(e.points)
+                      buf = cropPolygonPoints(buf)
                       // const ref = e.target.attrs
                       const normalizedValue = {
                         ...polygons[index],
@@ -689,13 +688,13 @@ const KonvaImageView = ({
                   }
                   onTransform={(res) => {
                     const polyCp = [...polygons];
-                    const points = normalizePolygonPoints(res.points);
+                    let points = normalizePolygonPoints(res.points);
+                    points = cropPolygonPoints(points);
                     polyCp[i] = { ...res, points };
                     onPolyUpdate(polyCp);
                   }}
                   onClick={(e) => {
-                    setSelectedPolyId(poly.uuid);
-                    e.evt.cancelBubble = true;
+                    if (poly.uuid == selectedRectId) e.cancelBubble = true;
                   }}
                 />
               );
