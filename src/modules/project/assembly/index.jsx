@@ -26,6 +26,7 @@ import {
   initialLabelsAtom,
   loadedLabelsAtom,
   prevStatusAtom,
+  rectangleColorAtom,
   stepAtom,
 } from './state';
 import React, { useEffect, useRef, useState } from 'react';
@@ -127,6 +128,8 @@ export default function Assembly() {
   const [initialLabels, setInitialLabels] = useRecoilState(initialLabelsAtom);
   const [labelId, setLabelId] = useRecoilState(currentLabelIdAtom);
   const [initialRectangles, setInitialRectnagles] = useState([]);
+
+  const [rectangleColor, setRectangleColor] = useRecoilState(rectangleColorAtom);
 
   const [prevStatus, setPrevStatus] = useRecoilState(prevStatusAtom);
 
@@ -568,6 +571,10 @@ export default function Assembly() {
         URL.revokeObjectURL(value.url);
       });
       setUploadedFileList([]);
+      setRectangleColor({
+        all: [],
+        selectedColor: getRandomHexColor(),
+      })
     };
   }, []);
 

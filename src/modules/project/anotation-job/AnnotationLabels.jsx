@@ -39,8 +39,6 @@ export default function AnnotationLabels({ labelClass, isPrimary }) {
     ? [...(annotationClasses[selectedImageId]?.rectangles || [])]
     : [];
 
-  console.log({labels})
-
   if (annotationClasses[selectedImageId]?.polygons?.length > 0) {
     const polygons = annotationClasses[selectedImageId]?.polygons || [];
     labels = labels.concat(polygons);
@@ -98,9 +96,9 @@ export default function AnnotationLabels({ labelClass, isPrimary }) {
               <div className=" flex grow justify-center">
                 {isPrimary ? (
                   <div className='flex w-full items-center justify-evenly gap-2'>
-                    <span>Label {currIdx+1}</span>
+                    {/* <span>Label {currIdx+1}</span> */}
                     <div
-                      className={`text-center min-w-[30%] border border-gray-300 px-4 py-1 rounded-3xl`}
+                      className={`text-center w-full border border-gray-300 px-4 py-0.5 rounded-3xl`}
                     >
                       {labelClass[0]?.name}
                     </div>
@@ -185,7 +183,6 @@ export default function AnnotationLabels({ labelClass, isPrimary }) {
                 className="cursor-pointer"
                 // onClick={() => remove(t.id, t.uuid)}
                 onClick={() => {
-                  console.log('delete')
                   if (isEditing && labelId === t.uuid) {
                     remove(t.id, t.uuid);
                     setIsEditing(false);
