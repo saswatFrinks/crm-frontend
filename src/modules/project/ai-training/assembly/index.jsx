@@ -45,16 +45,16 @@ export const augmentationsMap = {
 // }
 
 const trainingStatus = {
-  'TRAINING': [5],
-  'PRETRAINING': [1,2,,3,4],
-  'ERROR': [8,9],
-  'QUEUED': [0]
-}
+  TRAINING: [5],
+  PRETRAINING: [1, 2, , 3, 4],
+  ERROR: [8, 9],
+  QUEUED: [0],
+};
 
 const ERRORS = {
   8: 'Error During Training',
-  9: 'Server Disconnected'
-}
+  9: 'Server Disconnected',
+};
 
 export default function AIAssembly() {
   const params = useParams();
@@ -71,20 +71,21 @@ export default function AIAssembly() {
   const [augmentations, setAugmentations] = useRecoilState(augmentationsAtom);
   const [modelInfo, setModelInfo] = useRecoilState(modelInfoAtom);
   const [project, setProject] = React.useState(null);
-  
-  const formRefs = Array.from({length: 5}, () => useRef(null));
+  const [bypass, setBypass] = React.useState(false);
+
+  const formRefs = Array.from({ length: 5 }, () => useRef(null));
   const sseRef = useRef(null);
 
   const handleNext = async () => {
     try {
-      const canProceed = await formRefs[step-1]?.current?.handleSubmit();
+      const canProceed = await formRefs[step - 1]?.current?.handleSubmit();
       setStep((t) => {
-        if(formRefs[t-1]?.current && canProceed !== true)return t;
+        if (formRefs[t - 1]?.current && canProceed !== true) return t;
         if (t == 5) return t;
         return t + 1;
       });
     } catch (error) {
-      toast.error(error?.message)
+      toast.error(error?.message);
     }
   };
 
@@ -118,7 +119,7 @@ export default function AIAssembly() {
     setClassAtom([]);
     setAugmentations(defaultAugmentationAtom);
     setModelInfo(defaultModelInfoAtom);
-  }
+  };
 
   const closeDrawer = () => {
     setOpenDrawer(false);
@@ -154,20 +155,22 @@ export default function AIAssembly() {
         params: {
           projectId: params.projectId,
         },
-      })
+      });
       setProject(res?.data?.data);
     } catch (error) {
-      toast.error(error?.response?.data?.data?.message || 'Cannot fetch project details');
+      toast.error(
+        error?.response?.data?.data?.message || 'Cannot fetch project details'
+      );
     }
   };
 
   useEffect(() => {
     fetchModelsList();
     fetchProject();
-    return ()=> sseRef.current?.close();
+    return () => sseRef.current?.close();
   }, []);
 
-  const startTrainingSSE = async () =>{
+  const startTrainingSSE = async () => {
     console.log('Starting Training SSE');
     const sse = new EventSource(
       `${import.meta.env.VITE_BASE_API_URL}/model/detection/sse?projectId=${params.projectId}`,
@@ -177,25 +180,24 @@ export default function AIAssembly() {
     sse.onmessage = (event) => {
       const data = JSON.parse(event.data);
       console.log('[STATUS UPDATE]', data);
-      setModelsList(prev=>{
+      setModelsList((prev) => {
         const cp = [...prev];
-        let index = cp.findIndex(ele=> ele.jobId==data.jobId);
-        if(index>=0){
+        let index = cp.findIndex((ele) => ele.jobId == data.jobId);
+        if (index >= 0) {
           cp[index].status = data.status;
-          if(data.epoch){
-            let [n, d] = String(data.epoch).split('/')
-            if(d){
-              cp[index].info = {value: parseInt(n), max: parseInt(d)}
+          if (data.epoch) {
+            let [n, d] = String(data.epoch).split('/');
+            if (d) {
+              cp[index].info = { value: parseInt(n), max: parseInt(d) };
             }
-          }
-          else delete cp[index].info
+          } else delete cp[index].info;
         }
         return cp;
-      })
-    }
+      });
+    };
 
     sseRef.current = sse;
-  }
+  };
 
   const startTraining = async () => {
     console.log('starting training', configuration);
@@ -232,6 +234,7 @@ export default function AIAssembly() {
         rois: roiList,
         datasets: datasetList,
         augmentations: augmentationList,
+        validate: !bypass
       };
       console.log('data:', data);
       const resp = await axiosInstance.post('/model/detection', data);
@@ -268,7 +271,11 @@ export default function AIAssembly() {
             <thead className="bg-white text-sm uppercase text-gray-700 ">
               <tr>
                 {columns.map((t, i) => (
-                  <th scope="col" className={`px-6 py-3 ${i == 0 ? 'text-left' : (i === columns.length - 1 ? '' : 'text-center')}`} key={t}>
+                  <th
+                    scope="col"
+                    className={`px-6 py-3 ${i == 0 ? 'text-left' : i === columns.length - 1 ? '' : 'text-center'}`}
+                    key={t}
+                  >
                     {t}
                   </th>
                 ))}
@@ -302,18 +309,38 @@ export default function AIAssembly() {
                         {model.totalImages} image
                         {model.totalImages != 1 && 's'}
                       </td>
-                      <td
-                        className='px-6 py-3 text-center'
-                      >
-                        {
-                          trainingStatus.QUEUED.includes(model.status) ? 'Training Queued' : 
-                          trainingStatus.PRETRAINING.includes(model.status) ?
-                            <RadialProgressBar value={0} max={10} size={45} strokeWidth={4}/> :
-                          trainingStatus.TRAINING.includes(model.status) ?
-                            <RadialProgressBar value={model.info?.value || 0} max={model.info?.max || 10} size={45} strokeWidth={4}/> :
-                          trainingStatus.ERROR.includes(model.status) ? <span className='text-red-400'>{ERRORS[model.status]}</span> :
-                            <RadialProgressBar value={10} max={10} size={45} strokeWidth={4} showMax/>
-                        }
+                      <td className="px-6 py-3 text-center">
+                        {trainingStatus.QUEUED.includes(model.status) ? (
+                          'Training Queued'
+                        ) : trainingStatus.PRETRAINING.includes(
+                            model.status
+                          ) ? (
+                          <RadialProgressBar
+                            value={0}
+                            max={10}
+                            size={45}
+                            strokeWidth={4}
+                          />
+                        ) : trainingStatus.TRAINING.includes(model.status) ? (
+                          <RadialProgressBar
+                            value={model.info?.value || 0}
+                            max={model.info?.max || 10}
+                            size={45}
+                            strokeWidth={4}
+                          />
+                        ) : trainingStatus.ERROR.includes(model.status) ? (
+                          <span className="text-red-400">
+                            {ERRORS[model.status]}
+                          </span>
+                        ) : (
+                          <RadialProgressBar
+                            value={10}
+                            max={10}
+                            size={45}
+                            strokeWidth={4}
+                            showMax
+                          />
+                        )}
                       </td>
                       {/* <td
                         className={`px-6 py-4 ${trainingStatus[model.status]?.color || 'text-green-500'}`}
@@ -345,6 +372,25 @@ export default function AIAssembly() {
         size="7xl"
         footer={
           <div className="grid w-full grid-cols-12">
+            <div className="col-span-4 m-auto">
+              {step >= 5 && (
+                <div className="flex items-center gap-2">
+                  <label className="inline-flex cursor-pointer items-center">
+                    <input
+                      type="checkbox"
+                      className="peer sr-only"
+                      onClick={(e) => {
+                        setBypass(prev => !prev);
+                      }}
+                    />
+                    <div className="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"></div>
+                    <span className="ms-3 text-md font-medium text-gray-900 ">
+                      By-pass Pre-training analysis validation
+                    </span>
+                  </label>
+                </div>
+              )}
+            </div>
             <div className="col-span-8 col-start-5 flex items-center justify-between gap-4">
               <div className="flex items-center gap-2">
                 {step > 1 && (
@@ -395,10 +441,12 @@ export default function AIAssembly() {
           </div>
         }
       >
-        {open && <BuildNTrainDrawer 
-          formRefs = {formRefs}
-          isMoving = {!project?.isItemFixed}
-        />}
+        {open && (
+          <BuildNTrainDrawer
+            formRefs={formRefs}
+            isMoving={!project?.isItemFixed}
+          />
+        )}
       </Drawer>
       {/* </Toaster> */}
     </>
