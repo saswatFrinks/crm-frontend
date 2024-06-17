@@ -24,7 +24,7 @@ export default function Configuration({ setLoading, formRef, isMoving }) {
 
   const params = useParams();
   const [classes, setClasses] = useState([]);
-  const [selectedTracker, setSelectedTracker] = useRecoilState(primaryClassAtom);
+  const [primaryClasses, setPrimaryClasses] = useRecoilState(primaryClassAtom);
   const [rois, setRois] = useState([]);
   const [roiClasses, setRoiClasses] = useState([]);
   const [classMap, setClassMap] = useState(new Map());
@@ -45,6 +45,7 @@ export default function Configuration({ setLoading, formRef, isMoving }) {
       });
       let roiClass = [];
       let roiClassCount = new Map();
+      const primaryArr = [];
       const roiArr = res.data.data.detection.map((obj) => {
         let classCount = new Map();
         obj.classes.forEach(clx => {
@@ -57,9 +58,14 @@ export default function Configuration({ setLoading, formRef, isMoving }) {
         obj.roi && roiClassCount.set(obj.roi.id, classCount);
         setClassMap(roiClassCount);
         roiClass = [...roiClass, ...obj.classes];
-        return { ...obj, check: false };
+        if(obj.primaryClass){
+          roiClass.push(obj.primaryClass.className);
+          primaryArr.push(obj.primaryClass);
+        }
+        return obj.primaryClass ? { ...obj, classes: [...obj?.classes, obj.primaryClass.className], check: false } : { ...obj, check: false };
       });
       setRoiClasses(roiClass);
+      setPrimaryClasses(primaryArr);
       // setRois(roiArr);
       if (configuration.length != 0) {
         setRois(configuration);
@@ -255,8 +261,6 @@ export default function Configuration({ setLoading, formRef, isMoving }) {
     if(roiDataSets.size > 0)getDatasetImages();
   }, [roiDataSets])
 
-  const trackerClasses = ['Class 5', 'Class 4', 'Class 6']
-
   return (
     <div className="flex flex-col gap-8">
       <h3 className=" text-2xl font-semibold">Configurations & Classes</h3>
@@ -272,6 +276,7 @@ export default function Configuration({ setLoading, formRef, isMoving }) {
         <p className='font-medium'>Select the classes you wish to train this AI model for:</p>
         <div className="flex gap-4">
           {classes.map((classObj) => {
+            const isPrimary = primaryClasses.find(cl => cl.id === classObj.id) ? true : false;
             return (
               <div
                 className="flex gap-2"
@@ -289,7 +294,7 @@ export default function Configuration({ setLoading, formRef, isMoving }) {
                   checked={classObj.check}
                   onChange={() => {}}
                 />
-                <Label htmlFor="class1" className={`${!roiClasses.includes(classObj.name) ? 'text-[#aaa]' : ''}`} main={false}>
+                <Label htmlFor="class1" className={`${(!roiClasses.includes(classObj.name) && !isPrimary)? 'text-[#aaa]' : ''}`} main={false}>
                   {classObj.name}
                 </Label>
               </div>
@@ -340,7 +345,7 @@ export default function Configuration({ setLoading, formRef, isMoving }) {
                     {/* <td className={`px-6 py-4 ${statusObj['success']}`}>-</td> */}
                     {roi?.roi ? (
                       <td className="flex flex-wrap items-center gap-2 px-4 py-4">
-                        {removeDuplicates(roi.classes).map((className, index) => {
+                        {removeDuplicates(roi.classes).filter(cl => !primaryClasses.map(c => c.className).includes(cl)).map((className, index) => {
                           const numberOfClass = classMap.get(roi.roi.id).get(className);
                           return (
                             <>
@@ -375,27 +380,6 @@ export default function Configuration({ setLoading, formRef, isMoving }) {
           <p className="text-sm text-red-500">{error}</p>
         )}
       </div>
-
-      {isMoving && <div className="mt-4 flex items-center gap-4">
-        {trackerClasses.map((cl, index) => (
-          <div className="flex items-center gap-1">
-            <Checkbox
-              id={index}
-              checked={selectedTracker.includes(cl)}
-              onChange={() => {}}
-              onClick={() => {
-                setSelectedTracker(prev => {
-                  const newClasses = [...prev];
-                  if(prev.includes(cl))return newClasses.filter(c => c !== cl);
-                  else newClasses.push(cl);
-                  return newClasses;
-                })
-              }}
-            />
-            <div>{cl}</div>
-          </div>
-        ))}
-      </div>}
     </div>
   );
 }

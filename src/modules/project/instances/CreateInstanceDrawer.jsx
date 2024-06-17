@@ -53,8 +53,8 @@ const CreateInstanceDrawer = ({step, childRefs, editInstance = null}) => {
     1: <BasicInformation editInstanceId = {editInstance?.instances?.id || null} project={project} formRef = {childRef} />,
     2: <MapCameraIp formRef = {childRef} />,
     3: <CameraConfig formRef = {childRef} configUploaded = {editInstance ? true : false} />,
-    4: <ModelSelection formRef = {childRef} />,
-    5: <Finish formRef = {childRef}/>,
+    4: <ModelSelection project={project} formRef = {childRef} />,
+    5: <Finish project={project} formRef = {childRef}/>,
   };
 
   if(loader)return <ProjectCreateLoader title='Fetching Project Details'/>
