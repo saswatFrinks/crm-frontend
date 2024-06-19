@@ -56,13 +56,16 @@ const PredictedImage = ({canvasSize, shapeProps, url, threshold}) => {
               y={origin?.y}
             />
             {shapeProps.map(prop => {
+              const [x, y, width, height] = prop.coordinates;
+              const x1 = x - width/2;
+              const y1 = y - height/2;
               if((prop.threshold) < Number(threshold))return <></>
               return <React.Fragment
                 key={`${prop.id}`}
               >
                 {prop?.title && <Text
-                    x={(origin?.x || 0) + prop.x1 * image.width * origin?.scale}
-                    y={(origin?.y || 0) + prop.y1 * image.height * origin?.scale - 17}
+                    x={(origin?.x || 0) + x1 * image.width * origin?.scale}
+                    y={(origin?.y || 0) + y1 * image.height * origin?.scale - 17}
                     text={`${prop.id+1}. ${prop?.title}`}
                     fontSize={15}
                     fill={prop.stroke}
@@ -73,10 +76,10 @@ const PredictedImage = ({canvasSize, shapeProps, url, threshold}) => {
                   {...prop}
                   // fill={prop.stroke}
                   stroke={prop.stroke}
-                  x={(origin?.x || 0) + prop.x1 * image.width * origin?.scale}
-                  y={(origin?.y || 0) + prop.y1 * image.height * origin?.scale}
-                  width={prop.width * image.width * origin?.scale}
-                  height={prop.height * image.height * origin?.scale}
+                  x={(origin?.x || 0) + x1 * image.width * origin?.scale}
+                  y={(origin?.y || 0) + y1 * image.height * origin?.scale}
+                  width={width * image.width * origin?.scale}
+                  height={height * image.height * origin?.scale}
                 />
               </React.Fragment>
             })}
