@@ -98,7 +98,7 @@ export default function Sidebar() {
     {
       to: `/ai-training/${params.projectId}`,
       pathname: 'ai-training',
-      name: 'AI Model Trainings',
+      name: 'AI Models',
       state: { projectName: location.state?.projectName },
       icon: (active) => (
         <svg

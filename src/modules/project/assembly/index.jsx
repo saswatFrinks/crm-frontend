@@ -193,7 +193,7 @@ export default function Assembly() {
     annotationRects.forEach((rect) => {
       if (!labelsEdited[rect.imageId]) return;
       const classNo = annotationMap[rect.uuid];
-      if (rect?.x) {
+      if (!rect?.points) {
         const height = rect.height.toFixed(4);
         const width = rect.width.toFixed(4);
         const x = (rect.x + rect.width / 2).toFixed(4);
@@ -626,13 +626,13 @@ export default function Assembly() {
       console.log({ rois });
       rois.forEach((roiRect) => {
         if (roi.id == roiRect.roiId) {
-          if (roiRect?.x) {
+          if (roiRect?.points) {
+            if(roiRect.points.length) points.push(...roiRect.points);
+          } else {
             points.push(parseFloat(roiRect.x.toFixed(4)));
             points.push(parseFloat(roiRect.y.toFixed(4)));
             points.push(parseFloat((roiRect.x + roiRect.width).toFixed(4)));
             points.push(parseFloat((roiRect.y + roiRect.height).toFixed(4)));
-          } else {
-            if(roiRect.points.length) points.push(...roiRect.points);
           }
         }
       });

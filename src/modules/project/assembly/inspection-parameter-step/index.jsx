@@ -176,7 +176,7 @@ export default function InspectionParameterStep(props) {
     let tempRois = cloneDeep(configuration.rois);
     // console.log('confRois:', configuration.rois);
     if (tempRois[0]?.parts[0]?.class === '') {
-      tempRois[0].parts[0].class = classOptions[0].id;
+      tempRois[0].parts[0].class = classOptions.filter(cl => cl.id !== configuration?.primaryObjectClass)[0]?.id;
       tempRois[0].parts[0].className = classOptions[0].name;
     }
     setConfiguration({
@@ -801,12 +801,14 @@ export default function InspectionParameterStep(props) {
                             placeholder="Select class"
                             value={configuration.rois[i].parts[objIndex].class}
                             onChange={(e) => {
+                             
                               let temp = '';
                               classOptions.forEach((opt) => {
                                 if (opt.id === e.target.value) {
                                   temp = opt.name;
                                 }
                               });
+                              console.log({id: e.target.value, temp})
                               setConfiguration((d) => ({
                                 ...d,
                                 rois: d.rois.map((roi, locRIdx) => {

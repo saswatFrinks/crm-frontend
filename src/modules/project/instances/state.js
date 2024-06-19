@@ -19,7 +19,8 @@ export const defaultAddInstanceValue = {
     files: null
   },
   modelSelection: {
-    modelRoiMap: null
+    modelRoiMap: null,
+    primaryRoiMap: null
   },
   colorClasses: null
 }
