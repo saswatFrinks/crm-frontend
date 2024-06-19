@@ -10,74 +10,60 @@ const Polygon = ({
   scale,
   ...rest
 }) => {
-  console.log({shape})
   const shapeRef = React.useRef(null);
 
   const getNormalizedPoints = (arr) => {
     let points = [];
     let grouped = [];
-    console.log(offset);
     const sc = scale || 1;
     const ox = offset?.x || 0;
     const oy = offset?.y || 0;
     for (let i = 0; i < arr?.length; i += 2) {
       const x = arr[i] * sc + ox;
       const y = arr[i + 1] * sc + oy;
-      const xPoint = arr[i] + ox;
-      const yPoint = arr[i + 1] + oy;
-      console.log(x, y,"Grouped")
       points.push(x);
       points.push(y);
       grouped.push([x, y]);
       // grouped.push([xPoint, yPoint]);
-      // console.log({points, grouped})
     }
     return [points, grouped];
   };
 
-  // React.useEffect(() => {
-    // const getNormalizedPoints = (arr) => {
-    //   let points = [];
-    //   let grouped = [];
-    //   console.log(offset);
-    //   const sc = scale || 1;
-    //   const ox = offset?.x || 0;
-    //   const oy = offset?.y || 0;
-    //   for (let i = 0; i < arr?.length; i += 2) {
-    //     const x = arr[i] * sc + ox;
-    //     const y = arr[i + 1] * sc + oy;
-    //     const xPoint = arr[i] + ox;
-    //     const yPoint = arr[i + 1] + oy;
-    //     console.log(x, y,"Grouped")
-    //     points.push(x);
-    //     points.push(y);
-    //     grouped.push([x, y]);
-    //     // grouped.push([xPoint, yPoint]);
-    //     // console.log({points, grouped})
-    //   }
-    //   return [points, grouped];
-    // };
-    // const cb = () => {
-    //   if (shapeRef.current) {
-    //     const [pts] = getNormalizedPoints(shape.points);
-    //     shapeRef.current.points(pts);
-    //   }
-    // };
-    // console.log('changed', shape)
-    // cb();
-  // }, [shape, shapeRef, offset, scale]);
-  // console.log(offset, scale)
-  const [points, polyPoints] = getNormalizedPoints(shape.points);
+  const [vertexes, groupedPoints] = getNormalizedPoints(shape.points);
 
-  console.log('Polygon component rendered', {
-    shape,
-    isSelected,
-    onChange,
-    onTransform,
-    offset,
-    scale,
-    ...rest,
-  });
+  const [polyPoints, setPolyPoints] = React.useState(groupedPoints);
+  const [points, setPoints] = React.useState(vertexes)
+
+  React.useEffect(() => {
+    const getNormalizedPoints = (arr) => {
+      let points = [];
+      let grouped = [];
+      const sc = scale || 1;
+      const ox = offset?.x || 0;
+      const oy = offset?.y || 0;
+      for (let i = 0; i < arr?.length; i += 2) {
+        const x = arr[i] * sc + ox;
+        const y = arr[i + 1] * sc + oy;
+        points.push(x);
+        points.push(y);
+        grouped.push([x, y]);
+      }
+      return [points, grouped];
+    };
+    const cb = () => {
+      if (shapeRef.current) {
+        const [pts, grouped] = getNormalizedPoints(shape.points);
+        console.log(grouped);
+        setPolyPoints(grouped)
+        setPoints(pts)
+        shapeRef.current.points(pts);
+        shapeRef.current.x(0);
+        shapeRef.current.y(0);
+      }
+    };
+    console.log("NaN case", shape.points, offset, scale)
+    cb();
+  }, [shape, shapeRef, offset, scale]);
 
   return (
     <>
@@ -96,46 +82,64 @@ const Polygon = ({
         ref={shapeRef}
         {...shape}
         draggable={Boolean(isSelected)}
+        onMouseDown={(e) => isSelected && (e.cancelBubble = true)}
+        onMouseUp={(e) => isSelected && (e.cancelBubble = true)}
         onDragMove={(e) => {
-          if (isSelected) e.cancelBubble = true;
+          if (isSelected){
+            e.cancelBubble = true;
+            const xDrag = e.currentTarget.x();
+            const yDrag = e.currentTarget.y();
+            const res = []
+            for(let i = 0; i< points.length; i+=2){
+              res.push([points[i]+xDrag, points[i+1]+yDrag])
+            }
+            setPolyPoints(res);
+          }
         }}
         onDragStart={(e) => {
           if (isSelected) e.cancelBubble = true;
         }}
         onDragEnd={e=>{
-          // console.log('ddfdfdfdfd',e.target.getAttrs())
-          e.cancelBubble = true
-          // e.evt.bubbles = false
-          const newPoints = e.currentTarget.position();
-          const sc = scale || 0
-          const modifiedPoints = points.map((p,i)=> i%2==0 ? p+(newPoints.x * sc): p+newPoints.y* sc);
-          console.log("MODS", modifiedPoints, newPoints, offset)
-          onChange({uuid: shape.uuid, points: shapeRef.current.points()})
+          if(isSelected){
+            e.cancelBubble = true
+            // e.evt.bubbles = false
+            const xDrag = e.currentTarget.x();
+            const yDrag = e.currentTarget.y();
+            const modifiedPoints = points.map((p,i)=> i%2==0 ? p+xDrag : p+yDrag);
+            onChange({uuid: shape.uuid, points: modifiedPoints})
+          }
         }}
         stroke={isSelected ? '#505050' : shape.stroke}
         {...rest}
         points={points}
+        x={0}
+        y={0}
       />
       {isSelected &&
         polyPoints.map((vertex, i) => {
           return (
             <Circle
               key={i}
-              radius={4}
-              stroke={'#3a3a3a'}
-              fill={`${shape.fill}3D`}
+              radius={6}
+              stroke={'#02CCFE'}
+              fill={`#f1f1f13D`}
               x={vertex[0]}
               y={vertex[1]}
-              strokeWidth={1}
+              strokeWidth={2}
               draggable={true}
               onMouseDown={(e) => (e.cancelBubble = true)}
               onMouseUp={(e) => (e.cancelBubble = true)}
-              onDragMove={(e) => {
-                console.log(e.evt.offsetX, e.evt.offsetY);
-                console.log(vertex);
+              onDragMove={(e)=>{
                 const newPoints = [...points];
                 newPoints[2 * i] = e.evt.offsetX;
                 newPoints[2 * i + 1] = e.evt.offsetY;
+                setPoints(newPoints);
+              }}
+              onDragEnd={(e) => {
+                const newPoints = [...points];
+                newPoints[2 * i] = e.evt.offsetX;
+                newPoints[2 * i + 1] = e.evt.offsetY;
+                // setPoints(newPoints);
                 onTransform({ ...shape, points: newPoints });
               }}
             />

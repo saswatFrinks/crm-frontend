@@ -67,8 +67,8 @@ export default function UploadImage() {
   const [imageStatus, setImageStatus] = useRecoilState(imageStatusAtom);
   const [polyDraw, setPolyDraw] = useState(false);
 
-  const roiIndex = configuration.rois.findIndex((v) => v.id == selectedRoiId);
-  const name = configuration.rois.filter((v) => v.id == selectedRoiId)[0]?.title;
+  const roiIndex = configuration?.rois?.findIndex((v) => v.id == selectedRoiId);
+  const name = configuration?.rois?.filter((v) => v.id == selectedRoiId)[0]?.title;
   const roiName =
     roiIndex >= 0
       // ? `ROI ${roiIndex}`

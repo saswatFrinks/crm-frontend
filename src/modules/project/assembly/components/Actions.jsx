@@ -218,6 +218,17 @@ export default function Actions({ cancel, submit }) {
     },
   ];
 
+  console.log("check here", isEditing, 
+    inspectionReq, 
+    currentPolyType == RECTANGLE_TYPE.ROI,
+      roiIndex >= 0 &&
+      !polygons.some(
+        (poly) => poly.roiId == configuration.rois[roiIndex].id
+      , 
+      currentPolyType
+    )
+  )
+
 
   return (
     <>

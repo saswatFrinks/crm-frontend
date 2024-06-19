@@ -49,6 +49,7 @@ import {
   uploadedFileListAtom,
   imageStatusAtom,
   selectedFileAtom,
+  inspectionReqAtom,
 } from '../state';
 import { useNavigate } from 'react-router-dom';
 import { cloneDeep } from 'lodash';
@@ -133,6 +134,9 @@ export default function Assembly() {
 
   const [prevStatus, setPrevStatus] = useRecoilState(prevStatusAtom);
 
+  const setInspectionReq = useSetRecoilState(inspectionReqAtom);
+
+
   const getProject = async () => {
     try {
       const { data } = await axiosInstance.get('/project', {
@@ -189,7 +193,7 @@ export default function Assembly() {
     annotationRects.forEach((rect) => {
       if (!labelsEdited[rect.imageId]) return;
       const classNo = annotationMap[rect.uuid];
-      if (rect?.x) {
+      if (!rect?.points) {
         const height = rect.height.toFixed(4);
         const width = rect.width.toFixed(4);
         const x = (rect.x + rect.width / 2).toFixed(4);
@@ -268,6 +272,20 @@ export default function Assembly() {
           ? `${e?.response?.data?.data?.message}. All fields are required`
           : 'Failed'
       );
+    }
+  };
+
+  const fetchProject = async () => {
+    try {
+      const res = await axiosInstance.get('/project', {
+        params: {
+          projectId: projectId,
+        },
+      })
+      console.log(res.data, 'project result')
+      setInspectionReq(res?.data?.data?.inspectionType)
+    } catch (error) {
+      toast.error(error?.response?.data?.data?.message || 'Cannot fetch project details');
     }
   };
 
@@ -395,7 +413,7 @@ export default function Assembly() {
     setPolygonType(RECTANGLE_TYPE.ROI);
   };
 
-  console.log({ configuration }, { rectangles }, { polygons });
+  // console.log({ configuration }, { rectangles }, { polygons });
 
   const stepObj = {
     0: <UploadImageStep />,
@@ -560,11 +578,13 @@ export default function Assembly() {
     }
   };
 
+
   useEffect(() => {
     setLabelsEdited({});
     setLabelId(null);
     getProject();
     setIsEditing(false);
+    fetchProject()
 
     return () => {
       uploadedFileList.forEach((value) => {
@@ -606,13 +626,13 @@ export default function Assembly() {
       console.log({ rois });
       rois.forEach((roiRect) => {
         if (roi.id == roiRect.roiId) {
-          if (roiRect?.x) {
+          if (roiRect?.points) {
+            if(roiRect.points.length) points.push(...roiRect.points);
+          } else {
             points.push(parseFloat(roiRect.x.toFixed(4)));
             points.push(parseFloat(roiRect.y.toFixed(4)));
             points.push(parseFloat((roiRect.x + roiRect.width).toFixed(4)));
             points.push(parseFloat((roiRect.y + roiRect.height).toFixed(4)));
-          } else {
-            if(roiRect.points.length) points.push(...roiRect.points);
           }
         }
       });

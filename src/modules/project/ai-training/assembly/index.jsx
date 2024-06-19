@@ -21,6 +21,7 @@ import axiosInstance from '@/core/request/aixosinstance';
 import toast, { Toaster } from 'react-hot-toast';
 import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader';
 import RadialProgressBar from '../../assembly/components/RadialProgressBar';
+import Tooltip from '../../assembly/components/Tooltip';
 
 export const augmentationsMap = {
   HorizontalFlip: 'Horizontal Flip',
@@ -45,16 +46,37 @@ export const augmentationsMap = {
 // }
 
 const trainingStatus = {
-  TRAINING: [5],
-  PRETRAINING: [1, 2, , 3, 4],
-  ERROR: [8, 9],
-  QUEUED: [0],
-};
+  'TRAINING': [5],
+  'PRETRAINING': [1,2,,3,4],
+  'ERROR': [8,9, 28, 29],
+  'QUEUED': [0]
+}
 
 const ERRORS = {
   8: 'Error During Training',
   9: 'Server Disconnected',
-};
+  28: 'Error During Evaluation',
+  29: 'Server Disconnected'
+}
+
+const validationCompleteStatus = 27;
+
+const actionDescriptions = [
+  "Training queued. The training process will start soon.",
+  "Initiating.",
+  "Initiating.",
+  "Downloading resources",
+  "Training started",
+  "Training the model",
+  "Uploading model files",
+  "Training process is complete",
+  "Error while training the model",
+  "Failed to fetch training status. Trying to reconnect"
+]
+
+actionDescriptions[validationCompleteStatus] = "Training and Evaluation Completed. Your AI model is ready";
+actionDescriptions[validationCompleteStatus + 1] ="Failed to evaluate the AI model"
+const validationMessage = "Validating the AI model"
 
 export default function AIAssembly() {
   const params = useParams();
@@ -284,6 +306,11 @@ export default function AIAssembly() {
             <tbody>
               {modelsList?.length > 0 &&
                 modelsList?.map((model) => {
+                  const action = trainingStatus.QUEUED.includes(model.status) ? 0 : 
+                    trainingStatus.PRETRAINING.includes(model.status) ? 1 :
+                    trainingStatus.TRAINING.includes(model.status) ? 2 :
+                    trainingStatus.ERROR.includes(model.status) ? 3:
+                    model.status == validationCompleteStatus ? 5: 4
                   return (
                     <tr
                       className="border-b odd:bg-white even:bg-[#C6C4FF]/10"
@@ -291,16 +318,20 @@ export default function AIAssembly() {
                     >
                       <th
                         scope="row"
-                        className="whitespace-nowrap px-6 py-4 text-left font-medium text-gray-900 hover:underline "
+                        className={`whitespace-nowrap px-6 py-4 text-left font-medium text-gray-900 ${model.status == validationCompleteStatus ? 'underline' : ''}`}
                       >
-                        <Link
-                          to={`${model.id}#detail`}
-                          // onClick={() => {
-                          //   setModelId(model.id);
-                          // }}
-                        >
-                          {model.name}
-                        </Link>
+                        {model.status == validationCompleteStatus ?
+                          <Link
+                            to={`${model.id}#detail`}
+                            // onClick={() => {
+                            //   setModelId(model.id);
+                            // }}
+                          >
+                            {model.name}
+                          </Link>
+                          :
+                          model.name
+                        }
                       </th>
                       <td className="px-6 py-4 text-center">
                         {new Date(Number(model.createdAt)).toLocaleString()}
@@ -309,38 +340,22 @@ export default function AIAssembly() {
                         {model.totalImages} image
                         {model.totalImages != 1 && 's'}
                       </td>
-                      <td className="px-6 py-3 text-center">
-                        {trainingStatus.QUEUED.includes(model.status) ? (
-                          'Training Queued'
-                        ) : trainingStatus.PRETRAINING.includes(
-                            model.status
-                          ) ? (
-                          <RadialProgressBar
-                            value={0}
-                            max={10}
-                            size={45}
-                            strokeWidth={4}
-                          />
-                        ) : trainingStatus.TRAINING.includes(model.status) ? (
-                          <RadialProgressBar
-                            value={model.info?.value || 0}
-                            max={model.info?.max || 10}
-                            size={45}
-                            strokeWidth={4}
-                          />
-                        ) : trainingStatus.ERROR.includes(model.status) ? (
-                          <span className="text-red-400">
-                            {ERRORS[model.status]}
-                          </span>
-                        ) : (
-                          <RadialProgressBar
-                            value={10}
-                            max={10}
-                            size={45}
-                            strokeWidth={4}
-                            showMax
-                          />
-                        )}
+                      <td
+                        className='px-6 py-3 text-center'
+                      >
+                        <Tooltip text={
+                          actionDescriptions[model.status] || validationMessage
+                        }>
+                          {
+                            action == 0 ? 'Training Queued' : 
+                            action == 1 ?
+                              <RadialProgressBar value={0} max={10} size={45} strokeWidth={4}/> :
+                            action == 2?
+                              <RadialProgressBar value={model.info?.value || 0} max={model.info?.max || 10} size={45} strokeWidth={4}/> :
+                            action == 3? <span className='text-red-400'>{ERRORS[model.status]}</span> :
+                              <RadialProgressBar value={10} max={10} size={45} strokeWidth={4} showMax/>
+                          }
+                        </Tooltip>
                       </td>
                       {/* <td
                         className={`px-6 py-4 ${trainingStatus[model.status]?.color || 'text-green-500'}`}

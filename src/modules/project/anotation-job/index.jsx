@@ -151,24 +151,23 @@ export default function AnnotationJob() {
       });
       // const color = getRandomHexColor();
       const colors = [];
-      setLabelClass(
-        classes.data.data.map((cls) => {
-          // const findColor = rectangleColor.all.find(
-          //   (obj) => obj.name === key
-          // )?.color;
-          // console.log({ findColor });
-          // const color = findColor ? findColor : getUniqueHexColor(colors);
-          const color = getUniqueHexColor(colors);
-          console.log({ cls });
-          colors.push({
-            ...cls,
-            color: color,
-          });
-          return { ...cls, color: color };
-        })
-      );
+      const labelClassArr = classes.data.data.map((cls) => {
+        // const findColor = rectangleColor.all.find(
+        //   (obj) => obj.name === key
+        // )?.color;
+        // console.log({ findColor });
+        // const color = findColor ? findColor : getUniqueHexColor(colors);
+        const color = getUniqueHexColor(colors);
+        console.log({ cls });
+        colors.push({
+          ...cls,
+          color: color,
+        });
+        return { ...cls, color: color };
+      });
+      console.log({colors})
       
-      getRois();
+      getRois(labelClassArr);
       // setRectangleColor((prev) => ({
       //   ...prev,
       //   all: prev.all.length === colors.length ? [...prev.all] : colors,
@@ -177,6 +176,7 @@ export default function AnnotationJob() {
         setRectangleColor((prev) => ({ ...prev, all: colors }));
     } catch (error) {}
   };
+  console.log('lael CLaseef', labelClass)
 
   const cancel = () => {
     setImageStatus((prev) => ({
@@ -285,7 +285,7 @@ export default function AnnotationJob() {
       // console.log(annotationMap, rect.uuid);
       // if (!imageIds.includes(rect.imageId)) imageIds.push(rect.imageId);
       const classNo = annotationMap[rect.uuid];
-      if (rect?.x) {
+      if (!rect?.points) {
         const height = rect.height.toFixed(4);
         const width = rect.width.toFixed(4);
         const x = (rect.x + rect.width / 2).toFixed(4);
@@ -364,7 +364,7 @@ export default function AnnotationJob() {
     labelRef.current = labelClass;
   }, [labelClass]);
 
-  const getRois = async () => {
+  const getRois = async (labelClassArr) => {
     try {
       const roiData = await axiosInstance.get('/configuration/classes', {
         params: {
@@ -422,8 +422,9 @@ export default function AnnotationJob() {
           classesSet.add(conf.parts.classId);
         });
         if(primaryClassObj?.id)classesSet.add(primaryClassObj?.id)
-        setLabelClass((prev) =>
-          prev.filter((cls) => {
+        console.log({classesSet, labelClassArr})
+        setLabelClass(
+          labelClassArr.filter((cls) => {
             return classesSet.has(cls.id);
           })
         );
@@ -669,6 +670,8 @@ export default function AnnotationJob() {
       setPolyDraw(false);
     }
   }, [imageStatus.drawMode]);
+
+  console.log({labelClass})
 
   const renderAnnotationHeading = () => {
     if(type === ASSEMBLY_CONFIG.MOVING){
