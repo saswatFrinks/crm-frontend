@@ -48,7 +48,7 @@ export default function DataSet() {
   };
   
   const goToConfig = () => {
-    navigate(`/configuration/${params.projectId}`)
+    navigate(`/configuration/${params.projectId}`, { state: location.state })
   }
 
   React.useEffect(() => {
