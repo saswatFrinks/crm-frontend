@@ -245,7 +245,7 @@ const IndividualInstance = () => {
       {loader ? (
         <ProjectCreateLoader title="Fetching Instance Details" />
       ) : (
-        <div className="flex flex-col min-h-[calc(100vh-56px)]">
+        <div className="flex flex-col">
           <div className="flex-1 overflow-y-auto px-10 py-8">
             <table className="w-[80%] w-full text-left text-sm text-gray-500 rtl:text-right">
               <thead className="bg-white text-sm text-gray-700 ">
