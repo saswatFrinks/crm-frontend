@@ -267,12 +267,13 @@ const IndividualInstance = () => {
                           data={modelData[(index - 1) / 2]}
                           classColors={classColors}
                           selectedModels={selectedModels}
+                          key={index}
                         />
                       )
                     );
                   }
                   return (
-                    <tr className="border-b bg-white">
+                    <tr className="border-b bg-white" key={index}>
                       <td className="px-6 py-4">{data.variantName}</td>
                       <td className="px-6 py-4 text-center">
                         {data.cameraPositionName}
@@ -328,6 +329,7 @@ const IndividualInstance = () => {
                             data={modelData[(index - 1) / 2]}
                             classColors={classColors}
                             selectedModels={selectedPrimaryModels}
+                            isPrimary = {true}
                           />
                         )
                       );
