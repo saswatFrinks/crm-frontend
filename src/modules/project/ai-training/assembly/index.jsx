@@ -264,6 +264,7 @@ export default function AIAssembly() {
       setLoading(false);
       fetchModelsList();
       closeDrawer();
+      setBypass(false);
     } catch (error) {
       console.error('Got error:', error);
       fetchModelsList();
@@ -394,9 +395,10 @@ export default function AIAssembly() {
                     <input
                       type="checkbox"
                       className="peer sr-only"
-                      onClick={(e) => {
-                        setBypass(prev => !prev);
+                      onChange={(e) => {
+                        setBypass(e.target.checked);
                       }}
+                      value={bypass}
                     />
                     <div className="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"></div>
                     <span className="ms-3 text-md font-medium text-gray-900 ">

@@ -34,6 +34,7 @@ import {
   uploadedFileListAtom,
   currentPolygonIdAtom,
   imageStatusAtom,
+  inspectionReqAtom,
 } from '../state';
 import { compareArrays, getRandomHexColor } from '@/util/util';
 import {
@@ -94,6 +95,8 @@ export default function AnnotationJob() {
   const [initialLabels, setInitialLabels] = useRecoilState(initialLabelsAtom);
   const [primaryClass, setPrimaryClass] = useState(null);
 
+  const setInspectionReq = useSetRecoilState(inspectionReqAtom);
+
   const getImageUrl = (id) => {
     return `${import.meta.env.VITE_BASE_API_URL}/dataset/image?imageId=${id}`;
   };
@@ -107,6 +110,7 @@ export default function AnnotationJob() {
         },
       });
       !data.data.isItemFixed && setType(ASSEMBLY_CONFIG.MOVING);
+      setInspectionReq(data?.data?.inspectionType)
     } catch (error) {
       console.log(error);
     }
@@ -186,6 +190,8 @@ export default function AnnotationJob() {
     setIsEditing(false);
     setLabelId(null);
     setLastAction(ACTION_NAMES.CANCEL);
+    setSelectedPolyId(null);
+    setSelectedRectId(null);
   };
 
   const submit = () => {
@@ -196,6 +202,8 @@ export default function AnnotationJob() {
     setIsEditing(false);
     setLabelId(null);
     setLastAction(ACTION_NAMES.SUBMIT);
+    setSelectedPolyId(null);
+    setSelectedRectId(null);
   };
 
   // const preUpdate = () => {
