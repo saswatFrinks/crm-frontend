@@ -711,7 +711,7 @@ const KonvaImageView = ({
                     onPolyUpdate(polyCp);
                   }}
                   onClick={(e) => {
-                    if (poly.uuid == selectedRectId) e.cancelBubble = true;
+                    if (poly.uuid == selectedPolyId) e.cancelBubble = true;
                   }}
                 />
               );
