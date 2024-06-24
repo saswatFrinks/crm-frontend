@@ -2,6 +2,7 @@ import { Line } from 'react-konva';
 
 function Crosshair({ x, y, width, height, offset }) {
   const actualOffset = offset || {x: 0, y: 0}
+  console.log({x, y, actualOffset})
   return (
     <>
       {/* Horizontal Line */}

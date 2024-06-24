@@ -14,7 +14,7 @@ import {
 import React, { useEffect, useRef, useState } from 'react';
 import KonvaImageView from '../assembly/components/KonvaImageView';
 import axiosInstance from '@/core/request/aixosinstance';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import useImage from 'use-image';
 import {
   annotationCacheAtom,
@@ -70,6 +70,7 @@ export default function AnnotationJob() {
   const labelRef = React.useRef(labelClass);
   const [rois, setRois] = React.useState([]);
   const nav = useNavigate();
+  const location = useLocation();
   const [annotationClasses, setAnnotationClasses] = useRecoilState(
     annotationClassesAtom
   );
@@ -247,7 +248,7 @@ export default function AnnotationJob() {
       !compareArrays(imageSpecificRects, initialLabels[selectedImage.id])
     ) {
       setModalOpen(false);
-      nav('..', { relative: 'route' });
+      nav('..', { relative: 'route', state: location.state });
     } else {
       setModalOpen(true);
     }
@@ -626,7 +627,7 @@ export default function AnnotationJob() {
   const udpateAndExit = async () => {
     await updateAnnotation();
     setModalOpen(false);
-    nav('..', { relative: 'route' });
+    nav('..', { relative: 'route', state: location.state  });
   };
 
   React.useEffect(() => {
@@ -720,7 +721,7 @@ export default function AnnotationJob() {
                 fullWidth={false}
                 onClick={() => {
                   setModalOpen(false);
-                  nav('..', { relative: 'route' });
+                  nav('..', { relative: 'route', state: location.state });
                 }}
               >
                 Discard and exit
@@ -730,22 +731,23 @@ export default function AnnotationJob() {
         </Modal>
       )}
       <div className="grid h-screen grid-cols-12">
-        <div className="col-span-3 grid grid-rows-12 border-r-[1px] border-black">
-          <div className="row-span-11  flex flex-col bg-white">
+        <div className="col-span-3 grid grid-rows-12 border-r-[1px] border-black" style={{height: '100vh', overflow: 'hidden'}}>
+          <div className="row-span-11 relative flex flex-col bg-white">
             <h1 className=" border-b-[1px] px-6 pb-6 pt-6 text-3xl font-bold">
               Annotation Job
             </h1>
-            {renderAnnotationHeading()}
-            <div className="flex grow flex-col gap-4 p-4">
-              <AnnotationClass labelClass={labelClass.filter(lc => lc.id !== primaryClass?.id)} />
-              <AnnotationLabels
-                labelClass={labelClass.filter(lc => lc.id !== primaryClass?.id)}
-                selectedImageId={selectedImage?.id}
-              />
+            <div className="flex flex-col h-full mb-[90px] overflow-y-auto">
+              {renderAnnotationHeading()}
+              <div className="flex grow flex-col  gap-4 p-4">
+                <AnnotationClass labelClass={labelClass.filter(lc => lc.id !== primaryClass?.id)} />
+                <AnnotationLabels
+                  labelClass={labelClass.filter(lc => lc.id !== primaryClass?.id)}
+                  selectedImageId={selectedImage?.id}
+                />
+              </div>
             </div>
             <div
-              className="border-t-[1px] border-black  py-2"
-              style={{ position: 'sticky' }}
+              className="border-t-[1px] absolute w-full bg-white border-black bottom-0 py-2"
             >
               <p className="text-center">
                 {annotatedCount}/{images.length} Images Annotated

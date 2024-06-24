@@ -94,8 +94,8 @@ export default function Actions({ cancel, submit }) {
   };
 
   const handleDrawBox = () => {
-    console.log('drawModebox', imageStatus.drawMode);
-    if (!isEditing || imageStatus.drawMode === true || prevStatus === 'finish' || (inspectionReq === 2 && step !== 1))
+    console.log('drawModebox', imageStatus.drawMode, !isEditing ,imageStatus.drawMode === true , prevStatus === 'finish', (inspectionReq === 2 && step !== 1));
+    if (!isEditing || imageStatus.drawMode === true || (step === 1 && prevStatus === 'finish') || (inspectionReq === 2 && step !== 1))
       return;
 
     let ret = false;
@@ -204,7 +204,7 @@ export default function Actions({ cancel, submit }) {
       active:
         (inspectionReq === 0 || inspectionReq === 1 || step == 1) &&
         imageStatus.draw &&
-        prevStatus === 'default',
+        (prevStatus === 'default' && step == 1),
       canAction:
         isEditing &&
         (inspectionReq === 0 || inspectionReq === 1 || step == 1) &&
