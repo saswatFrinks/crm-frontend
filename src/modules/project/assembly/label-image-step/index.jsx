@@ -30,6 +30,7 @@ import {
   selectedRoiSelector,
   uploadedFileListAtom,
   currentPolygonIdAtom,
+  imageStatusAtom,
   // rectangleColorAtom
 } from '../../state';
 import { ACTION_NAMES, ASSEMBLY_CONFIG, BASE_RECT, RECTANGLE_TYPE, STATUS } from '@/core/constants';
@@ -79,7 +80,9 @@ export default function LabelImage({ type, save }) {
   const setPolygonType = useSetRecoilState(polygonsTypeAtom);
 
   const selectedImage = useRecoilValue(selectedFileAtom);
-  const classOptions = useRecoilValue(classOptionsAtom)
+  const classOptions = useRecoilValue(classOptionsAtom);
+
+  const setImageStatus = useSetRecoilState(imageStatusAtom);
 
   // const setIsEditing = useSetRecoilState(editingAtom);
   const [isEditing, setIsEditing] = useRecoilState(editingAtom);
@@ -151,7 +154,7 @@ export default function LabelImage({ type, save }) {
   const params = useParams();
   const labelsRef = React.useRef(labelClasses);
   const [labelEdited, setLabelsEdited] = useRecoilState(labelEditedAtom);
-  const actionName = useRecoilValue(lastActionNameAtom);
+  const [actionName, setActionName] = useRecoilState(lastActionNameAtom);
   const step = useRecoilValue(stepAtom);
 
   const selectedLabelRef = React.useRef(selectedLabel);
@@ -168,6 +171,12 @@ export default function LabelImage({ type, save }) {
     delete temp[uuid];
     setAnnotationMap(temp);
     setLabelsEdited((prev) => ({ ...prev, [imageId]: true }));
+    setImageStatus(prev => ({
+      ...prev,
+      drawMode: false
+    }));
+    setIsEditing(false);
+    setActionName(null);
   };
 
   console.log({labelEdited})
@@ -484,7 +493,7 @@ export default function LabelImage({ type, save }) {
       <p className='font-medium'>Click the Primary Object Class below to label it in the image</p>
       <div
         key={primaryClass?.name}
-        className={`bg-[${primaryClass?.color}] w-min flex items-center gap-1 cursor-pointer rounded-md px-3 py-1.5`}
+        className={`bg-[${primaryClass?.color}] w-min flex items-center text-nowrap gap-1 cursor-pointer rounded-md px-3 py-1.5`}
         style={{ backgroundColor: primaryClass?.color }}
         onClick={(e) => {
           handleClassClick(e, primaryIdx, primaryClass?.color);

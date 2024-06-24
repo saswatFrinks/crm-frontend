@@ -24,4 +24,15 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
 
+.animate-rotate {
+  animation: rotate 2s linear infinite;
+}

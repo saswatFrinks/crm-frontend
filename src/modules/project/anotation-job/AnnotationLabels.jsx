@@ -9,7 +9,9 @@ import {
   currentLabelIdAtom,
   currentRectangleIdAtom,
   editingAtom,
+  imageStatusAtom,
   labelEditedAtom,
+  lastActionNameAtom,
   rectanglesAtom,
   selectedFileAtom,
   uploadedFileListAtom,
@@ -29,6 +31,8 @@ export default function AnnotationLabels({ labelClass, isPrimary }) {
 
   const [isEditing, setIsEditing] = useRecoilState(editingAtom);
   const [labelId, setLabelId] = useRecoilState(currentLabelIdAtom);
+  const setImageStatus = useSetRecoilState(imageStatusAtom);
+  const setActionName = useSetRecoilState(lastActionNameAtom);
 
   // const [initialLabels, setInitialLabels] = useRecoilState(initialLabelsAtom);
   // console.log("annotatio1n",{initialLabels})
@@ -71,6 +75,12 @@ export default function AnnotationLabels({ labelClass, isPrimary }) {
         polygons: prev[selectedImageId]?.polygons?.filter((e) => e.uuid !== uuid),
       },
     }));
+    setImageStatus(prev => ({
+      ...prev,
+      drawMode: false
+    }));
+    setIsEditing(false);
+    setActionName(null);
   };
 
   const selectClass = (id) => {};

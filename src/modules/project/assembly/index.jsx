@@ -13,7 +13,6 @@ import {
   STATUS,
 } from '@/core/constants';
 import Steps from './components/Steps';
-import UploadImageStep from './upload-image-step';
 import InspectionParameterStep from './inspection-parameter-step';
 import LabelImage from './label-image-step';
 import PreTrainingStep from './pre-training-step';
@@ -56,6 +55,7 @@ import { cloneDeep } from 'lodash';
 import toast from 'react-hot-toast';
 import { compareArrays, getRandomHexColor } from '@/util/util';
 import { v4 } from 'uuid';
+import UploadImagesStep from './upload-image-step/index';
 
 export default function Assembly() {
   const [isEditing, setIsEditing] = useRecoilState(editingAtom);
@@ -130,12 +130,12 @@ export default function Assembly() {
   const [labelId, setLabelId] = useRecoilState(currentLabelIdAtom);
   const [initialRectangles, setInitialRectnagles] = useState([]);
 
-  const [rectangleColor, setRectangleColor] = useRecoilState(rectangleColorAtom);
+  const [rectangleColor, setRectangleColor] =
+    useRecoilState(rectangleColorAtom);
 
   const [prevStatus, setPrevStatus] = useRecoilState(prevStatusAtom);
 
   const setInspectionReq = useSetRecoilState(inspectionReqAtom);
-
 
   const getProject = async () => {
     try {
@@ -210,21 +210,21 @@ export default function Assembly() {
             point = Number(point).toFixed(4);
             imgMap[rect.imageId] += ` ${point}`;
           });
-          imgMap[rect.imageId] += "\n";
-          console.log("old", imgMap[rect.imageId])
+          imgMap[rect.imageId] += '\n';
+          console.log('old', imgMap[rect.imageId]);
         } else {
           imgMap[rect.imageId] = `${classNo}`;
           rect.points.map((point) => {
-            console.log("point11", point)
+            console.log('point11', point);
             point = Number(point).toFixed(4);
             imgMap[rect.imageId] += ` ${point}`;
           });
-          imgMap[rect.imageId] += "\n";
+          imgMap[rect.imageId] += '\n';
         }
       }
     });
 
-    console.log({ imgMap }, {labelsEdited});
+    console.log({ imgMap }, { labelsEdited });
     const formData = new FormData();
     const imageIds = [];
     // console.log({images}) // conatins the 10 uploaded images
@@ -281,11 +281,13 @@ export default function Assembly() {
         params: {
           projectId: projectId,
         },
-      })
-      console.log(res.data, 'project result')
-      setInspectionReq(res?.data?.data?.inspectionType)
+      });
+      console.log(res.data, 'project result');
+      setInspectionReq(res?.data?.data?.inspectionType);
     } catch (error) {
-      toast.error(error?.response?.data?.data?.message || 'Cannot fetch project details');
+      toast.error(
+        error?.response?.data?.data?.message || 'Cannot fetch project details'
+      );
     }
   };
 
@@ -416,7 +418,7 @@ export default function Assembly() {
   // console.log({ configuration }, { rectangles }, { polygons });
 
   const stepObj = {
-    0: <UploadImageStep />,
+    0: <UploadImagesStep />,
     1: <InspectionParameterStep type={type} nextRef={nextRef} />,
     2: <LabelImage type={type} save={updateAnnotation} />,
     3: <PreTrainingStep />,
@@ -511,9 +513,9 @@ export default function Assembly() {
                 polyType: RECTANGLE_TYPE.ROI,
                 roiId: i,
                 title: conf.rois.name,
-                points: points, 
+                points: points,
                 uuid,
-                closed: true
+                closed: true,
               });
             }
           }
@@ -557,7 +559,7 @@ export default function Assembly() {
           ...t,
           rois: Object.values(roiMap),
           primaryObject: roiData?.data?.data?.primaryClass?.name,
-          primaryObjectClass: roiData?.data?.data?.primaryClass?.id
+          primaryObjectClass: roiData?.data?.data?.primaryClass?.id,
           // rois: sortedRois
         }));
         setRectangles((prev) => [...prev, ...rects]);
@@ -578,13 +580,12 @@ export default function Assembly() {
     }
   };
 
-
   useEffect(() => {
     setLabelsEdited({});
     setLabelId(null);
     getProject();
     setIsEditing(false);
-    fetchProject()
+    fetchProject();
 
     return () => {
       uploadedFileList.forEach((value) => {
@@ -594,7 +595,7 @@ export default function Assembly() {
       setRectangleColor({
         all: [],
         selectedColor: getRandomHexColor(),
-      })
+      });
     };
   }, []);
 
@@ -627,7 +628,7 @@ export default function Assembly() {
       rois.forEach((roiRect) => {
         if (roi.id == roiRect.roiId) {
           if (roiRect?.points) {
-            if(roiRect.points.length) points.push(...roiRect.points);
+            if (roiRect.points.length) points.push(...roiRect.points);
           } else {
             points.push(parseFloat(roiRect.x.toFixed(4)));
             points.push(parseFloat(roiRect.y.toFixed(4)));
@@ -651,11 +652,11 @@ export default function Assembly() {
     // }
     delete temp.primaryObject;
     delete temp.primaryObjectClass;
-    if(type === ASSEMBLY_CONFIG.MOVING){
+    if (type === ASSEMBLY_CONFIG.MOVING) {
       temp.primaryClass = {
         id: configuration.primaryObjectClass,
-        name: configuration.primaryObject
-      }
+        name: configuration.primaryObject,
+      };
     }
     const formData = new FormData();
     // await Promise.all(images.map(async(img, index)=>{
@@ -682,17 +683,14 @@ export default function Assembly() {
     //   ])
     // );
     try {
-      const data = await axiosInstance.post(
-        '/configuration/assembly',
-        temp
-      );
+      const data = await axiosInstance.post('/configuration/assembly', temp);
       toast.success('ROIs uploaded');
       return data.data?.success;
     } catch (e) {
       toast.error(
         e?.response?.data?.data?.message
-          ?  // ? `${e?.response?.data?.data?.message}. All fields are required`
-             'All ROIs label are required!'
+          ? // ? `${e?.response?.data?.data?.message}. All fields are required`
+            'All ROIs label are required!'
           : 'Failed'
       );
     }
@@ -750,25 +748,24 @@ export default function Assembly() {
                   Back
                 </Button>
               )}
-              {canGoNext && (
-                <Button
-                  size="xs"
-                  onClick={() => {
-                    if (step == 2) {
-                      isAllImagesLabeled && handleNext();
-                    } else {
-                      handleNext();
-                    }
-                  }}
-                  className={
-                    !isAllImagesLabeled && step == 2
-                      ? 'cursor-not-allowed bg-slate-400 hover:bg-slate-400'
-                      : ''
+              <Button
+                size="xs"
+                onClick={() => {
+                  if (step == 2) {
+                    isAllImagesLabeled && handleNext();
+                  } else {
+                    handleNext();
                   }
-                >
-                  {step == 3 ? 'Finish' : 'Next'}
-                </Button>
-              )}
+                }}
+                disabled={!canGoNext}
+                className={
+                  !isAllImagesLabeled && step == 2
+                    ? 'cursor-not-allowed bg-slate-400 hover:bg-slate-400'
+                    : ''
+                }
+              >
+                {step == 3 ? 'Finish' : 'Next'}
+              </Button>
             </div>
           </div>
         </div>

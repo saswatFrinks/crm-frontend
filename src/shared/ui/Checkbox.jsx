@@ -4,7 +4,7 @@ import { FaCheck } from 'react-icons/fa';
 export default function Checkbox(props) {
   const { checked = true, htmlFor, onChange, ...rest } = props;
   const checkbox = tv({
-    base: 'border rounded-md w-6 flex items-center justify-center h-6',
+    base: 'border border-f-light-gray shadow shadow-f-dark-gray rounded-md w-6 flex items-center justify-center h-6 cursor-pointer',
     variants: {
       checked: {
         true: 'bg-f-primary',

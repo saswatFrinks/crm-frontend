@@ -1,85 +1,149 @@
-import React, { useEffect, useState } from 'react';
-import { useRecoilState, useSetRecoilState } from 'recoil';
-import { selectedFileAtom, uploadedFileListAtom } from '../../state';
-import X from '@/shared/icons/X';
-import Upload from '@/shared/icons/Upload';
-import { v4 as uuidv4 } from 'uuid';
-import toast, { Toaster } from 'react-hot-toast';
 import axiosInstance from '@/core/request/aixosinstance';
-import { useParams } from 'react-router-dom';
-import { imageTypes } from '@/core/constants';
+import FileIcon from '@/shared/icons/FileIcon';
 import Info from '@/shared/icons/Info';
+import SpinLoader from '@/shared/icons/SpinLoader';
+import Trash from '@/shared/icons/Trash';
+import Upload from '@/shared/icons/Upload';
+import React, { useEffect, useState } from 'react';
+import toast, { Toaster } from 'react-hot-toast';
+import { useParams } from 'react-router-dom';
+import { useSetRecoilState } from 'recoil';
+import { selectedFileAtom, uploadedFileListAtom } from '../../state';
 
-export default function UploadImageStep() {
-  const [images, setImages] = useRecoilState(uploadedFileListAtom);
+const UploadImagesStep = () => {
   const configurationId = useParams().configurationId;
 
-  const [hover, setHover] = useState('');
-
-  const imagesWithTypes = {
-    master: Array.from({ length: 1 }, () => ({ image: null })),
-    good: Array.from({ length: 4 }, () => ({ image: null })),
-    bad: Array.from({ length: 5 }, () => ({ image: null })),
-  };
-  const [imageLoader, setImageLoader] = React.useState(
-    Array.from({ length: 10 }, () => false)
-  );
-  const [imageRemoveLoader, setImageRemoveLoader] = useState(
-    Array.from({ length: 10 }, () => false)
-  );
-
-  const [selectedFiles, setSelectedFiles] = React.useState(
-    Array.from({ length: 10 }, () => null)
-  );
+  const [hover, setHover] = useState(-1);
+  const [uploadLoader, setUploadLoader] = useState(new Map());
+  const [images, setImages] = useState(new Map());
+  const [deleteLoaders, setDeleteLoaders] = useState(new Map());
 
   const setSelectedFile = useSetRecoilState(selectedFileAtom);
+  const setAllImages = useSetRecoilState(uploadedFileListAtom);
 
-  const fetchAllImages = async () => {
-    const response = await axiosInstance.get('/configurationImage/images', {
-      params: {
-        configurationId,
-      },
-    });
+  const imageTypes = [
+    {
+      heading: 'One Master Image:',
+      numberOfImages: 1,
+      indices: [0],
+      info: null,
+    },
+    {
+      heading: 'Four Good Images:',
+      numberOfImages: 4,
+      indices: [1, 2, 3, 4],
+      info: 'A good image is an image containing ALL the classes/objects needed for inspection',
+    },
+    {
+      heading: 'Five Bad Images:',
+      numberOfImages: 5,
+      indices: [5, 6, 7, 8, 9],
+      info: 'A bad image is an image containing NONE of the class/objects needed for inspection',
+    },
+  ];
 
-    const imagesResponse = response.data.data;
-    console.log('images:', images, imagesResponse);
-    const tempImages = Array.from({ length: 10 }, () => null);
-    console.log('tempImages:', tempImages);
-    imagesResponse.map((img) => {
-      tempImages[img.index] = {
-        id: img.imageId,
-        fileName: `${img.imageId}.png`,
-        checked: false,
-        number: img.index,
-        url: `${import.meta.env.VITE_BASE_API_URL}/configurationImage/view?imageId=${img.imageId}`,
-      };
+  const setLoader = (idx, flag) => {
+    setUploadLoader((prev) => {
+      return new Map(prev).set(idx, flag);
     });
-    if (tempImages[0]) {
-      onChange(tempImages[0]);
-    }
-    console.log('images:', tempImages);
-    setImages([...tempImages]);
   };
 
-  useEffect(() => {
-    fetchAllImages();
-  }, []);
+  const validateImage = (fileList, index) => {
+    const files = Array.from(fileList);
+    if(imageTypes[index].indices.some(idx => images.has(idx))){
+      const allowedLength = imageTypes[index].numberOfImages - imageTypes[index].indices.filter(idx => images.has(idx)).length;
+      if(files.length > allowedLength){
+        toast.error(
+          `Please select only ${allowedLength} more PNG images`
+        );
+        return false;
+      }
+    }else if (files.length > imageTypes[index].numberOfImages) {
+      toast.error(
+        `Please select only ${imageTypes[index].numberOfImages} PNG image${index === 0 ? '' : 's'}`
+      );
+      return false;
+    }
+
+    const allFilesArePNG = files.every((file) => file.type === 'image/png');
+
+    if (!allFilesArePNG) {
+      toast.error('Please select only PNG images');
+      return false;
+    }
+
+    return true;
+  };
+
+  const findIdleIndex = (indices, included) => {
+    for (let i = 0; i < indices.length; i++) {
+      if (!images.has(indices[i]) && !included.includes(indices[i])) {
+        return indices[i];
+      }
+    }
+    return null;
+  };
+
+  const hasIdleSlot = (indices) => {
+    return indices.some((idx) => !images.has(idx));
+  };
+
+  const uploadImages = async (e, index) => {
+    try {
+      const canProceed = validateImage(e.target.files, index);
+      if (!canProceed) return;
+
+      const files = Array.from(e.target.files);
+      setLoader(index, true);
+      const included = [];
+      for (const file of files) {
+        const idleIndex = findIdleIndex(imageTypes[index].indices, included);
+        included.push(idleIndex);
+        if (idleIndex !== null) {
+          await uploadImage(file, idleIndex);
+        } else {
+          toast.error('No idle slots available for this image type');
+        }
+      }
+    } catch (error) {
+      toast.error(error?.message || error?.response?.data?.data?.message);
+    } finally {
+      setLoader(index, false);
+    }
+  };
+
+  const uploadImage = async (file, imgIndex) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('configurationId', configurationId);
+      formData.append('index', imgIndex);
+      await axiosInstance.post('/configuration/upload-base-image', formData);
+      await fetchAllImages();
+    } catch (error) {
+      console.log(error);
+      toast.error(error?.response?.data?.data?.message);
+    }
+  };
+
+  const setDeleteLoading = (index, flag) => {
+    setDeleteLoaders(prev => new Map(prev).set(index, flag));
+  };
+
+  const onChange = (file) => {
+    setSelectedFile(file);
+  };
 
   const removeImage = async (index) => {
     try {
-      if (imageLoader[index] || imageRemoveLoader[index]) return;
+      if (deleteLoaders.get(index) || !images.has(index)) return;
       const data = {
-        id: images[index].id,
+        id: images.get(index).id,
         configurationId,
       };
       setDeleteLoading(index, true);
       await axiosInstance.delete('/configuration/', {
         params: data,
-      });
-      setSelectedFiles((prevFiles) => {
-        const newFiles = [...prevFiles];
-        newFiles[index] = null;
-        return newFiles;
       });
       await fetchAllImages();
     } catch (error) {
@@ -90,81 +154,59 @@ export default function UploadImageStep() {
     }
   };
 
-  const onChange = (file) => {
-    setSelectedFile(file);
-  };
-
-  const getImageNumber = (index, typeIndex, type) => {
-    switch (type) {
-      case 'master':
-      case 'good':
-        return index + typeIndex;
-      case 'bad':
-        return 3 + index + typeIndex;
-      default:
-        return 0;
-    }
-  };
-
-  const setLoading = (index, flag) => {
-    setImageLoader((loaders) => {
-      const newLoaders = [...loaders];
-      newLoaders[index] = flag;
-      return newLoaders;
-    });
-  };
-
-  const setDeleteLoading = (index, flag) => {
-    setImageRemoveLoader((loaders) => {
-      const newLoaders = [...loaders];
-      newLoaders[index] = flag;
-      return newLoaders;
-    });
-  };
-
-  const handleChangeFile = (e, type, index, typeIndex) => {
-    const fileList = e.target.files;
-    const imageNum = getImageNumber(index, typeIndex, type);
-
-    const files = Array.from(fileList);
-    const allFilesArePNG = files.every((file) => file.type === 'image/png');
-
-    if (!allFilesArePNG) {
-      toast.error('Please select only PNG images');
-      return;
-    }
-
-    setSelectedFiles((prev) => {
-      const temp = [...prev];
-      temp[imageNum] = fileList[0];
-      console.log('selectedFiles:', temp);
-      return temp;
-    });
-  };
-
-  const uploadImage = async (type, index, typeIndex) => {
-    const imageNum = getImageNumber(index, typeIndex, type);
+  const fetchAllImages = async (setAllLoaders = false) => {
     try {
-      if (
-        !selectedFiles[imageNum] ||
-        imageLoader[imageNum] ||
-        imageRemoveLoader[imageNum]
-      )
-        return;
-      const formData = new FormData();
-      formData.append('file', selectedFiles[imageNum]);
-      formData.append('configurationId', configurationId);
-      formData.append('index', imageNum);
-      setLoading(imageNum, true);
-      await axiosInstance.post('/configuration/upload-base-image', formData);
-      await fetchAllImages();
-      setLoading(imageNum, false);
+      if(setAllLoaders){
+        Array.from({ length: 3 }, () => '').forEach((_, i) => {
+          setLoader(i, true);
+        });
+      }
+      const response = await axiosInstance.get('/configurationImage/images', {
+        params: {
+          configurationId,
+        },
+      });
+
+      const imagesResponse = response.data.data;
+      const tempImages = new Map();
+      imagesResponse.forEach((img) => {
+        tempImages.set(img.index, {
+          id: img.imageId,
+          fileName: `${img.imageId}.png`,
+          checked: false,
+          number: img.index,
+          url: `${import.meta.env.VITE_BASE_API_URL}/configurationImage/view?imageId=${img.imageId}`,
+        });
+      });
+      if(tempImages.has(0)){
+        onChange(tempImages.get(0));
+      }
+      setImages(tempImages);
     } catch (error) {
-      console.log(error);
-      toast.error(error?.response?.data?.data?.message);
-      setLoading(imageNum, false);
+      toast.error(error?.message || error?.response?.data?.data?.message);
+    } finally {
+      if(setAllLoaders){
+        Array.from({ length: 3 }, () => '').forEach((_, i) => {
+          setLoader(i, false);
+        });
+      }
     }
   };
+
+  useEffect(() => {
+    fetchAllImages(true);
+  }, []);
+
+  useEffect(() => {
+    const requiredIndices = Array.from({ length: 10 }, (_, i) => i);
+    const allImagesArray = Array.from({length: 10}, () => null);
+    requiredIndices.forEach(imgIdx => {
+      if(images.has(imgIdx)){
+        allImagesArray[imgIdx] = images.get(imgIdx);
+      }
+    })
+    setAllImages(allImagesArray);
+  }, [images]);
 
   return (
     <div>
@@ -175,114 +217,94 @@ export default function UploadImageStep() {
         bad images evaluating project complexity.{' '}
       </p>
 
-      <div className="mt-4 flex flex-col gap-4">
-        {imageTypes.map((image, index) => {
-          return (
-            <div className="my-1" key={index}>
-              {/* <div className="text-lg font-bold m-2">
-                {image.label}
-              </div> */}
-
-              <div className="relative flex items-center">
-                <div className="m-2 text-lg font-bold">{image.label}</div>
-                {(image.key === 'good' || image.key === 'bad') && (
-                  <div
-                    onMouseEnter={() => {
-                      setHover(image.key);
-                    }}
-                    onMouseLeave={() => setHover('')}
-                    className="relative my-2"
+      <div className="mt-4 mb-10 flex flex-col gap-4">
+        {imageTypes.map((image, index) => (
+          <div className="my-1 flex flex-col gap-1" key={index}>
+            <div className="relative flex items-center">
+              <div className="m-2 text-lg font-bold">{image.heading}</div>
+              {image.info && (
+                <div
+                  onMouseEnter={() => {
+                    setHover(index);
+                  }}
+                  onMouseLeave={() => setHover(-1)}
+                  className="relative my-2 cursor-pointer"
+                >
+                  <Info />
+                  {hover === index && (
+                    <span className="absolute bottom-full left-1/2 w-[280px] -translate-x-1/2 -translate-y-2 transform rounded-md bg-f-primary px-2 py-1 text-center text-sm text-white transition-opacity duration-300">
+                      {image.info}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+            {hasIdleSlot(image.indices) && (
+              <div className="mx-2 flex w-full flex-col items-center rounded-lg border-2 border-dashed border-indigo-600 bg-white py-5">
+                {uploadLoader.get(index) ? (
+                  <SpinLoader />
+                ) : (
+                  <label
+                    htmlFor={`fileInput-${index}`}
+                    className="flex cursor-pointer flex-col items-center"
                   >
-                    <Info />
-                    {image.key === 'good' && hover === 'good' && (
-                      <span className="absolute bottom-full left-1/2 mb-2 w-[280px] -translate-x-1/2 -translate-y-2 transform rounded-md bg-f-primary px-2 py-1 text-center text-sm text-white transition-opacity duration-300">
-                        A good image is an image containing ALL the classes/objects needed for inspection
+                    <Upload color="#000" size={'24'} />
+                    <p className="text-lg font-bold">
+                      Browse Images{' '}
+                      <span className="cursor-pointer font-bold text-indigo-600">
+                        <u>here</u>
                       </span>
-                    )}
-                    {image.key === 'bad' && hover === 'bad' && (
-                      <span className="absolute bottom-full left-1/2 mb-2 w-[280px] -translate-x-1/2 -translate-y-2 transform rounded-md bg-f-primary px-2 py-1 text-center text-sm text-white transition-opacity duration-300">
-                        A bad image is an image containing NONE of the class/objects needed for inspection
-                      </span>
-                    )}
-                  </div>
+                    </p>
+                    <div className="font-medium">PNG Images Only</div>
+                    <input
+                      id={`fileInput-${index}`}
+                      className="hidden"
+                      type="file"
+                      accept=".png"
+                      multiple
+                      onChange={(e) => uploadImages(e, index)}
+                    />
+                  </label>
                 )}
               </div>
-
-              {imagesWithTypes[image.key].map((img, i) => {
-                const imageNum = getImageNumber(index, i, image.key);
-                return (
-                  <div className="my-2 flex items-center gap-3" key={imageNum}>
-                    {images[imageNum] ? (
-                      <div className="flex items-center gap-4">
-                        {i + 1}.
-                        <a
-                          href={`${import.meta.env.VITE_BASE_API_URL}/configurationImage/view?imageId=${images[imageNum].id}`}
-                          target="_blank"
-                        >
-                          {images[imageNum]?.fileName}
-                        </a>
-                        {imageRemoveLoader[imageNum] ? (
-                          <div>Deleting...</div>
-                        ) : (
-                          <label
-                            onClick={() => {
-                              removeImage(imageNum);
-                            }}
-                          >
-                            <X />
-                          </label>
-                        )}
-                      </div>
-                    ) : (
-                      <div>
-                        <div className="flex items-center gap-3">
-                          {i + 1}.
-                          <label className="xs:px-1 inline-flex cursor-pointer items-center gap-2 rounded-full bg-f-primary py-2 text-white duration-100 hover:bg-f-secondary sm:px-5 lg:px-10">
-                            {selectedFiles[imageNum]?.name
-                              ? 'Change'
-                              : 'Choose'}{' '}
-                            Image
-                            <input
-                              type="file"
-                              disabled={imageLoader[imageNum]}
-                              accept=".png"
-                              hidden
-                              onChange={(e) => {
-                                handleChangeFile(e, image.key, index, i);
-                              }}
-                            />
-                          </label>
-                          {selectedFiles[imageNum] && (
-                            <label
-                              className="xs:px-1 inline-flex cursor-pointer items-center gap-2 rounded-full bg-f-primary py-2 text-white duration-100 hover:bg-f-secondary sm:px-5 lg:px-10"
-                              onClick={() => {
-                                uploadImage(image.key, index, i);
-                              }}
-                            >
-                              {imageLoader[imageNum] ? (
-                                <>Uploading...</>
-                              ) : (
-                                <>
-                                  <Upload /> Upload
-                                </>
-                              )}
-                            </label>
-                          )}
+            )}
+            <div className="mx-2 flex w-full flex-col gap-2">
+              {image.indices.map(
+                (imgIdx) =>
+                  images.has(imgIdx) && (
+                    <div
+                      className="flex items-center justify-between rounded-lg bg-f-light-gray p-3 text-f-dark-gray"
+                      key={imgIdx}
+                    >
+                      <div className="flex items-center gap-2">
+                        <FileIcon />
+                        <div className="text-f-primary underline">
+                          <a href={images.get(imgIdx).url} target="_blank">
+                            {images.get(imgIdx).fileName}
+                          </a>
                         </div>
-                        {selectedFiles[imageNum]?.name && (
-                          <div className="m-1 ml-7">
-                            {selectedFiles[imageNum].name}
-                          </div>
-                        )}
                       </div>
-                    )}
-                  </div>
-                );
-              })}
+                      {deleteLoaders.get(imgIdx) ? (
+                        <SpinLoader
+                          size='24'
+                        />
+                      ) : (
+                        <span 
+                          className="cursor-pointer"
+                          onClick={() => removeImage(imgIdx)}
+                        >
+                          <Trash />
+                        </span>
+                      )}
+                    </div>
+                  )
+              )}
             </div>
-          );
-        })}
+          </div>
+        ))}
       </div>
     </div>
   );
-}
+};
+
+export default UploadImagesStep;

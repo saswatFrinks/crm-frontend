@@ -75,6 +75,8 @@ const KonvaImageView = ({
 
   const [curPoly, setCurPoly] = React.useState(null);
 
+  console.log({rectStart})
+
   const handleScroll = (evt) => {
     const e = evt.evt;
     e.preventDefault();
@@ -94,6 +96,7 @@ const KonvaImageView = ({
     const cords = { x: originX, y: originY };
     setOrigin({ ...cords, scale: newScale });
   };
+  console.log({drawMode: imageStatus.drawMode})
 
   const handleMouseDown = (evt) => {
     const e = evt.evt;
@@ -102,6 +105,7 @@ const KonvaImageView = ({
     const pointerPosition = stage2.getPointerPosition();
 
     const stage = coverRef.current;
+    
 
     if (imageStatus.drawMode === 'POLY' || imageStatus.drawMode === 'RECT') {
       //called when rectangle is drawn

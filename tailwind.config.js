@@ -8,6 +8,8 @@ export default {
         'f-secondary': '#6B4EFF',
         'f-flat': '#E7E7FF',
         'f-gray': '#E5E5E5',
+        'f-light-gray': '#D9D9D9',
+        'f-dark-gray': '#7A7E80'
       },
     },
   },
