@@ -294,6 +294,7 @@ const KonvaImageView = ({
 
   const handleMouseUp = () => {
     // const updateObj = { dragging: false };
+    console.log('mouse up')
     if (imageStatus.drawing) {
       const normalizedValue = {
         action: 'RECTANGLE',
@@ -315,7 +316,7 @@ const KonvaImageView = ({
     console.log(imageStatus)
     setImageStatus((prev) => ({
       ...prev,
-      draw: false,
+      // draw: false,
       dragging: false,
       drawing: false,
       drawMode:
@@ -412,7 +413,7 @@ const KonvaImageView = ({
     setCurrentPoly(null);
     setImageStatus((prev) => ({
       ...prev,
-      draw: false,
+      // draw: false,
       dragging: false,
       drawing: false,
       drawMode: true,

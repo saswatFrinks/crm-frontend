@@ -178,7 +178,9 @@ export default function InspectionParameterStep(props) {
     let tempRois = cloneDeep(configuration.rois);
     // console.log('confRois:', configuration.rois);
     if (tempRois[0]?.parts[0]?.class === '') {
-      tempRois[0].parts[0].class = classOptions.filter(cl => cl.id !== configuration?.primaryObjectClass)[0]?.id;
+      tempRois[0].parts[0].class = classOptions.filter(
+        (cl) => cl.id !== configuration?.primaryObjectClass
+      )[0]?.id;
       tempRois[0].parts[0].className = classOptions[0].name;
     }
     setConfiguration({
@@ -188,29 +190,34 @@ export default function InspectionParameterStep(props) {
     });
   }, [classOptions]);
 
-  useEffect(()=>{
-    if (!classOptions?.length > 0|| previousPrimaryClass == configuration.primaryObjectClass) {
+  useEffect(() => {
+    if (
+      !classOptions?.length > 0 ||
+      previousPrimaryClass == configuration.primaryObjectClass
+    ) {
       return;
     }
-    
+
     let tempRois = cloneDeep(configuration.rois);
     // console.log('confRois:', configuration.rois);
-    tempRois[0]?.parts.forEach(part=>{
-      if(part.class == '' || part.class ==configuration?.primaryObjectClass){
-        const takeClass = classOptions.filter(cl => cl.id !== configuration?.primaryObjectClass)[0];
-        if(takeClass){
+    tempRois[0]?.parts.forEach((part) => {
+      if (part.class == '' || part.class == configuration?.primaryObjectClass) {
+        const takeClass = classOptions.filter(
+          (cl) => cl.id !== configuration?.primaryObjectClass
+        )[0];
+        if (takeClass) {
           part.class = takeClass.id;
           part.className = takeClass.name;
         }
       }
-    })
+    });
     setConfiguration({
       ...configuration,
       rois: tempRois,
       id: selectedConfiguration.id,
     });
     setPreviousPrimaryClass(configuration.primaryObjectClass);
-  }, [configuration.primaryObjectClass, classOptions])
+  }, [configuration.primaryObjectClass, classOptions]);
 
   const addRoi = () => {
     // console.log('addRoi1', { configuration });
@@ -322,11 +329,11 @@ export default function InspectionParameterStep(props) {
   const handleClickLabel = (id, title) => {
     setIsEditing(true);
     setCurrentRoiId(id);
-    let type = "rec";
+    let type = 'rec';
     // console.log('imageStatus1', { configuration, rectangles, polygons });
     // let ind = configuration.rois.findIndex(
     //   (rect) => rect.title == title && rect.rectType == RECTANGLE_TYPE.ROI
-    // );  
+    // );
 
     // if(ind === -1) {
     //   ind = configuration.rois.findIndex(
@@ -344,11 +351,11 @@ export default function InspectionParameterStep(props) {
       idx = polygons.findIndex(
         (poly) => poly.title == title && poly.polyType == RECTANGLE_TYPE.ROI
       );
-      type = "pol";
+      type = 'pol';
     }
 
     if (idx >= 0) {
-      if (type === "rec" && rectangles[idx]?.uuid) {
+      if (type === 'rec' && rectangles[idx]?.uuid) {
         setSelectedRectId(rectangles[idx].uuid);
       } else {
         setSelectedPolyId(polygons[idx]?.uuid);
@@ -367,6 +374,11 @@ export default function InspectionParameterStep(props) {
         ...k,
         status: k.id == id ? STATUS.EDITING : k.status,
       })),
+    }));
+
+    setImageStatus((t) => ({
+      ...t,
+      draw: !t.draw,
     }));
   };
 
@@ -680,7 +692,6 @@ export default function InspectionParameterStep(props) {
                   fullWidth={false}
                   // disabled={isEditing ? true : false}
                   onClick={() => {
-                    console.log('ROI status', t.status);
                     if (isEditing) {
                       // toast(
                       //   `${
@@ -827,14 +838,13 @@ export default function InspectionParameterStep(props) {
                             placeholder="Select class"
                             value={configuration.rois[i].parts[objIndex].class}
                             onChange={(e) => {
-                             
                               let temp = '';
                               classOptions.forEach((opt) => {
                                 if (opt.id === e.target.value) {
                                   temp = opt.name;
                                 }
                               });
-                              console.log({id: e.target.value, temp})
+                              console.log({ id: e.target.value, temp });
                               setConfiguration((d) => ({
                                 ...d,
                                 rois: d.rois.map((roi, locRIdx) => {
@@ -859,7 +869,10 @@ export default function InspectionParameterStep(props) {
                                 e.target.value
                               );
                             }}
-                            options={classOptions.filter(cl => cl.id !== configuration?.primaryObjectClass)}
+                            options={classOptions.filter(
+                              (cl) =>
+                                cl.id !== configuration?.primaryObjectClass
+                            )}
                             errorMessage={
                               errors.get(`${t.id}-${objIndex}`)?.class
                             }

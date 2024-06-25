@@ -33,7 +33,13 @@ import {
   imageStatusAtom,
   // rectangleColorAtom
 } from '../../state';
-import { ACTION_NAMES, ASSEMBLY_CONFIG, BASE_RECT, RECTANGLE_TYPE, STATUS } from '@/core/constants';
+import {
+  ACTION_NAMES,
+  ASSEMBLY_CONFIG,
+  BASE_RECT,
+  RECTANGLE_TYPE,
+  STATUS,
+} from '@/core/constants';
 import Button from '@/shared/ui/Button';
 import axiosInstance from '@/core/request/aixosinstance';
 import { useParams } from 'react-router-dom';
@@ -95,7 +101,6 @@ export default function LabelImage({ type, save }) {
   const [initialLabels, setInitialLabels] = useRecoilState(initialLabelsAtom);
 
   const [labelId, setLabelId] = useRecoilState(currentLabelIdAtom);
-  
 
   let selectedRois = [];
   let idCntr = -1;
@@ -107,11 +112,11 @@ export default function LabelImage({ type, save }) {
           rect.imageId == selectedFile?.id
       )
       .map((rect, index) => {
-        console.log("length1", idCntr)
+        console.log('length1', idCntr);
         idCntr += 1;
         return {
           ...rect,
-          id: idCntr, 
+          id: idCntr,
         };
       })
   );
@@ -128,7 +133,7 @@ export default function LabelImage({ type, save }) {
       idCntr += 1;
       return {
         ...poly,
-        id: idCntr, 
+        id: idCntr,
       };
     });
 
@@ -139,7 +144,9 @@ export default function LabelImage({ type, save }) {
       rect.title == configuration.primaryObject
   );
 
-  const [primaryClass, setPrimaryClass] = useState(classOptions.find(cl => cl.id === configuration.primaryObjectClass));
+  const [primaryClass, setPrimaryClass] = useState(
+    classOptions.find((cl) => cl.id === configuration.primaryObjectClass)
+  );
 
   const selectedRoisRef = React.useRef(selectedRois);
 
@@ -171,15 +178,15 @@ export default function LabelImage({ type, save }) {
     delete temp[uuid];
     setAnnotationMap(temp);
     setLabelsEdited((prev) => ({ ...prev, [imageId]: true }));
-    setImageStatus(prev => ({
+    setImageStatus((prev) => ({
       ...prev,
-      drawMode: false
+      drawMode: false,
     }));
     setIsEditing(false);
     setActionName(null);
   };
 
-  console.log({labelEdited})
+  console.log({ labelEdited });
 
   useEffect(() => {
     addClasses();
@@ -209,7 +216,7 @@ export default function LabelImage({ type, save }) {
   const addClasses = () => {
     const temp = {};
     const idMap = {};
-    console.log("config", configuration.rois);
+    console.log('config', configuration.rois);
     configuration.rois.forEach((roi) => {
       roi.parts.forEach((obj) => {
         temp[obj.className] = temp[obj.className] ? temp[obj.className] + 1 : 0;
@@ -242,19 +249,16 @@ export default function LabelImage({ type, save }) {
         })
     );
 
-    if(primaryClass){
+    if (primaryClass) {
       const primaryClassObj = {
         ...primaryClass,
         color: getUniqueHexColor(colors),
-        count: 0
-      }
-  
-      setPrimaryClass(primaryClassObj)
-      setLabelClasses(prev => ([
-        ...prev,
-        primaryClassObj
-      ]))
-      colors.push(primaryClassObj)
+        count: 0,
+      };
+
+      setPrimaryClass(primaryClassObj);
+      setLabelClasses((prev) => [...prev, primaryClassObj]);
+      colors.push(primaryClassObj);
     }
 
     setRectangleColor((prev) => ({
@@ -264,7 +268,7 @@ export default function LabelImage({ type, save }) {
   };
 
   const handleClassClick = async (e, i, col) => {
-    console.log({isEditing}, 'editing');
+    console.log({ isEditing }, 'editing');
     if (isEditing) {
       toast(
         'Please confirm the creation of the new label first before proceeding',
@@ -275,10 +279,10 @@ export default function LabelImage({ type, save }) {
       return;
     }
 
-    if(labelClasses[i]?.status){
+    if (labelClasses[i]?.status) {
       setPrevStatus(labelClasses[i]?.status);
     }
-    console.log({label: labelClasses[i]})
+    console.log({ label: labelClasses[i] });
     setIsEditing(true);
     setRectangleType(RECTANGLE_TYPE.ANNOTATION_LABEL);
     setPolygonType(RECTANGLE_TYPE.ANNOTATION_LABEL);
@@ -292,7 +296,7 @@ export default function LabelImage({ type, save }) {
       count: labelClasses[i].count,
       id: labelClasses[i].id,
       color: col,
-      status: STATUS.EDITING
+      status: STATUS.EDITING,
     };
     setLabel(update);
     selectedLabelRef.current = {
@@ -300,8 +304,10 @@ export default function LabelImage({ type, save }) {
       count: labelClasses[i].count,
       id: labelClasses[i].id,
       color: col,
-      status: STATUS.EDITING
+      status: STATUS.EDITING,
     };
+
+    setImageStatus((t) => ({ ...t, draw: !t.draw }));
   };
 
   const curIndex = images.findIndex((image) => image.id == selectedFile?.id);
@@ -401,18 +407,21 @@ export default function LabelImage({ type, save }) {
                     const className = labelsRef.current?.find(
                       (ele) => ele.id == cls
                     )?.name;
-                    console.log({labelClasses, re: labelsRef?.current})
+                    console.log({ labelClasses, re: labelsRef?.current });
 
                     // const color = getRandomHexColor();
 
                     // const color = rectangleColor.all[i].color;
-                    const primaryClassObj = classOptions.find(cl => cl.id === configuration.primaryObjectClass);
+                    const primaryClassObj = classOptions.find(
+                      (cl) => cl.id === configuration.primaryObjectClass
+                    );
                     const id = prevData.imageId;
                     const uuid = v4();
-                    console.log({all: rectangleColor.all})
-                    const color = rectangleColor.all.find(
-                      (obj) => obj.name === className
-                    ) || primaryClass;
+                    console.log({ all: rectangleColor.all });
+                    const color =
+                      rectangleColor.all.find(
+                        (obj) => obj.name === className
+                      ) || primaryClass;
 
                     if (vals.length === 4) {
                       let [x, y, width, height] = vals;
@@ -487,30 +496,40 @@ export default function LabelImage({ type, save }) {
   );
 
   const renderLabelHeading = () => {
-    if(type !== ASSEMBLY_CONFIG.MOVING)return <></>
-    const primaryIdx = labelClasses.findIndex(lc => lc.id === configuration.primaryObjectClass);
-    return <div className="mb-4 flex flex-col gap-4">
-      <p className='font-medium'>Click the Primary Object Class below to label it in the image</p>
-      <div
-        key={primaryClass?.name}
-        className={`bg-[${primaryClass?.color}] w-min flex items-center text-nowrap gap-1 cursor-pointer rounded-md px-3 py-1.5`}
-        style={{ backgroundColor: primaryClass?.color }}
-        onClick={(e) => {
-          handleClassClick(e, primaryIdx, primaryClass?.color);
-        }}
-      >
-        <Box size="xs" />
-        {primaryClass?.name}
-      </div>
-      <div>
-        Current Primary Object class labels for {' '}
-        <span className="font-semibold">{selectedImage?.fileName}</span>
-      </div>
-      <div className="flex flex-col grow gap-4 overflow-y-auto">
-        {selectedRois
-          .map((t, i) => {
-            const currIdx = selectedRois.filter((e) => e.rectType !== RECTANGLE_TYPE.ROI && e.title === primaryClass?.name).findIndex(l => l.uuid === t.uuid);
-            if(currIdx == -1)return <></>
+    if (type !== ASSEMBLY_CONFIG.MOVING) return <></>;
+    const primaryIdx = labelClasses.findIndex(
+      (lc) => lc.id === configuration.primaryObjectClass
+    );
+    return (
+      <div className="mb-4 flex flex-col gap-4">
+        <p className="font-medium">
+          Click the Primary Object Class below to label it in the image
+        </p>
+        <div
+          key={primaryClass?.name}
+          className={`bg-[${primaryClass?.color}] flex w-min cursor-pointer items-center gap-1 text-nowrap rounded-md px-3 py-1.5`}
+          style={{ backgroundColor: primaryClass?.color }}
+          onClick={(e) => {
+            handleClassClick(e, primaryIdx, primaryClass?.color);
+          }}
+        >
+          <Box size="xs" />
+          {primaryClass?.name}
+        </div>
+        <div>
+          Current Primary Object class labels for{' '}
+          <span className="font-semibold">{selectedImage?.fileName}</span>
+        </div>
+        <div className="flex grow flex-col gap-4 overflow-y-auto">
+          {selectedRois.map((t, i) => {
+            const currIdx = selectedRois
+              .filter(
+                (e) =>
+                  e.rectType !== RECTANGLE_TYPE.ROI &&
+                  e.title === primaryClass?.name
+              )
+              .findIndex((l) => l.uuid === t.uuid);
+            if (currIdx == -1) return <></>;
             return (
               <div key={t.id} className="flex items-center gap-4 ">
                 <span>{currIdx + 1}.</span>
@@ -521,7 +540,7 @@ export default function LabelImage({ type, save }) {
                      selectedRois.length !== initialLabels.length && labelId === t.uuid && t.id === selectedRois.length - 1 ? 'border border-red-700 rounded-lg' : ''}`}
                   > */}
                   <div
-                    className={`text-center min-w-[30%] border border-gray-300 rounded-3xl px-4 py-1`}
+                    className={`min-w-[30%] rounded-3xl border border-gray-300 px-4 py-1 text-center`}
                   >
                     {primaryClass?.name}
                   </div>
@@ -567,26 +586,29 @@ export default function LabelImage({ type, save }) {
                   }}
                 />
               </div>
-            )
+            );
           })}
+        </div>
+        <Hr />
       </div>
-      <Hr />
-    </div>
-  }
+    );
+  };
 
-  console.log({selectedPolyId, labelEdited})
+  console.log({ selectedPolyId, labelEdited });
 
   return (
     <div className="flex grow flex-col gap-4">
       {renderLabelHeading()}
-      <p className='font-medium mt-5'>Choose the class below you wish to label in the image</p>
+      <p className="mt-5 font-medium">
+        Choose the class below you wish to label in the image
+      </p>
       <ul className="flex flex-wrap gap-4">
         {labelClasses.map((t, index) => {
-          if(t.id === configuration.primaryObjectClass)return <></>
+          if (t.id === configuration.primaryObjectClass) return <></>;
           return (
             <li
               key={t.name}
-              className={`bg-[${t.color}] flex items-center gap-1 cursor-pointer rounded-md px-3 py-1.5`}
+              className={`bg-[${t.color}] flex cursor-pointer items-center gap-1 rounded-md px-3 py-1.5`}
               style={{ backgroundColor: t.color }}
               onClick={(e) => {
                 handleClassClick(e, index, t.color);
@@ -595,131 +617,136 @@ export default function LabelImage({ type, save }) {
               <Box size="xs" />
               {t.name}
             </li>
-          )
+          );
         })}
       </ul>
 
-      <div className='mt-2'>
+      <div className="mt-2">
         Current labels for{' '}
         <span className="font-semibold">{selectedImage?.fileName}</span>
       </div>
       <div className="flex grow flex-col gap-4 overflow-y-auto">
-        {selectedRois
-          .map((t, i) => {
-            const currIdx = selectedRois.filter((e) => e.rectType !== RECTANGLE_TYPE.ROI && e.title !== primaryClass?.name).findIndex(l => l.uuid === t.uuid);
-            if(currIdx == -1)return <></>
-            return (
-              <div key={t.id} className="flex items-center gap-4 ">
-                <span>{currIdx + 1}.</span>
-                <div className=" flex grow">
-                  {/* <div
+        {selectedRois.map((t, i) => {
+          const currIdx = selectedRois
+            .filter(
+              (e) =>
+                e.rectType !== RECTANGLE_TYPE.ROI &&
+                e.title !== primaryClass?.name
+            )
+            .findIndex((l) => l.uuid === t.uuid);
+          if (currIdx == -1) return <></>;
+          return (
+            <div key={t.id} className="flex items-center gap-4 ">
+              <span>{currIdx + 1}.</span>
+              <div className=" flex grow">
+                {/* <div
                     className={`w-full max-w-sm ${t.action === 'RECTANGLE' && isEditing &&
                      selectedRois.length !== initialLabels.length && labelId === t.uuid && t.id === selectedRois.length - 1 ? 'border border-red-700 rounded-lg' : ''}`}
                   > */}
-                  <div
-                    className={`w-full max-w-sm ${labelId === t.uuid ? 'rounded-lg border border-blue-700' : ''}`}
-                  >
-                    <Select
-                      size="sm"
-                      options={labelClasses}
-                      placeholder="Select class"
-                      value={annotationMap[t.uuid]}
-                      disabled={isEditing ? true : false}
-                      onChange={(e) => {
-                        let ind = rectangles.findIndex(
+                <div
+                  className={`w-full max-w-sm ${labelId === t.uuid ? 'rounded-lg border border-blue-700' : ''}`}
+                >
+                  <Select
+                    size="sm"
+                    options={labelClasses}
+                    placeholder="Select class"
+                    value={annotationMap[t.uuid]}
+                    disabled={isEditing ? true : false}
+                    onChange={(e) => {
+                      let ind = rectangles.findIndex(
+                        (ele) =>
+                          ele.uuid == t.uuid &&
+                          ele.rectType == RECTANGLE_TYPE.ANNOTATION_LABEL
+                      );
+
+                      if (ind === -1) {
+                        ind = polygons.findIndex(
                           (ele) =>
                             ele.uuid == t.uuid &&
                             ele.rectType == RECTANGLE_TYPE.ANNOTATION_LABEL
                         );
-  
-                        if (ind === -1) {
-                          ind = polygons.findIndex(
-                            (ele) =>
-                              ele.uuid == t.uuid &&
-                              ele.rectType == RECTANGLE_TYPE.ANNOTATION_LABEL
-                          );
-                          const polyCp = [...polygons];
-  
-                          const labelClass = labelClasses.find(
-                            (ele) => ele.id == e.target.value
-                          );
-                          polyCp[ind] = {
-                            ...polyCp[ind],
-                            title: labelClass.name,
-                            stroke: labelClass.color,
-                            fill: labelClass.color,
-                          };
-                          setPolygons(polyCp);
-                        } else {
-                          const recCp = [...rectangles];
-  
-                          const labelClass = labelClasses.find(
-                            (ele) => ele.id == e.target.value
-                          );
-                          recCp[ind] = {
-                            ...recCp[ind],
-                            title: labelClass.name,
-                            stroke: labelClass.color,
-                            fill: labelClass.color,
-                          };
-                          setRectangle(recCp);
-                        }
-  
-                        setAnnotationMap({
-                          ...annotationMap,
-                          [t.uuid]: e.target.value,
-                        });
-                        setLabelsEdited((prev) => ({
-                          ...prev,
-                          [t.imageId]: true,
-                        }));
-                      }}
-                    />
-                  </div>
+                        const polyCp = [...polygons];
+
+                        const labelClass = labelClasses.find(
+                          (ele) => ele.id == e.target.value
+                        );
+                        polyCp[ind] = {
+                          ...polyCp[ind],
+                          title: labelClass.name,
+                          stroke: labelClass.color,
+                          fill: labelClass.color,
+                        };
+                        setPolygons(polyCp);
+                      } else {
+                        const recCp = [...rectangles];
+
+                        const labelClass = labelClasses.find(
+                          (ele) => ele.id == e.target.value
+                        );
+                        recCp[ind] = {
+                          ...recCp[ind],
+                          title: labelClass.name,
+                          stroke: labelClass.color,
+                          fill: labelClass.color,
+                        };
+                        setRectangle(recCp);
+                      }
+
+                      setAnnotationMap({
+                        ...annotationMap,
+                        [t.uuid]: e.target.value,
+                      });
+                      setLabelsEdited((prev) => ({
+                        ...prev,
+                        [t.imageId]: true,
+                      }));
+                    }}
+                  />
                 </div>
-                <Edit
-                  size={18}
-                  className="mr-4 cursor-pointer"
-                  onClick={() => {
-                    if (isEditing) {
-                      toast(
-                        'Please confirm the creation of the new label first before proceeding',
-                        {
-                          icon: '⚠️',
-                        }
-                      );
-                      return;
-                    }
-                    if (t?.x) {
-                      setSelectedRectId(t.uuid);
-                    } else {
-                      setSelectedPolyId(t.uuid);
-                    }
-                    setLabelsEdited((prev) => ({ ...prev, [t.imageId]: true }));
-                  }}
-                />
-                <Trash
-                  size={18}
-                  className="cursor-pointer"
-                  onClick={() => {
-                    if (isEditing && labelId === t.uuid) {
-                      removeRectangle(t.uuid, t.imageId);
-                      setIsEditing(false);
-                    } else if (isEditing) {
-                      toast(
-                        'Please confirm the creation of the new label first before proceeding',
-                        {
-                          icon: '⚠️',
-                        }
-                      );
-                    } else {
-                      removeRectangle(t.uuid, t.imageId);
-                    }
-                  }}
-                />
               </div>
-            )
-          })}
+              <Edit
+                size={18}
+                className="mr-4 cursor-pointer"
+                onClick={() => {
+                  if (isEditing) {
+                    toast(
+                      'Please confirm the creation of the new label first before proceeding',
+                      {
+                        icon: '⚠️',
+                      }
+                    );
+                    return;
+                  }
+                  if (t?.x) {
+                    setSelectedRectId(t.uuid);
+                  } else {
+                    setSelectedPolyId(t.uuid);
+                  }
+                  setLabelsEdited((prev) => ({ ...prev, [t.imageId]: true }));
+                }}
+              />
+              <Trash
+                size={18}
+                className="cursor-pointer"
+                onClick={() => {
+                  if (isEditing && labelId === t.uuid) {
+                    removeRectangle(t.uuid, t.imageId);
+                    setIsEditing(false);
+                  } else if (isEditing) {
+                    toast(
+                      'Please confirm the creation of the new label first before proceeding',
+                      {
+                        icon: '⚠️',
+                      }
+                    );
+                  } else {
+                    removeRectangle(t.uuid, t.imageId);
+                  }
+                }}
+              />
+            </div>
+          );
+        })}
       </div>
       <div className="sticky bottom-0 flex flex-col items-center gap-2 bg-white">
         <ResultPagination total={10} page={page} setPage={setPageNum} />
