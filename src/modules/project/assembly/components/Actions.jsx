@@ -94,8 +94,20 @@ export default function Actions({ cancel, submit }) {
   };
 
   const handleDrawBox = () => {
-    console.log('drawModebox', imageStatus.drawMode, !isEditing ,imageStatus.drawMode === true , prevStatus === 'finish', (inspectionReq === 2 && step !== 1));
-    if (!isEditing || imageStatus.drawMode === true || (step === 1 && prevStatus === 'finish') || (inspectionReq === 2 && step !== 1))
+    console.log(
+      'drawModebox',
+      imageStatus.drawMode,
+      !isEditing,
+      imageStatus.drawMode === true,
+      prevStatus === 'finish',
+      inspectionReq === 2 && step !== 1
+    );
+    if (
+      !isEditing ||
+      imageStatus.drawMode === true ||
+      (step === 1 && prevStatus === 'finish') ||
+      (inspectionReq === 2 && step !== 1)
+    )
       return;
 
     let ret = false;
@@ -118,7 +130,12 @@ export default function Actions({ cancel, submit }) {
 
   const handleDrawPolygon = () => {
     console.log('drawModepoly', imageStatus.drawMode);
-    if (!isEditing || imageStatus.drawMode === true || prevStatus === 'finish' || (inspectionReq !== 2 && step !==2))
+    if (
+      !isEditing ||
+      imageStatus.drawMode === true ||
+      prevStatus === 'finish' ||
+      (inspectionReq !== 2 && step !== 2)
+    )
       return;
 
     let ret = false;
@@ -145,21 +162,18 @@ export default function Actions({ cancel, submit }) {
     setImageStatus((p) => ({ ...p, fitToCenter: true }));
   };
 
-  console.log(inspectionReq,
-    (inspectionReq === 0 || inspectionReq === 1 || step == 1) &&
-    ((currentRectType == RECTANGLE_TYPE.ROI &&
-      roiIndex >= 0 &&
-      !rectangles.some(
-        (rec) => rec.roiId == configuration.rois[roiIndex].id
-      ))),
-        step == 2 &&
-        inspectionReq === 2 &&
-        ((currentPolyType == RECTANGLE_TYPE.ROI &&
-          roiIndex >= 0 &&
-          !polygons.some(
-            (poly) => poly.roiId == configuration.rois[roiIndex].id
-          )))
-    )
+  // console.log(
+  //   inspectionReq,
+  //   (inspectionReq === 0 || inspectionReq === 1 || step == 1) &&
+  //     currentRectType == RECTANGLE_TYPE.ROI &&
+  //     roiIndex >= 0 &&
+  //     !rectangles.some((rec) => rec.roiId == configuration.rois[roiIndex].id),
+  //   step == 2 &&
+  //     inspectionReq === 2 &&
+  //     currentPolyType == RECTANGLE_TYPE.ROI &&
+  //     roiIndex >= 0 &&
+  //     !polygons.some((poly) => poly.roiId == configuration.rois[roiIndex].id)
+  // );
 
   const actions = [
     // {
@@ -204,10 +218,12 @@ export default function Actions({ cancel, submit }) {
       active:
         (inspectionReq === 0 || inspectionReq === 1 || step == 1) &&
         imageStatus.draw &&
-        (prevStatus === 'default' && step == 1),
+        prevStatus === 'default' &&
+        step == 1,
       canAction:
         isEditing &&
         (inspectionReq === 0 || inspectionReq === 1 || step == 1) &&
+        imageStatus.draw &&
         ((currentRectType == RECTANGLE_TYPE.ROI &&
           roiIndex >= 0 &&
           !rectangles.some(
@@ -221,11 +237,15 @@ export default function Actions({ cancel, submit }) {
       icon: Poly,
       action: handleDrawPolygon,
       active:
-        inspectionReq === 2 && step == 2 && imageStatus.draw && prevStatus === 'default',
+        inspectionReq === 2 &&
+        step == 2 &&
+        imageStatus.draw &&
+        prevStatus === 'default',
       canAction:
         isEditing &&
         step == 2 &&
         inspectionReq === 2 &&
+        imageStatus.draw &&
         ((currentPolyType == RECTANGLE_TYPE.ROI &&
           roiIndex >= 0 &&
           !polygons.some(
@@ -236,17 +256,16 @@ export default function Actions({ cancel, submit }) {
     },
   ];
 
-  console.log("check here", isEditing, 
-    inspectionReq, 
-    currentPolyType == RECTANGLE_TYPE.ROI,
-      roiIndex >= 0 &&
-      !polygons.some(
-        (poly) => poly.roiId == configuration.rois[roiIndex].id
-      , 
-      currentPolyType
-    )
-  )
-
+  console.log(
+    'check here11',
+    isEditing,
+    inspectionReq,
+    imageStatus.draw,
+    currentRectType == RECTANGLE_TYPE.ROI,
+    roiIndex >= 0 &&
+      !rectangles.some((rec) => rec.roiId == configuration.rois[roiIndex].id),
+    { imageStatus }
+  );
 
   return (
     <>

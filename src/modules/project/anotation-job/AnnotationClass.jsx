@@ -9,6 +9,7 @@ import {
   annotationMapAtom,
   currentRectangleIdAtom,
   editingAtom,
+  imageStatusAtom,
   labelClassAtom,
   polygonsTypeAtom,
   rectanglesAtom,
@@ -30,6 +31,7 @@ export default function AnnotationClass({ labelClass, isPrimary }) {
   const rectangles = useRecoilValue(rectanglesAtom);
   const [annotationMap, setAnnotationMap] = useRecoilState(annotationMapAtom);
   const setSelectedPloyId = useSetRecoilState(currentRectangleIdAtom);
+  const setImageStatus = useSetRecoilState(imageStatusAtom);
 
   const [rectangleColor, setRectangleColor] =
     useRecoilState(rectangleColorAtom);
@@ -48,6 +50,7 @@ export default function AnnotationClass({ labelClass, isPrimary }) {
     setRectangleType(RECTANGLE_TYPE.ANNOTATION_LABEL);
     setPolygonType(RECTANGLE_TYPE.ANNOTATION_LABEL);
     setSelectedClassId(t);
+    setImageStatus((prev) => ({...prev, draw: !prev.draw}))
   };
 
   // useEffect(() => {
