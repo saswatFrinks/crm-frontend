@@ -244,6 +244,10 @@ export default function InspectionParameterStep(props) {
         },
       ],
     }));
+    setImageStatus((t) => ({
+      ...t,
+      draw: false,
+    }));
     // console.log("addRoi2",{configuration})
   };
   // console.log({formData})
@@ -318,6 +322,10 @@ export default function InspectionParameterStep(props) {
       setPolygons((polys) => polys.filter((poly) => poly.roiId !== roiId));
     }
     // console.log("deleteRoi2",{configuration})
+    setImageStatus((t) => ({
+      ...t,
+      draw: false,
+    }));
   };
 
   const genObjId = (id) => {
