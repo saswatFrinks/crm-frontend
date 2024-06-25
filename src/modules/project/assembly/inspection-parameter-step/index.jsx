@@ -306,22 +306,19 @@ export default function InspectionParameterStep(props) {
   };
 
   const deleteRoi = () => {
-    let roiId = null;
-    // console.log("deleteRoi1",{configuration})
+    let roiIds = [];
     setConfiguration((t) => {
-      // console.log('deleting roi:', t);
       const ret = t.rois.filter((k) => !k.checked);
-      roiId = t.rois.find((ele) => ele.checked)?.id;
+      roiIds = t.rois.filter((ele) => ele.checked).map(k => k.id);
       return {
         ...t,
         rois: ret,
       };
     });
-    if (roiId) {
-      setRectangles((rects) => rects.filter((rect) => rect.roiId !== roiId));
-      setPolygons((polys) => polys.filter((poly) => poly.roiId !== roiId));
+    if (roiIds.length > 0) {
+      setRectangles((rects) => rects.filter((rect) => !roiIds.includes(rect.roiId)));
+      setPolygons((polys) => polys.filter((poly) => !roiIds.includes(poly.roiId)));
     }
-    // console.log("deleteRoi2",{configuration})
     setImageStatus((t) => ({
       ...t,
       draw: false,
