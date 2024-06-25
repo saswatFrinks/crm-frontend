@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Stage, Rect, Layer, Transformer, Image } from 'react-konva';
+import { Stage, Rect, Layer, Transformer, Image, Circle, Line } from 'react-konva';
 import Rectangle from './Rectangle';
 import Crosshair from './Crosshair';
 import { ACTION_NAMES, BASE_RECT, RECTANGLE_TYPE } from '@/core/constants';
@@ -549,7 +549,7 @@ const KonvaImageView = ({
       setLastAction(null);
     }
   }, [lastAction]);
-
+  console.log({rectStart, currentPoly})
 
   return (
     <div
@@ -640,22 +640,14 @@ const KonvaImageView = ({
           {imageStatus.drawing && currentPoly?.x && (
             <>
               <Crosshair
-                x={rectStart.x * origin.scale - origin.x}
-                y={rectStart.y * origin.scale - origin.y}
-                width={image.width * origin.scale}
-                height={image.height * origin.scale}
-                offset={origin}
+                x={currentPoly.x}
+                y={currentPoly.y}
+                canvasSize={canvaSize}
               />
               <Crosshair
-                x={
-                  (currentPoly.x + currentPoly.width) * origin.scale - origin.x
-                }
-                y={
-                  (currentPoly.y + currentPoly.height) * origin.scale - origin.y
-                }
-                width={image.width * origin.scale}
-                height={image.height * origin.scale}
-                offset={origin}
+                x={currentPoly.x+currentPoly.width}
+                y={currentPoly.y+currentPoly.height}
+                canvasSize={canvaSize}
               />
             </>
           )}
