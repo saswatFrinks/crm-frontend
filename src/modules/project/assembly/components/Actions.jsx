@@ -245,6 +245,7 @@ export default function Actions({ cancel, submit }) {
         isEditing &&
         step == 2 &&
         inspectionReq === 2 &&
+        imageStatus.draw &&
         ((currentPolyType == RECTANGLE_TYPE.ROI &&
           roiIndex >= 0 &&
           !polygons.some(
