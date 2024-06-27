@@ -218,6 +218,11 @@ export default function AIAssembly() {
       });
     };
 
+    sse.onerror = ()=>{
+      console.log('No more active trainings, CLOSING');
+      sse.close();
+    }
+
     sseRef.current = sse;
   };
 
