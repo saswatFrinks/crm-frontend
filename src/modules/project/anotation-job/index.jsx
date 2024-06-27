@@ -383,7 +383,7 @@ export default function AnnotationJob() {
       const data = roiData.data?.data?.data;
       const primaryClassObj = roiData?.data?.data?.primaryClass;
       setPrimaryClass(primaryClassObj);
-      console.log('configuration/class', { data });
+      // console.log('configuration/class', { data });
       if (data.length) {
         const rects = [];
         const roiMap = {};
@@ -431,12 +431,13 @@ export default function AnnotationJob() {
           classesSet.add(conf.parts.classId);
         });
         if(primaryClassObj?.id)classesSet.add(primaryClassObj?.id)
-        console.log({classesSet, labelClassArr})
+        // console.log({classesSet, labelClassArr})
         setLabelClass(
           labelClassArr.filter((cls) => {
             return classesSet.has(cls.id);
           })
         );
+        console.warn(rects);
         if (rects.length) setRois(rects);
       }
       return true;
@@ -815,26 +816,18 @@ export default function AnnotationJob() {
                           setSelectedRectId(annotations[0].uuid);
                         }
                       }}
-                      rectangles={
-                        annotationClasses[selectedImage?.id]
-                          ? [
-                              ...rois.filter((roi) => roi?.x),
-                              ...annotationClasses[selectedImage?.id]
-                                .rectangles,
-                            ]
-                          : rois
+                      rectangles={[
+                        ...rois.filter(r=>!r.points),
+                        ...(annotationClasses[selectedImage?.id]?.rectangles || [])
+                        ]
                       }
                       title={selectedClass?.name || 'Label'}
                       image={image}
                       imageId={selectedImage?.id}
-                      polygons={
-                        annotationClasses[selectedImage?.id]
-                          ? [
-                              ...rois.filter((roi) => roi?.points),
-                              ...(annotationClasses[selectedImage?.id]
-                                .polygons || []),
-                            ]
-                          : rois
+                      polygons={[
+                        ...rois.filter(r=>r.points),
+                        ...(annotationClasses[selectedImage?.id]?.polygons || [])
+                        ]
                       }
                       onPolyUpdate={(polys) => {
                         console.log('poly updated');
