@@ -218,11 +218,6 @@ export default function AIAssembly() {
       });
     };
 
-    sse.onerror = ()=>{
-      console.log('No more active trainings, CLOSING');
-      sse.close();
-    }
-
     sseRef.current = sse;
   };
 
@@ -359,7 +354,7 @@ export default function AIAssembly() {
                             action == 2?
                               <RadialProgressBar value={model.info?.value || 0} max={model.info?.max || 10} size={45} strokeWidth={4}/> :
                             action == 3? <span className='text-red-400'>{ERRORS[model.status]}</span> :
-                              <RadialProgressBar value={10} max={10} size={45} strokeWidth={4} showMax/>
+                              <RadialProgressBar value={model.status == validationCompleteStatus ? 10 : 9.9} max={10} size={45} strokeWidth={4} showMax/>
                           }
                         </Tooltip>
                       </td>

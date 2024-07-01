@@ -308,9 +308,11 @@ const KonvaImageView = ({
       setCurrentPoly(null);
       // updateObj['drawMode'] = false;
       // updateObj['drawing'] = false;
-      setSelectedRectId(normalizedValue.uuid);
+      if(normalizedValue.uuid){
+        setSelectedRectId(normalizedValue.uuid);
+      }
     } else {
-      setSelectedRectId(null);
+      // setSelectedRectId(null);
     }
     // setImageStatus((a) => ({ ...a, ...updateObj }));
     console.log(imageStatus)
@@ -551,6 +553,28 @@ const KonvaImageView = ({
     }
   }, [lastAction]);
   console.log({rectStart, currentPoly})
+
+  //to put the selected rectangle on top to select it
+  React.useEffect(() => {
+    if(selectedRectId){
+      const selectedRect = scaledRectangles.find(rect => rect.uuid === selectedRectId);
+      const remainingRects = scaledRectangles.filter(rect => rect.uuid !== selectedRectId);
+      if(selectedRect){
+        setScaledRectangles([...remainingRects, selectedRect]);
+      }
+    }
+  }, [selectedRectId])
+
+  //to put the selected polygon on top to select it
+  React.useEffect(() => {
+    if(selectedPolyId){
+      const selectedPoly = scaledPolygons.find(poly => poly.uuid === selectedPolyId);
+      const remainingPolys = scaledPolygons.filter(poly => poly.uuid !== selectedPolyId);
+      if(selectedPoly){
+        setScaledPolygons([...remainingPolys, selectedPoly]);
+      }
+    }
+  }, [selectedPolyId])
 
   return (
     <div

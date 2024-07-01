@@ -1,33 +1,51 @@
 import React from 'react';
 
-const RadialProgressBar = ({ value, max = 100, size = 200, strokeWidth = 10, color = 'green', showMax=false }) => {
-  const radius = size / 2 - strokeWidth / 2;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (value / max) * circumference;
+const RadialProgressBar = ({ value, max = 100, size = 200, strokeWidth = 10, showMax=false }) => {
 
-  let perc = value/max;
-  perc = parseInt(perc * 100 - (perc == 1 && !showMax? 1: 0));
+  let percentage = value/max;
+  percentage = parseInt(percentage * 100 - (percentage == 1 && !showMax? 1: 0));
+
+  const radius = 30;
+  const stroke = 10;
+  const normalizedRadius = radius - stroke * 0.5;
+  const circumference = normalizedRadius * 2 * Math.PI;
+  const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
   return (
-    <div className="relative flex justify-center">
-      <svg className="progress-ring radial-progess-item" width={size} height={size}>
+    <div className="relative flex items-center justify-center w-10 h-10">
+      <svg
+        height={radius * 2}
+        width={radius * 2}
+        className="absolute transform -rotate-90"
+      >
         <circle
-          className="progress-ring__circle"
-          stroke={color}
-          strokeWidth={strokeWidth}
+          stroke="#BCCCBF"
           fill="transparent"
-          r={radius}
-          cx={size / 2}
-          cy={size / 2}
-          style={{
-            strokeDasharray: `${circumference} ${circumference}`,
-            strokeDashoffset: offset,
-          }}
+          strokeWidth={stroke}
+          strokeDasharray={circumference + ' ' + circumference}
+          style={{ strokeDashoffset: 0 }}
+          r={normalizedRadius}
+          cx={radius}
+          cy={radius}
+        />
+        <circle
+          stroke="#16A799"
+          fill="transparent"
+          strokeWidth={stroke}
+          strokeDasharray={circumference + ' ' + circumference}
+          style={{ strokeDashoffset }}
+          // strokeLinecap="round"
+          r={normalizedRadius}
+          cx={radius}
+          cy={radius}
         />
       </svg>
-      <div className="absolute inset-0 flex items-center justify-center text-l font-bold">
-        {parseInt(perc)}%
-      </div>
+      <hr className="absolute w-16 h-0.5 bg-white border-none" style={{ transform: 'rotate(90deg)' }} />
+      <hr className="absolute w-16 h-0.5 bg-white border-none" style={{ transform: 'rotate(126deg)' }} />
+      <hr className="absolute w-16 h-0.5 bg-white border-none" style={{ transform: 'rotate(162deg)' }} />
+      <hr className="absolute w-16 h-0.5 bg-white border-none" style={{ transform: 'rotate(198deg)' }} />
+      <hr className="absolute w-16 h-0.5 bg-white border-none" style={{ transform: 'rotate(234deg)' }} />
+      <span className="absolute text-md font-bold w-full">{percentage}%</span>
     </div>
   );
 };

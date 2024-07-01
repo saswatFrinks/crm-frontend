@@ -373,6 +373,8 @@ export default function Assembly() {
         status: prevStatus
       }
     })
+    setSelectedRectId(null);
+    setSelectedPolyId(null);
   };
 
   const submit = () => {
