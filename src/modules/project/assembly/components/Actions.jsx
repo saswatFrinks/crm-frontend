@@ -61,7 +61,6 @@ export default function Actions({ cancel, submit }) {
   const [step, setStep] = useRecoilState(stepAtom);
 
   //   const [isEditingRect, setEditingRect] = useRecoilState(editingRectAtom);
-
   const handleZoomIn = () => {
     setStage((prevValue) => {
       let scale = Math.min(10.0, Math.ceil(prevValue.scale * 1.1 * 10) / 10);
@@ -134,7 +133,7 @@ export default function Actions({ cancel, submit }) {
       !isEditing ||
       imageStatus.drawMode === true ||
       prevStatus === 'finish' ||
-      (inspectionReq !== 2 && step !== 2)
+      (inspectionReq !== 2 || step !== 2)
     )
       return;
 
@@ -203,6 +202,8 @@ export default function Actions({ cancel, submit }) {
       action: handleFitToCenter,
       active: false,
       canAction: true,
+      disabled: false,
+      mode: ''
     },
     {
       title: 'Default Zoom',
@@ -210,6 +211,8 @@ export default function Actions({ cancel, submit }) {
       action: handleOneToOne,
       active: false,
       canAction: true,
+      disabled: false,
+      mode: ''
     },
     {
       title: 'Rectangular Selection',
@@ -231,6 +234,8 @@ export default function Actions({ cancel, submit }) {
           )) ||
           (RECTANGLE_TYPE.ANNOTATION_LABEL === currentRectType &&
             ACTION_NAMES.SELECTED !== actionName)),
+      disabled: !(inspectionReq === 0 || inspectionReq === 1 || step == 1),
+      mode: 'RECT'
     },
     {
       title: 'Polygon Selection',
@@ -253,6 +258,8 @@ export default function Actions({ cancel, submit }) {
           )) ||
           (RECTANGLE_TYPE.ANNOTATION_LABEL === currentPolyType &&
             ACTION_NAMES.SELECTED !== actionName)),
+      disabled: !(inspectionReq === 2 && step == 2),
+      mode: 'POLY'
     },
   ];
 
@@ -266,6 +273,7 @@ export default function Actions({ cancel, submit }) {
       !rectangles.some((rec) => rec.roiId == configuration.rois[roiIndex].id),
     { imageStatus }
   );
+  console.log('flag', actions[2].active, actions[2].canAction, imageStatus.draw, imageStatus.drawing, isEditing)
 
   return (
     <>
@@ -273,12 +281,12 @@ export default function Actions({ cancel, submit }) {
         {actions.map((t) => (
           <div key={t.title} className="relative">
             <li
-              className={`flex cursor-pointer select-none flex-col items-center p-2 ${t.active ? 'text-f-primary' : ''} ${t.canAction ? 'opacity-100' : 'cursor-not-allowed opacity-30'}`}
+              className={`flex cursor-pointer select-none flex-col items-center p-2 ${t.active ? 'text-f-primary' : ''} ${!t.disabled ? 'opacity-100' : 'cursor-not-allowed opacity-30'}`}
               onClick={t?.action}
               onMouseEnter={() => setIsHovered(t.title)}
               onMouseLeave={() => setIsHovered('')}
             >
-              <t.icon active={t.active} />
+              <t.icon active={t.mode ? (!t.disabled && imageStatus.drawing && isEditing) : t.active} />
               {/* {t.title} */}
             </li>
             {isHovered === t.title && (

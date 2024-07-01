@@ -137,13 +137,6 @@ export default function LabelImage({ type, save }) {
       };
     });
 
-  let selectedPrimaryRois = rectangles.filter(
-    (rect) =>
-      rect.rectType == RECTANGLE_TYPE.ANNOTATION_LABEL &&
-      rect.imageId == selectedFile?.id &&
-      rect.title == configuration.primaryObject
-  );
-
   const [primaryClass, setPrimaryClass] = useState(
     classOptions.find((cl) => cl.id === configuration.primaryObjectClass)
   );

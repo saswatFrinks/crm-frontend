@@ -31,8 +31,10 @@ export default function Folder() {
       let start = 0;
 
       const checkFiles = Array.from(files);
-      const allFilesArePNG = checkFiles.every((file) => file.type === 'image/png');
-    
+      const allFilesArePNG = checkFiles.every(
+        (file) => file.type === 'image/png'
+      );
+
       if (!allFilesArePNG) {
         toast.error('Please select only PNG images');
         return;
@@ -41,30 +43,30 @@ export default function Folder() {
       setLoader(true);
 
       while (start < totalFiles) {
-          const end = Math.min(start + batchSize, totalFiles);
-          const batch = [];
+        const end = Math.min(start + batchSize, totalFiles);
+        const batch = [];
 
-          for (let i = start; i < end; i++) {
-              batch.push(files[i]);
-          }
+        for (let i = start; i < end; i++) {
+          batch.push(files[i]);
+        }
 
-          const formData = new FormData();
-          batch.forEach(file => {
-              formData.append('files', file);
-          });
-          formData.append('folderId', params.folderId);
+        const formData = new FormData();
+        batch.forEach((file) => {
+          formData.append('files', file);
+        });
+        formData.append('folderId', params.folderId);
 
-          setLoaderTitle(`Uploading (${end}/${totalFiles})`)
+        setLoaderTitle(`Uploading (${end}/${totalFiles})`);
 
-          await axiosInstance.post('/dataset/upload', formData);
-          await fetchAllImages();
+        await axiosInstance.post('/dataset/upload', formData);
+        await fetchAllImages();
 
-          start += batchSize;
+        start += batchSize;
       }
     } catch (error) {
-        toast.error(error.response.data.data.message);
+      toast.error(error.response.data.data.message);
     } finally {
-        setLoader(false);
+      setLoader(false);
     }
   }
 
@@ -95,7 +97,7 @@ export default function Folder() {
         imageId,
       },
     });
-    setDeleteIds(prev => [...prev].filter(i => i !== imageId));
+    setDeleteIds((prev) => [...prev].filter((i) => i !== imageId));
 
     fetchAllImages();
   };
@@ -202,7 +204,7 @@ export default function Folder() {
                 multiple
                 hidden
                 id="file"
-                accept='.png'
+                accept=".png"
                 onChange={handleFileUpload}
               />
             </label>
@@ -211,13 +213,25 @@ export default function Folder() {
 
         <div className="placeholder:*: relative shadow-md sm:rounded-lg">
           <table className="w-full text-left text-sm text-gray-500 rtl:text-right ">
-            <thead className="bg-white text-sm uppercase text-gray-700 ">
+            <thead className="bg-white text-sm text-gray-700 ">
               <tr>
-                {columns.map((t) => (
-                  <th scope="col" className="px-6 py-3" key={t}>
-                    {t}
-                  </th>
-                ))}
+                {columns.map((t) => {
+                  if(t === '' && datasetImages.length){
+                    return <div className="px-4 py-3">
+                      <Checkbox
+                        checked={datasetImages.length && deleteIds.length == datasetImages.length}
+                        onChange={() => {
+                          setDeleteIds(deleteIds.length == datasetImages.length ? [] : datasetImages.map(img => img.id));
+                        }}
+                      />
+                    </div>
+                  }
+                  return (
+                    <th scope="col" className="px-6 py-3 uppercase" key={t}>
+                      {t}
+                    </th>
+                  );
+                })}
 
                 <th scope="col" className="px-6 py-3"></th>
               </tr>
@@ -238,10 +252,13 @@ export default function Folder() {
                         onChange={() => {
                           setDeleteIds((prev) => {
                             const newPrev = [...prev];
-                            if(newPrev.includes(datasetImage.id))return newPrev.filter(i => i !== datasetImage.id);
+                            if (newPrev.includes(datasetImage.id))
+                              return newPrev.filter(
+                                (i) => i !== datasetImage.id
+                              );
                             else newPrev.push(datasetImage.id);
                             return newPrev;
-                          })
+                          });
                         }}
                       />
                     </th>
@@ -278,9 +295,7 @@ export default function Folder() {
                 );
               })}
             </tbody>
-            {loader && (
-              <ProjectCreateLoader title={loaderTitle}/>
-            )}
+            {loader && <ProjectCreateLoader title={loaderTitle} />}
           </table>
         </div>
       </div>

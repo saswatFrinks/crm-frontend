@@ -103,6 +103,13 @@ export default function InspectionParameterStep(props) {
     handleSubmit: handleSubmit,
   };
 
+  const productFlowOptions = [
+    {id: 3, icon: <ArrowUp className="rotate-180" />},
+    {id: 4, icon: <ArrowUp />},
+    {id: 1, icon: <ArrowUp className="-rotate-90" />},
+    {id: 2, icon: <ArrowUp className="rotate-90" />}
+  ]
+
   const validateMoving = (values) => {
     if (type !== ASSEMBLY_CONFIG.MOVING) return false;
 
@@ -437,87 +444,35 @@ export default function InspectionParameterStep(props) {
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-4">
             <Label main={false}>Product Flow:</Label>
-            <div className="flex items-center gap-2">
-              <Radio
-                name="productFlow"
-                value={4}
-                checked={configuration.productFlow == 4}
-                onChange={(e) => {
-                  setConfiguration((t) => ({
-                    ...t,
-                    productFlow: e.target.value,
-                  }));
-                  setMovingForm((form) => ({
-                    ...form,
-                    productFlow: e.target.value,
-                  }));
-                }}
-              />
-              <ArrowUp />
-            </div>
-            <div className="flex items-center gap-2">
-              <Radio
-                name="productFlow"
-                value={3}
-                checked={configuration.productFlow == 3}
-                onChange={(e) => {
-                  setConfiguration((t) => ({
-                    ...t,
-                    productFlow: e.target.value,
-                  }));
-                  setMovingForm((form) => ({
-                    ...form,
-                    productFlow: e.target.value,
-                  }));
-                }}
-              />
-              <ArrowUp className="rotate-180" />
-            </div>
-            <div className="flex items-center gap-2">
-              <Radio
-                name="productFlow"
-                value={1}
-                checked={configuration.productFlow == 1}
-                onChange={(e) => {
-                  setConfiguration((t) => ({
-                    ...t,
-                    productFlow: e.target.value,
-                  }));
-                  setMovingForm((form) => ({
-                    ...form,
-                    productFlow: e.target.value,
-                  }));
-                }}
-              />
-              <ArrowUp className="-rotate-90" />
-            </div>
-            <div className="flex items-center gap-2">
-              <Radio
-                name="productFlow"
-                value={2}
-                checked={configuration.productFlow == 2}
-                onChange={(e) => {
-                  setConfiguration((t) => ({
-                    ...t,
-                    productFlow: e.target.value,
-                  }));
-                  setMovingForm((form) => ({
-                    ...form,
-                    productFlow: e.target.value,
-                  }));
-                }}
-              />
-              <ArrowUp className="rotate-90" />
-            </div>
+            {productFlowOptions.map(opt => (
+              <div className="flex items-center gap-2">
+                <Radio
+                  name="productFlow"
+                  value={opt.id}
+                  checked={configuration.productFlow == opt.id}
+                  onChange={(e) => {
+                    setConfiguration((t) => ({
+                      ...t,
+                      productFlow: e.target.value,
+                    }));
+                    setMovingForm((form) => ({
+                      ...form,
+                      productFlow: e.target.value,
+                    }));
+                  }}
+                />
+                {opt.icon}
+              </div>
+            ))}
           </div>
           <span className="text-sm text-red-500">
             {movingErrors?.productFlowError}
           </span>
           <div className="flex items-center gap-2">
-            <Label main={false}>Primary Object:</Label>
-            <div className="ml-16 w-44">
+            <Label main={false}>Primary Object Name:</Label>
+            <div className="ml-7 w-44">
               <Input
-                placeholder="Enter primary object"
+                placeholder="Enter primary object name"
                 size="xs"
                 value={configuration.primaryObject}
                 onChange={(e) => {

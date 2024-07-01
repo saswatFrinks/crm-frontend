@@ -235,7 +235,9 @@ export default function AnnotationJob() {
     );
 
     const imageSpecificRects = changedList.reduce((prev, cur) => {
-      return [...prev, ...cur.rectangles, ...cur.polygons];
+      const rectangles = cur?.rectangles || [];
+      const polygons = cur?.polygons || [];
+      return [...prev, ...rectangles, ...polygons];
     }, []);
 
     const cls = [
@@ -340,7 +342,7 @@ export default function AnnotationJob() {
     formData.append('configurationId', configurationId);
 
     if (!imageIds.length) {
-      toast.success('No changes1 to update');
+      toast.success('No changes to update');
       setModalOpen(false);
       return true;
     }
