@@ -1,37 +1,27 @@
 import { RECTANGLE_TYPE } from '@/core/constants';
-import axiosInstance from '@/core/request/aixosinstance';
 import Box from '@/shared/icons/Box';
-import { getRandomHexColor } from '@/util/util';
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import React from 'react';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import {
-  annotationMapAtom,
-  currentRectangleIdAtom,
   editingAtom,
   imageStatusAtom,
+  imgBrightnessAtom,
   labelClassAtom,
   polygonsTypeAtom,
-  rectanglesAtom,
   rectanglesTypeAtom,
 } from '../state';
 import { rectangleColorAtom } from '../assembly/state';
 import toast from 'react-hot-toast';
-import Label from '@/shared/ui/Label';
-import Button from '@/shared/ui/Button';
-import Pen from '@/shared/icons/Pen';
 
 export default function AnnotationClass({ labelClass, isPrimary }) {
-  const { projectId } = useParams();
   const [selectedClassId, setSelectedClassId] = useRecoilState(labelClassAtom);
   const setRectangleType = useSetRecoilState(rectanglesTypeAtom);
   const setPolygonType = useSetRecoilState(polygonsTypeAtom);
   // const setIsEditing = useSetRecoilState(editingAtom);
   const [isEditing, setIsEditing] = useRecoilState(editingAtom);
-  const rectangles = useRecoilValue(rectanglesAtom);
-  const [annotationMap, setAnnotationMap] = useRecoilState(annotationMapAtom);
-  const setSelectedPloyId = useSetRecoilState(currentRectangleIdAtom);
   const setImageStatus = useSetRecoilState(imageStatusAtom);
+  const imageBrightness = useRecoilValue(imgBrightnessAtom);
+  console.log({imageBrightness})
 
   const [rectangleColor, setRectangleColor] =
     useRecoilState(rectangleColorAtom);
@@ -84,7 +74,7 @@ export default function AnnotationClass({ labelClass, isPrimary }) {
         {labelClass.map((t, i) => (
           <li
             key={t.color}
-            className={`bg-[${t.color}] flex cursor-pointer items-center gap-1 rounded-md px-3 py-1.5`}
+            className={`bg-[${t.color}] flex cursor-pointer items-center gap-1 rounded-md px-3 py-1.5 ${imageBrightness >= 128 ? 'text-[#ddd]' : 'text-black'}`}
             style={{ backgroundColor: t.color }}
             onClick={() => {
               handleClick(t);
@@ -97,7 +87,7 @@ export default function AnnotationClass({ labelClass, isPrimary }) {
               });
             }}
           >
-            <Box size="xs" />
+            <Box size="xs" labelColor={imageBrightness >= 128 ? '#ddd' : '#000'}/>
             {t.name}
           </li>
         ))}

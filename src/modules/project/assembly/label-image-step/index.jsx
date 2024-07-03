@@ -31,6 +31,7 @@ import {
   uploadedFileListAtom,
   currentPolygonIdAtom,
   imageStatusAtom,
+  imgBrightnessAtom,
   // rectangleColorAtom
 } from '../../state';
 import {
@@ -86,6 +87,7 @@ export default function LabelImage({ type, save }) {
   const setPolygonType = useSetRecoilState(polygonsTypeAtom);
 
   const selectedImage = useRecoilValue(selectedFileAtom);
+  const imageBrightness = useRecoilValue(imgBrightnessAtom);
   const classOptions = useRecoilValue(classOptionsAtom);
 
   const setImageStatus = useSetRecoilState(imageStatusAtom);
@@ -192,7 +194,7 @@ export default function LabelImage({ type, save }) {
   const getUniqueHexColor = (colors) => {
     let hexColor;
     do {
-      hexColor = getRandomHexColor();
+      hexColor = getRandomHexColor(imageBrightness);
     } while (colors.map((col) => col.color).includes(hexColor));
     return hexColor;
   };
@@ -500,13 +502,13 @@ export default function LabelImage({ type, save }) {
         </p>
         <div
           key={primaryClass?.name}
-          className={`bg-[${primaryClass?.color}] flex w-min cursor-pointer items-center gap-1 text-nowrap rounded-md px-3 py-1.5`}
+          className={`bg-[${primaryClass?.color}] flex w-min cursor-pointer items-center gap-1 text-nowrap rounded-md px-3 py-1.5 ${imageBrightness >= 128 ? 'text-[#ddd]' : 'text-black'}`}
           style={{ backgroundColor: primaryClass?.color }}
           onClick={(e) => {
             handleClassClick(e, primaryIdx, primaryClass?.color);
           }}
         >
-          <Box size="xs" />
+          <Box size="xs" labelColor={imageBrightness >= 128 ? '#ddd' : '#000'} />
           {primaryClass?.name}
         </div>
         <div>
@@ -601,13 +603,13 @@ export default function LabelImage({ type, save }) {
           return (
             <li
               key={t.name}
-              className={`bg-[${t.color}] flex cursor-pointer items-center gap-1 rounded-md px-3 py-1.5`}
+              className={`bg-[${t.color}] flex cursor-pointer items-center gap-1 rounded-md px-3 py-1.5 ${imageBrightness >= 128 ? 'text-[#ddd]' : 'text-black'}`}
               style={{ backgroundColor: t.color }}
               onClick={(e) => {
                 handleClassClick(e, index, t.color);
               }}
             >
-              <Box size="xs" />
+              <Box size="xs" labelColor={imageBrightness >= 128 ? '#ddd' : '#000'} />
               {t.name}
             </li>
           );

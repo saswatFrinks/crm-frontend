@@ -1,35 +1,21 @@
-import { useContainerSize } from '@/shared/hooks/useContainerSize';
-import { useMouseWheel } from '@/modules/project/assembly/hooks/useMouseWheel';
 import BigImage from '@/shared/icons/BigImage';
-import Upload from '@/shared/icons/Upload';
 import React, { useEffect, useState } from 'react';
-import { Stage, Layer, Image, Text, Line as LineShape } from 'react-konva';
 import useImage from 'use-image';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import {
   assemblyAtom,
   cachedFileListAtom,
-  currentRectangleIdAtom,
   currentRoiIdAtom,
-  dragAtom,
-  editingAtom,
   imageStatusAtom,
   labelClassAtom,
-  mousePositionAtom,
   rectanglesAtom,
   polygonsAtom,
   rectanglesTypeAtom,
   polygonsTypeAtom,
   selectedFileAtom,
-  selectedRoiSelector,
-  stageAtom,
   uploadedFileListAtom,
 } from '../../state';
-import Crosshair from './Crosshair';
-import useDrawRectangle from '../hooks/useDrawRectangle';
-import Rectangle from './Rectangle';
-import ImageList from '../label-image-step/ImageList';
-import { editingRectAtom, stepAtom } from '../state';
+import { stepAtom } from '../state';
 import { RECTANGLE_TYPE } from '@/core/constants';
 import KonvaImageView from './KonvaImageView';
 import toast from 'react-hot-toast';
@@ -40,8 +26,6 @@ export default function UploadImage() {
   const [imageLoading, setImageLoading] = useState(
     Array.from({ length: 10 }, () => false)
   );
-
-  const rectType = useRecoilValue(rectanglesTypeAtom);
 
   const [rectangles, setRectangles] = useRecoilState(rectanglesAtom);
   const [polygons, setPolygons] = useRecoilState(polygonsAtom)

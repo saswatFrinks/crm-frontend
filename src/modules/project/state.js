@@ -115,6 +115,11 @@ export const uploadedFileListAtom = atom({
   default: [],
 });
 
+export const imgBrightnessAtom = atom({
+  key: 'imgBrightnessAtom',
+  default: null
+})
+
 export const cachedFileListAtom = atom({
   key: 'cachedFileListAtom',
   default: Array.from({length: 10}, () => null)
