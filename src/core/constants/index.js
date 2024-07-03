@@ -132,7 +132,7 @@ export const DEFAULT_ASSEMBLY={
   productFlow: 0,
   primaryObject: '',
   primaryObjectClass: '',
-  rois: [DEFAULT_ROI],
+  rois: [],
 }
 
 export const DEFAULT_ANNOTATION = {

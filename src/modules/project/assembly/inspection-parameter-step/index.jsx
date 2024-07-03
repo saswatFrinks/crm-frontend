@@ -247,7 +247,7 @@ export default function InspectionParameterStep(props) {
               ? t.rois[t.rois.length - 1].id + 1
               : t.rois.length,
           // title: `ROI ${t.rois[t.rois.length - 1].title.replace('ROI ', '') + 1}`
-          title: `ROI ${t.rois.length > 0 ? parseInt(t.rois[t.rois.length - 1].title.replace('ROI ', '')) + 1 : 1}`,
+          title: `ROI ${t.rois.length > 0 ? parseInt(t.rois[t.rois.length - 1].title.replace('ROI ', '')) + 1 : 0}`,
         },
       ],
     }));
@@ -255,7 +255,6 @@ export default function InspectionParameterStep(props) {
       ...t,
       draw: false,
     }));
-    // console.log("addRoi2",{configuration})
   };
   // console.log({formData})
 
