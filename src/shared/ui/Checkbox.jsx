@@ -8,7 +8,7 @@ export default function Checkbox(props) {
     variants: {
       checked: {
         true: 'bg-f-primary',
-        false: '',
+        false: 'bg-white',
       },
     },
   });

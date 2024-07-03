@@ -9,6 +9,9 @@ import {
 } from './state';
 import { augmentationsMap } from '.';
 
+import sampleImage from '../../../../assets/augmentationSample.svg';
+import ArrowUp from '@/shared/icons/ArrowUp';
+
 export default function ModelConfiguration() {
   const [augmentations, setAugmentations] = useRecoilState(augmentationsAtom);
   // const [modelSize, setModelSize] = useRecoilState(modelSizeAtom);
@@ -20,6 +23,39 @@ export default function ModelConfiguration() {
   const handleAugmentationsChange = (key) => {
     setAugmentations({ ...augmentations, [key]: !augmentations[key] });
   };
+
+  const augmentationOptions = [
+    {
+      title: 'Horizontal Flip',
+      description: 'Images provided for training this model will be flipped along their horizontal axis in a random manner to augment the training dataset',
+      changeTo: 'transform scale-x-[-1]' 
+    },
+    {
+      title: 'Vertical Flip',
+      description: 'Images provided for training this model will be flipped along their vertical axis in a random manner to augment the training dataset',
+      changeTo: 'transform rotate-180 scale-x-[-1]'
+    },
+    {
+      title: 'Rotation',
+      description: 'Images provided for training this model will be rotated along their center in a random manner to augment the training dataset',
+      changeTo: 'transform -rotate-45'
+    },
+    {
+      title: 'Random Crop',
+      description: 'Images provided for training this model will be cropped from random positions in a random manner to augment the training dataset',
+      changeTo: 'w-full h-full object-cover object-center transform scale-150'
+    },
+    {
+      title: 'Gaussian Blur',
+      description: 'Images provided for training this model will be blurred in a random manner to augment the training dataset',
+      changeTo: 'filter blur-[1px]'
+    },
+    {
+      title: 'Random Brightness Contrast',
+      description: 'Images provided for training this model will be adjusted for random brightness in a random manner to augment the training dataset',
+      changeTo: 'filter contrast-200 brightness-125'
+    }
+  ]
 
   return (
     <div className="flex flex-col gap-8">
@@ -73,21 +109,47 @@ export default function ModelConfiguration() {
       </div> */}
 
       <div className="flex flex-col gap-2">
-        <p>Augmentations:</p>
+        <p className='text-xl font-medium'>Augmentations</p>
         {Object.keys(augmentations).map((item, index) => {
+          const option = augmentationOptions[index];
           return (
-            <div key={index} className="flex gap-2">
-              <Checkbox
-                id={item}
-                value={item}
-                name={item}
-                htmlFor={item}
-                checked={augmentations[item]}
-                onClick={() => handleAugmentationsChange(item)}
-              />
-              <Label htmlFor={item} main={false}>
-                {augmentationsMap[item]}
-              </Label>
+            <div key={index} className="flex gap-2 items-start bg-f-light-purple rounded-lg p-2">
+              <div className='min-w-8 pt-1'>
+                <Checkbox
+                  id={item}
+                  value={item}
+                  name={item}
+                  htmlFor={item}
+                  checked={augmentations[item]}
+                  onClick={() => handleAugmentationsChange(item)}
+                />
+              </div>
+              <div className="flex flex-col justify-start">
+                <Label htmlFor={item}>
+                  <div className="text-lg">{option.title}</div>
+                </Label>
+                <div>{option.description}</div>
+                <div className="flex items-center gap-2 mt-2 justify-evenly">
+                  <img
+                    src={sampleImage}
+                    style={{
+                      width: 'auto',
+                      height: '90px'
+                    }}
+                  />
+                  <ArrowUp className="rotate-90" />
+                  <div className='h-[90px] overflow-hidden'>
+                    <img
+                      src={sampleImage}
+                      style={{
+                        width: 'auto',
+                        height: '90px'
+                      }}
+                      className={option.changeTo}
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           );
         })}

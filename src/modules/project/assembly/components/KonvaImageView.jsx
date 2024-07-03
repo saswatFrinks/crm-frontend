@@ -3,7 +3,7 @@ import { Stage, Rect, Layer, Transformer, Image, Circle, Line } from 'react-konv
 import Rectangle from './Rectangle';
 import Crosshair from './Crosshair';
 import { ACTION_NAMES, BASE_RECT, RECTANGLE_TYPE } from '@/core/constants';
-import { getRandomHexColor } from '@/util/util';
+import { getAverageBrightness, getRandomHexColor } from '@/util/util';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import {
   currentPolygonIdAtom,
@@ -253,6 +253,8 @@ const KonvaImageView = ({
     //   height: height / origin.scale / image.height,
     // };
   };
+
+  
 
   const handleMouseMove = (evt) => {
     const e = evt.evt;

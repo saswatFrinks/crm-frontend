@@ -1,7 +1,7 @@
 import React from 'react';
 import { tv } from 'tailwind-variants';
 
-export default function Box({ active, size = 'sm' }) {
+export default function Box({ active, size = 'sm', labelColor = null }) {
   const clx = tv({
     base: '',
     variants: {
@@ -15,7 +15,7 @@ export default function Box({ active, size = 'sm' }) {
       },
     },
   });
-  const color = active ? '#6B4EFF' : "#0E0F0F";
+  const color = labelColor || (active ? '#6B4EFF' : "#0E0F0F");
   return (
     <svg
       className={clx({ active, size })}

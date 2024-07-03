@@ -35,8 +35,9 @@ import {
   currentPolygonIdAtom,
   imageStatusAtom,
   inspectionReqAtom,
+  imgBrightnessAtom,
 } from '../state';
-import { compareArrays, getRandomHexColor } from '@/util/util';
+import { compareArrays, getAverageBrightness, getRandomHexColor } from '@/util/util';
 import {
   ACTION_NAMES,
   ASSEMBLY_CONFIG,
@@ -48,6 +49,7 @@ import toast from 'react-hot-toast';
 import { v4 } from 'uuid';
 import Modal, { ModalBody, ModalFooter, ModalHeader } from '@/shared/ui/Modal';
 import { modalAtom } from '@/shared/states/modal.state';
+import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader';
 
 export default function AnnotationJob() {
   const { datasetId, projectId, configurationId } = useParams();
@@ -79,6 +81,7 @@ export default function AnnotationJob() {
   const setSelectedPolyId = useSetRecoilState(currentPolygonIdAtom);
   const [modalOpen, setModalOpen] = useRecoilState(modalAtom);
   const [type, setType] = useState(ASSEMBLY_CONFIG.STATIONARY);
+  const [imageBrightness, setImageBrightness] = useRecoilState(imgBrightnessAtom);
 
   // const [primaryClass, setPrimaryClass] = useState(null);
 
@@ -95,6 +98,7 @@ export default function AnnotationJob() {
 
   const [initialLabels, setInitialLabels] = useRecoilState(initialLabelsAtom);
   const [primaryClass, setPrimaryClass] = useState(null);
+  const [loader, setLoader] = useState(false);
 
   const setInspectionReq = useSetRecoilState(inspectionReqAtom);
 
@@ -122,6 +126,7 @@ export default function AnnotationJob() {
     setRectangles([]);
     setPolygons([]);
     try {
+      setLoader(true);
       const allImages = await axiosInstance.get('/dataset/allImages', {
         params: {
           folderId: datasetId,
@@ -134,20 +139,23 @@ export default function AnnotationJob() {
       });
       setAllImages(loadedImages);
       setAnnotationLoadedFlag(mapObj);
+      await getClasses(loadedImages?.length ? loadedImages[0] : null);
     } catch (e) {
       setAllImages([]);
+    } finally {
+      setLoader(false);
     }
   };
 
-  const getUniqueHexColor = (colors) => {
+  const getUniqueHexColor = (colors, brightness) => {
     let hexColor;
     do {
-      hexColor = getRandomHexColor();
+      hexColor = getRandomHexColor(brightness);
     } while (colors.map((col) => col.color).includes(hexColor));
     return hexColor;
   };
 
-  const getClasses = async () => {
+  const getClasses = async (firstImage) => {
     try {
       const classes = await axiosInstance.get('/class/list', {
         params: {
@@ -155,6 +163,27 @@ export default function AnnotationJob() {
         },
       });
       // const color = getRandomHexColor();
+      let avgBrightness = null;
+      if(firstImage){
+        const img = new window.Image();
+        img.crossOrigin = 'Anonymous';
+        img.src = firstImage.url;
+        avgBrightness = await new Promise((resolve, reject) => {
+          img.onload = () => {
+            try {
+              resolve(getAverageBrightness(img));
+            } catch (err) {
+              toast.error('Error loading image')
+              reject(err);
+            }
+          };
+          img.onerror = (err) => {
+            toast.error('Error loading image')
+            reject(err);
+          };
+        });
+      }
+      setImageBrightness(avgBrightness)
       const colors = [];
       const labelClassArr = classes.data.data.map((cls) => {
         // const findColor = rectangleColor.all.find(
@@ -162,7 +191,7 @@ export default function AnnotationJob() {
         // )?.color;
         // console.log({ findColor });
         // const color = findColor ? findColor : getUniqueHexColor(colors);
-        const color = getUniqueHexColor(colors);
+        const color = getUniqueHexColor(colors, avgBrightness);
         console.log({ cls });
         colors.push({
           ...cls,
@@ -172,7 +201,7 @@ export default function AnnotationJob() {
       });
       console.log({colors})
       
-      getRois(labelClassArr);
+      await getRois(labelClassArr, avgBrightness);
       // setRectangleColor((prev) => ({
       //   ...prev,
       //   all: prev.all.length === colors.length ? [...prev.all] : colors,
@@ -375,17 +404,17 @@ export default function AnnotationJob() {
     labelRef.current = labelClass;
   }, [labelClass]);
 
-  const getRois = async (labelClassArr) => {
+  const getRois = async (labelClassArr, avgBrightness) => {
     try {
       const roiData = await axiosInstance.get('/configuration/classes', {
         params: {
           configurationId,
         },
       });
+      
       const data = roiData.data?.data?.data;
       const primaryClassObj = roiData?.data?.data?.primaryClass;
       setPrimaryClass(primaryClassObj);
-      // console.log('configuration/class', { data });
       if (data.length) {
         const rects = [];
         const roiMap = {};
@@ -395,7 +424,7 @@ export default function AnnotationJob() {
           if (!roiMap[roiId]) {
             if (conf.rois.coordinates.length === 4) {
               const [x1, y1, x2, y2] = conf.rois.coordinates;
-              const color = getRandomHexColor();
+              const color = labelClassArr.find(cl => cl.name === conf.rois.name)?.color || getRandomHexColor(avgBrightness);
               rects.push({
                 ...BASE_RECT,
                 id: i,
@@ -413,7 +442,7 @@ export default function AnnotationJob() {
                 uuid: v4(),
               });
             } else {
-              const color = getRandomHexColor();
+              const color = labelClassArr.find(cl => cl.name === conf.rois.name)?.color || getRandomHexColor(avgBrightness);
               rects.push({
                 ...BASE_RECT,
                 id: i,
@@ -457,7 +486,6 @@ export default function AnnotationJob() {
     setRectangles([]);
     setPolygons([]);
     getAllImages();
-    getClasses();
     getProject();
 
     return () => setModalOpen(false);
@@ -739,16 +767,23 @@ export default function AnnotationJob() {
             <h1 className=" border-b-[1px] px-6 pb-6 pt-6 text-3xl font-bold">
               Annotation Job
             </h1>
-            <div className="flex flex-col h-full mb-[90px] overflow-y-auto">
-              {renderAnnotationHeading()}
-              <div className="flex grow flex-col  gap-4 p-4">
-                <AnnotationClass labelClass={labelClass.filter(lc => lc.id !== primaryClass?.id)} />
-                <AnnotationLabels
-                  labelClass={labelClass.filter(lc => lc.id !== primaryClass?.id)}
-                  selectedImageId={selectedImage?.id}
-                />
+            {loader ? (
+              <div className="flex w-[80%] h-[200px] flex-col items-center justify-center gap-4 m-auto p-4 shadow-xl rounded-lg">
+                <div className="text-lg font-medium">Getting Classes and Labels</div>
+                <div className="loading w-[70%] px-4 text-center"></div>
               </div>
-            </div>
+            ) : (
+              <div className="flex flex-col h-full mb-[90px] overflow-y-auto">
+                {renderAnnotationHeading()}
+                <div className="flex grow flex-col  gap-4 p-4">
+                  <AnnotationClass labelClass={labelClass.filter(lc => lc.id !== primaryClass?.id)} />
+                  <AnnotationLabels
+                    labelClass={labelClass.filter(lc => lc.id !== primaryClass?.id)}
+                    selectedImageId={selectedImage?.id}
+                  />
+                </div>
+              </div>
+            )}
             <div
               className="border-t-[1px] absolute w-full bg-white border-black bottom-0 py-2"
             >

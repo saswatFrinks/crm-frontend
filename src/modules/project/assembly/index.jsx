@@ -49,18 +49,23 @@ import {
   imageStatusAtom,
   selectedFileAtom,
   inspectionReqAtom,
+  imgBrightnessAtom,
 } from '../state';
 import { useNavigate } from 'react-router-dom';
 import { cloneDeep } from 'lodash';
 import toast from 'react-hot-toast';
-import { compareArrays, getRandomHexColor } from '@/util/util';
+import { compareArrays, getAverageBrightness, getRandomHexColor } from '@/util/util';
 import { v4 } from 'uuid';
 import UploadImagesStep from './upload-image-step/index';
+import SpinLoader from '@/shared/icons/SpinLoader';
 
 export default function Assembly() {
   const [isEditing, setIsEditing] = useRecoilState(editingAtom);
   const setRectangleType = useSetRecoilState(rectanglesTypeAtom);
   const setPolygonType = useSetRecoilState(polygonsTypeAtom);
+  const setImageBrightness = useSetRecoilState(imgBrightnessAtom);
+
+  const [nextLoader, setNextLoader] = useState(false);
 
   const { projectId, configurationId } = useParams();
 
@@ -154,7 +159,7 @@ export default function Assembly() {
 
   const canGoNext = !(
     images.length !== 10 ||
-    (step == 0 && images.some((img) => !img))
+    (step == 0 && images.some((img) => !img)) || !selectedImage
   );
   const navigate = useNavigate();
 
@@ -307,7 +312,8 @@ export default function Assembly() {
     let t = step;
     if (!canGoNext) t = 0;
     else if (t == 0) {
-      await getRois();
+      const next = await getRois();
+      console.log({next})
       t++;
     } else if (t == 1) {
       if (nextRef.current) {
@@ -430,6 +436,7 @@ export default function Assembly() {
     if (roisLoaded) return true;
     console.log('ap1');
     try {
+      setNextLoader(true);
       const roiData = await axiosInstance.get('/configuration/classes', {
         params: {
           configurationId,
@@ -466,6 +473,24 @@ export default function Assembly() {
         const polys = [];
         // let configUpdate = { productFlow: data[0].configuration.direction },
         //   configUpdateRequired = false;
+        const img = new window.Image();
+        img.crossOrigin = 'Anonymous';
+        img.src = selectedImage.url;
+        const avgBrightness = await new Promise((resolve, reject) => {
+          img.onload = () => {
+            try {
+              resolve(getAverageBrightness(img));
+            } catch (err) {
+              toast.error('Error loading image')
+              reject(err);
+            }
+          };
+          img.onerror = (err) => {
+            toast.error('Error loading image')
+            reject(err);
+          };
+        });
+        setImageBrightness(avgBrightness);
         data?.forEach((conf, i) => {
           const roiId = conf.rois.id;
           console.log('Loop', roiId);
@@ -483,7 +508,8 @@ export default function Assembly() {
             //!do rectangle here too
             // const [ x1, y1, x2, y2] = conf.rois.coordinates.length > 4 ? ;
             const points = conf.rois.coordinates;
-            const color = getRandomHexColor();
+            console.log('from index', selectedImage)
+            const color = getRandomHexColor(avgBrightness);
             const uuid = v4();
 
             if (points.length === 4) {
@@ -574,11 +600,16 @@ export default function Assembly() {
         //   }));
         // }
       }
+      setNextLoader(false);
+      setStep(1);
       return true;
     } catch (e) {
+      toast.error(e.message || e?.response?.data?.data?.message)
+      setNextLoader(false);
       return false;
     } finally {
       setRoisLoaded(true);
+      setNextLoader(false);
     }
   };
 
@@ -598,6 +629,7 @@ export default function Assembly() {
         all: [],
         selectedColor: getRandomHexColor(),
       });
+      setImageBrightness(null);
     };
   }, []);
 
@@ -759,14 +791,16 @@ export default function Assembly() {
                     handleNext();
                   }
                 }}
-                disabled={!canGoNext}
+                disabled={!canGoNext || nextLoader}
                 className={
                   !isAllImagesLabeled && step == 2
                     ? 'cursor-not-allowed bg-slate-400 hover:bg-slate-400'
                     : ''
                 }
               >
-                {step == 3 ? 'Finish' : 'Next'}
+                {
+                  nextLoader ? 'Loading...' : step == 3 ? 'Finish' : 'Next'
+                }
               </Button>
             </div>
           </div>
