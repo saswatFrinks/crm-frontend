@@ -38,10 +38,10 @@ export default function BuildNTrainDrawer({formRefs, isMoving}) {
 
   return (
     <div className="grid h-full grid-cols-12 gap-4">
-      <div className="col-span-4 border-r-[1px] border-gray-300 p-6">
+      <div className="col-span-4 border-r-[1px] border-gray-300 p-6 sticky top-0">
         <TimeLine loading={loading} setLoading={setLoading} />
       </div>
-      <div className="col-span-8 p-6">{stepObj[step]}</div>
+      <div className="col-span-8 p-6 overflow-y-auto">{stepObj[step]}</div>
     </div>
   );
 }

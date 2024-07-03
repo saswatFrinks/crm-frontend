@@ -51,7 +51,7 @@ export default function Result() {
       const config = {
         params: {
           modelId: params.modelId,
-          name: imageName?.split('_')[0],
+          name: imageName,
           roiId
         },
         responseType: 'arraybuffer',
