@@ -362,7 +362,7 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
     setInitialVariants(
       variants.map((variant) => ({
         value: variant.name,
-        id: uuidv4(),
+        // id: uuidv4(),
         removable: false,
       }))
     );
@@ -371,7 +371,7 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
       formik.values.objectives.map((t) =>
         getAutofilledObjectives(t).map((objective) => ({
           value: objective.name,
-          id: uuidv4(),
+          // id: uuidv4(),
           removable: false,
         }))
       )
