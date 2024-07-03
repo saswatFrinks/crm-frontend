@@ -21,7 +21,6 @@ export default function AnnotationClass({ labelClass, isPrimary }) {
   const [isEditing, setIsEditing] = useRecoilState(editingAtom);
   const setImageStatus = useSetRecoilState(imageStatusAtom);
   const imageBrightness = useRecoilValue(imgBrightnessAtom);
-  console.log({imageBrightness})
 
   const [rectangleColor, setRectangleColor] =
     useRecoilState(rectangleColorAtom);

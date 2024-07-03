@@ -406,7 +406,6 @@ export default function AnnotationJob() {
 
   const getRois = async (labelClassArr, avgBrightness) => {
     try {
-      console.log('in getRois')
       const roiData = await axiosInstance.get('/configuration/classes', {
         params: {
           configurationId,
@@ -416,7 +415,6 @@ export default function AnnotationJob() {
       const data = roiData.data?.data?.data;
       const primaryClassObj = roiData?.data?.data?.primaryClass;
       setPrimaryClass(primaryClassObj);
-      // console.log('configuration/class', { data });
       if (data.length) {
         const rects = [];
         const roiMap = {};
