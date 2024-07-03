@@ -489,7 +489,7 @@ export default function Assembly() {
             toast.error('Error loading image')
             reject(err);
           };
-        }) || null;
+        });
         setImageBrightness(avgBrightness);
         data?.forEach((conf, i) => {
           const roiId = conf.rois.id;

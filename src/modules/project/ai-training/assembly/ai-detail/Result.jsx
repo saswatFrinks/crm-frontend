@@ -94,7 +94,7 @@ export default function Result() {
             toast.error('Error loading image')
             reject(err);
           };
-        }) || null;
+        });
         setBrightness(avgBrightness);
       }
 

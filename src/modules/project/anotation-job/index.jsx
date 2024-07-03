@@ -168,7 +168,6 @@ export default function AnnotationJob() {
         const img = new window.Image();
         img.crossOrigin = 'Anonymous';
         img.src = firstImage.url;
-        console.log({img})
         avgBrightness = await new Promise((resolve, reject) => {
           img.onload = () => {
             try {
@@ -182,9 +181,8 @@ export default function AnnotationJob() {
             toast.error('Error loading image')
             reject(err);
           };
-        }) || null;
+        });
       }
-      console.log({avgBrightness})
       setImageBrightness(avgBrightness)
       const colors = [];
       const labelClassArr = classes.data.data.map((cls) => {
