@@ -476,11 +476,20 @@ export default function Assembly() {
         const img = new window.Image();
         img.crossOrigin = 'Anonymous';
         img.src = selectedImage.url;
-        const avgBrightness = await new Promise((resolve) => {
+        const avgBrightness = await new Promise((resolve, reject) => {
           img.onload = () => {
-            resolve(getAverageBrightness(img));
+            try {
+              resolve(getAverageBrightness(img));
+            } catch (err) {
+              toast.error('Error loading image')
+              reject(err);
+            }
           };
-        });
+          img.onerror = (err) => {
+            toast.error('Error loading image')
+            reject(err);
+          };
+        }) || null;
         setImageBrightness(avgBrightness);
         data?.forEach((conf, i) => {
           const roiId = conf.rois.id;
@@ -595,11 +604,12 @@ export default function Assembly() {
       setStep(1);
       return true;
     } catch (e) {
-      toast.error(e.message)
+      toast.error(e.message || e?.response?.data?.data?.message)
       setNextLoader(false);
       return false;
     } finally {
       setRoisLoaded(true);
+      setNextLoader(false);
     }
   };
 

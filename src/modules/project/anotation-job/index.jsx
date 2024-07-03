@@ -169,11 +169,20 @@ export default function AnnotationJob() {
         img.crossOrigin = 'Anonymous';
         img.src = firstImage.url;
         console.log({img})
-        avgBrightness = await new Promise((resolve) => {
+        avgBrightness = await new Promise((resolve, reject) => {
           img.onload = () => {
-            resolve(getAverageBrightness(img));
+            try {
+              resolve(getAverageBrightness(img));
+            } catch (err) {
+              toast.error('Error loading image')
+              reject(err);
+            }
           };
-        });
+          img.onerror = (err) => {
+            toast.error('Error loading image')
+            reject(err);
+          };
+        }) || null;
       }
       console.log({avgBrightness})
       setImageBrightness(avgBrightness)

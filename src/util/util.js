@@ -25,7 +25,6 @@ export function getRandomHexColor(brightness = null) {
       }
       color += letters[randomIndex];
     }
-    console.log({isDark, color})
   }
   return color;
 }

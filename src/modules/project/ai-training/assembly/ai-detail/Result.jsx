@@ -7,7 +7,7 @@ import { useParams } from 'react-router-dom';
 import axiosInstance from '@/core/request/aixosinstance';
 import toast from 'react-hot-toast';
 import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader';
-import { getRandomHexColor } from '@/util/util';
+import { getAverageBrightness, getRandomHexColor } from '@/util/util';
 import ResultPagination from '@/shared/ui/ResultPagination';
 import Select from '@/shared/ui/Select';
 import NoData from '@/shared/ui/NoData';
@@ -24,6 +24,7 @@ export default function Result() {
   const [datasetCount, setDatasetCount] = useState(0);
 
   const [cachedImages, setCachedImages] = useState(new Map());
+  const [brightness, setBrightness] = useState(null);
 
   const [loader, setLoader] = useState(true);
   const [imageLoader, setImageLoader] = useState(false);
@@ -72,13 +73,35 @@ export default function Result() {
 
       const res = await axiosInstance.get('/model/result-image-data', config);
 
-      const parsedClasses = JSON.parse(res.headers['x-annotations']).map(classItem => ({
-        ...classItem,
-        stroke: getRandomHexColor()
-      }))
-
       const blob = new Blob([res.data], { type: 'image/png' });
       const url = window.URL.createObjectURL(blob);
+
+      let avgBrightness = brightness;
+      if(!avgBrightness){
+        const img = new window.Image();
+        img.crossOrigin = 'Anonymous';
+        img.src = url;
+        avgBrightness = await new Promise((resolve, reject) => {
+          img.onload = () => {
+            try {
+              resolve(getAverageBrightness(img));
+            } catch (err) {
+              toast.error('Error loading image')
+              reject(err);
+            }
+          };
+          img.onerror = (err) => {
+            toast.error('Error loading image')
+            reject(err);
+          };
+        }) || null;
+        setBrightness(avgBrightness);
+      }
+
+      const parsedClasses = JSON.parse(res.headers['x-annotations']).map(classItem => ({
+        ...classItem,
+        stroke: getRandomHexColor(avgBrightness)
+      }))
       return {
         url,
         parsedClasses: getFormattedBoxes(parsedClasses)
