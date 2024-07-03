@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Input from '@/shared/ui/Input';
 import Label from '@/shared/ui/Label';
 import Radio from '@/shared/ui/Radio';
@@ -13,6 +13,7 @@ import { v4 as uuidv4, validate } from 'uuid';
 import AutofilledDisabledInput from '@/shared/ui/AutofilledDisabledInput';
 import toast, { Toaster } from 'react-hot-toast';
 import Info from '@/shared/icons/Info';
+import InputTag from '@/shared/ui/InputTag';
 
 const CreateProjectDrawer = React.forwardRef((props, ref) => {
   const { closeDrawer, setShowLoader, fetchAllProjects, projectToEdit } = props;
@@ -23,7 +24,7 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
   const [cosmeticClasses, setCosmeticClasses] = React.useState([]);
   const [dimensionClasses, setDimensionClasses] = React.useState([]);
 
-  const [hover, setHover] = useState("");
+  const [hover, setHover] = useState('');
   const user = JSON.parse(storageService.get('user'));
   const inspectionTypes = [
     { id: '0', name: 'Fast' },
@@ -160,11 +161,15 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
     },
     validate: (values) => {
       const errors = {};
-      if(formik.touched.name && !(values.name.trim())){
+      if (formik.touched.name && !values.name.trim()) {
         errors.name = 'Project name is required';
       }
 
-      if(formik.touched.name && values.name && validateRegexString(values.name) !== ''){
+      if (
+        formik.touched.name &&
+        values.name &&
+        validateRegexString(values.name) !== ''
+      ) {
         errors.name = validateRegexString(values.name);
       }
 
@@ -188,7 +193,7 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
 
       if (
         formik.touched.variants &&
-        values.variants.length <= 1 &&
+        values.variants.length < 1 &&
         !variants.length
       ) {
         errors.variants = 'One variant is required';
@@ -217,7 +222,7 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
       if (
         formik.touched.assemblyInspection &&
         values.objectives.includes('assemblyInspection') &&
-        values.assemblyInspection.length <= 1
+        values.assemblyInspection.length < 1
       ) {
         errors.assemblyInspection = 'Minimum one class is mandatory';
       }
@@ -225,7 +230,7 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
       if (
         formik.touched.dimensioningInspection &&
         values.objectives.includes('dimensioningInspection') &&
-        values.dimensioningInspection.length <= 1
+        values.dimensioningInspection.length < 1
       ) {
         errors.dimensioningInspection = 'Minimum one class is mandatory';
       }
@@ -233,7 +238,7 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
       if (
         formik.touched.cosmeticInspection &&
         values.objectives.includes('cosmeticInspection') &&
-        values.cosmeticInspection.length <= 1
+        values.cosmeticInspection.length < 1
       ) {
         errors.cosmeticInspection = 'Minimum one class is mandatory';
       }
@@ -349,6 +354,29 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
       formik.handleSubmit();
     },
   }));
+
+  const [initialVariants, setInitialVariants] = useState([]);
+  const [initialCls, setInitialCls] = useState([]);
+
+  useEffect(() => {
+    setInitialVariants(
+      variants.map((variant) => ({
+        value: variant.name,
+        // id: uuidv4(),
+        removable: false,
+      }))
+    );
+
+    setInitialCls(
+      formik.values.objectives.map((t) =>
+        getAutofilledObjectives(t).map((objective) => ({
+          value: objective.name,
+          // id: uuidv4(),
+          removable: false,
+        }))
+      )
+    );
+  }, [variants, formik.values.objectives]);
 
   return (
     <form onSubmit={formik.handleSubmit} className="flex flex-col gap-4">
@@ -512,12 +540,12 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
         <div className="relative flex items-center gap-1">
           <Label>Add variants</Label>
           <div
-            onMouseEnter={() => setHover("variant")}
-            onMouseLeave={() => setHover("")}
+            onMouseEnter={() => setHover('variant')}
+            onMouseLeave={() => setHover('')}
             className="relative my-2"
           >
             <Info />
-            {hover === "variant" && (
+            {hover === 'variant' && (
               <span className="absolute bottom-full left-1/2 mb-2 w-[250px] -translate-x-1/2 -translate-y-2 transform rounded-md bg-f-primary px-2 py-1 text-center text-sm text-white transition-opacity duration-300">
                 Add the different names of the variants possible within this
                 inspection project here
@@ -526,14 +554,22 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
           </div>
         </div>
         <div className="align-items-center flex flex-wrap gap-4">
-          {projectToEdit &&
+          {/* {projectToEdit &&
             variants?.map((variant) => {
               return <AutofilledDisabledInput value={variant.name} />;
             })}
+
           <InputList
             placeholder="Enter variants"
             formik={formik}
             field="variants"
+          /> */}
+
+          <InputTag
+            placeholder="Add new variants by typing and then clicking enter"
+            formik={formik}
+            field="variants"
+            initialTags={initialVariants}
           />
         </div>
 
@@ -616,17 +652,17 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
         ) : null}
       </div>
 
-      {formik.values.objectives.map((t) => (
+      {formik.values.objectives.map((t, index) => (
         <div key={t}>
           <div className="relative flex items-center gap-1">
             <Label>Add classes for {getClassNameTitle(t)} </Label>
             <div
-              onMouseEnter={() => setHover("assembly")}
-              onMouseLeave={() => setHover("")}
+              onMouseEnter={() => setHover('assembly')}
+              onMouseLeave={() => setHover('')}
               className="relative my-2"
             >
               <Info />
-              {hover === "assembly" && (
+              {hover === 'assembly' && (
                 <span className="absolute bottom-full left-1/2 mb-2 w-[280px] -translate-x-1/2 -translate-y-2 transform rounded-md bg-f-primary px-2 py-1 text-center text-sm text-white transition-opacity duration-300">
                   Add all the different objects as classes which you want to
                   inspect (including the Primary Object class) within this
@@ -637,10 +673,17 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
           </div>
 
           <div className="align-items-center flex flex-wrap gap-4">
-            {getAutofilledObjectives(t).map((objective) => {
+            {/* {getAutofilledObjectives(t).map((objective) => {
               return <AutofilledDisabledInput value={objective.name} />;
             })}
-            <InputList placeholder="Enter class" formik={formik} field={t} />
+            <InputList placeholder="Enter class" formik={formik} field={t} /> */}
+
+            <InputTag
+              placeholder="Add new classes by typing and then clicking enter"
+              formik={formik}
+              field={t}
+              initialTags={initialCls[index]}
+            />
           </div>
           {formik.errors[t] ? (
             <p className="text-xs text-red-500">{formik.errors[t]}</p>
