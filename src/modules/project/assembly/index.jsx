@@ -154,7 +154,6 @@ export default function Assembly() {
         },
       });
       !data.data.isItemFixed && setType(ASSEMBLY_CONFIG.MOVING);
-      console.log(configuration, data.data);
     } catch (error) {
       console.log(error);
     }
@@ -199,7 +198,6 @@ export default function Assembly() {
     // }
 
     annotationRects.forEach((rect) => {
-      console.log("imageIds", rect.points, labelsEdited[rect.imageId])
       if (!labelsEdited[rect.imageId]) return;
       const classNo = annotationMap[rect.uuid];
       if (!rect?.points) {
@@ -223,7 +221,6 @@ export default function Assembly() {
         } else {
           imgMap[rect.imageId] = `${classNo}`;
           rect.points.map((point) => {
-            console.log('point11', point);
             point = Number(point).toFixed(4);
             imgMap[rect.imageId] += ` ${point}`;
           });
@@ -234,7 +231,6 @@ export default function Assembly() {
 
     const formData = new FormData();
     const imageIds = [];
-    // console.log({images}) // conatins the 10 uploaded images
     images.forEach((img, index) => {
       if (imgMap[img.id]?.length || labelsEdited[img.id]) {
         const fileContents = imgMap[img.id] || '';
@@ -247,8 +243,6 @@ export default function Assembly() {
 
     formData.append('configurationId', configurationId);
     formData.append('imageIds', imageIds);
-
-    console.log("imageIds", {imageIds, imgMap, annotationRects})
 
     if (!imageIds.length) {
       toast.success('No changes to update');
@@ -291,7 +285,6 @@ export default function Assembly() {
           projectId: projectId,
         },
       });
-      console.log(res.data, 'project result');
       setInspectionReq(res?.data?.data?.inspectionType);
     } catch (error) {
       toast.error(
@@ -317,12 +310,10 @@ export default function Assembly() {
     if (!canGoNext) t = 0;
     else if (t == 0) {
       const next = await getRois();
-      console.log({ next });
       t++;
     } else if (t == 1) {
       if (nextRef.current) {
         const res = await nextRef.current.handleSubmit();
-        console.log('res:', res);
         if (res) return;
       }
       t = (await prepareApiData()) ? t + 1 : t;
@@ -331,7 +322,6 @@ export default function Assembly() {
     } else if (t == 3) {
       navigate(-1);
     } else if (t != 3) t += 1;
-    console.log(step);
     setStep(t);
   };
 
@@ -427,8 +417,6 @@ export default function Assembly() {
     setPolygonType(RECTANGLE_TYPE.ROI);
   };
 
-  // console.log({ configuration }, { rectangles }, { polygons });
-
   const stepObj = {
     0: <UploadImagesStep />,
     1: <InspectionParameterStep type={type} nextRef={nextRef} />,
@@ -438,7 +426,6 @@ export default function Assembly() {
 
   const getRois = async () => {
     if (roisLoaded) return true;
-    console.log('ap1');
     try {
       setNextLoader(true);
       const roiData = await axiosInstance.get('/configuration/classes', {
@@ -446,40 +433,17 @@ export default function Assembly() {
           configurationId,
         },
       });
-      // console.log({ roiData });
       let data = roiData.data?.data?.data;
       data = data?.sort((a, b) => a.rois.name.localeCompare(b.rois.name));
-      console.log({ data });
-      // const temp = [...data];
-      // temp.length &&
-      //   temp.map((item, index) => {
-      //     console.log('inside map:', item);
-      //     setConfiguration((prev) => ({
-      //       ...prev,
-      //       productFlow: item.configuration.direction,
-      //     }));
-      //     if (item.parts.isTracker) {
-      //       console.log('updating config');
-      //       setConfiguration((prev) => ({
-      //         ...prev,
-      //         primaryObject: item.parts.name,
-      //         primaryObjectClass: item.parts.classId,
-      //         direction: item.configuration.direction,
-      //       }));
-      //       data.splice(index, 1);
-      //     }
-      //   });
       if (data?.length) {
         const temp = [...data];
         temp.length &&
           temp.map((item, index) => {
-            console.log('inside map:', item);
             setConfiguration((prev) => ({
               ...prev,
               productFlow: item.configuration.direction,
             }));
             if (item.parts.isTracker) {
-              console.log('updating config');
               setConfiguration((prev) => ({
                 ...prev,
                 primaryObject: item.parts.name,
@@ -515,9 +479,7 @@ export default function Assembly() {
         setImageBrightness(avgBrightness);
         data?.forEach((conf, i) => {
           const roiId = conf.rois.id;
-          console.log('Loop', roiId);
           if (!roiMap[roiId]) {
-            console.log('roi id not present');
             roiMap[roiId] = {
               id: i,
               title: conf.rois.name,
@@ -530,7 +492,6 @@ export default function Assembly() {
             //!do rectangle here too
             // const [ x1, y1, x2, y2] = conf.rois.coordinates.length > 4 ? ;
             const points = conf.rois.coordinates;
-            console.log('from index', selectedImage);
             const color = getRandomHexColor(avgBrightness);
             const uuid = v4();
 
@@ -572,7 +533,6 @@ export default function Assembly() {
           if (!partsMap[roiId]) {
             partsMap[roiId] = [];
           }
-          console.log('doing parts');
           // if (conf.parts.isTracker) {
           //   configUpdateRequired = true;
           //   configUpdate = {
@@ -592,7 +552,6 @@ export default function Assembly() {
             checked: false,
             open: true,
           });
-          console.log('getting rois', roiId, partsMap[roiId]);
         });
         for (let roiId in roiMap) {
           roiMap[roiId].parts = partsMap[roiId];
@@ -639,7 +598,6 @@ export default function Assembly() {
       setNextLoader(false);
     }
   };
-  console.log('mkc', configuration);
 
   useEffect(() => {
     setLabelsEdited({});
@@ -682,11 +640,6 @@ export default function Assembly() {
         };
       });
       const points = [];
-      console.log(
-        roi.id,
-        rois.map((ele) => ele.roiId)
-      );
-      console.log({ rois });
       rois.forEach((roiRect) => {
         if (roi.id == roiRect.roiId) {
           if (roiRect?.points) {
@@ -699,7 +652,6 @@ export default function Assembly() {
           }
         }
       });
-      // console.log("id of rois",roi?.id)
       const isPrimary = roi?.primaryObject !== null;
       return {
         id: roi?.identity || '',
@@ -726,7 +678,6 @@ export default function Assembly() {
     //   const blob = await resp.blob()
     //   formData.append('images', blob, img.name)
     // }))
-    // console.log('formData', { temp });
     formData.append('data', JSON.stringify(temp));
     // formData.append('configurationId', configurationId);
     // formData.append(
