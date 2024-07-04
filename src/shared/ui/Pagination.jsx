@@ -1,6 +1,8 @@
 import axiosInstance from '@/core/request/aixosinstance';
+import { initialLabelsAtom } from '@/modules/project/assembly/state';
 import {
   annotationCacheAtom,
+  annotationClassesAtom,
   cacheLoaderAtom,
   editingAtom,
   selectedFileAtom,
@@ -25,6 +27,12 @@ export default function Pagination({ chevornsMovement = 5 }) {
   const [isEditing, setIsEditing] = useRecoilState(editingAtom);
 
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  const [annotationClasses, setAnnotationClasses] = useRecoilState(
+    annotationClassesAtom
+  );
+  const [initialLabels, setInitialLabels] = useRecoilState(initialLabelsAtom);
+
 
   let i = Math.min(Math.max(currentIndex - 3, 0), allImages.length - 6);
   const paginationBar =
@@ -165,6 +173,16 @@ export default function Pagination({ chevornsMovement = 5 }) {
   };
 
   const check = () => {
+    // if(annotationClasses[selectedImage.id].length !== initialLabels[selectedImage.id]) {
+    //   toast(
+    //     'Please save the creation of the new label first before proceeding',
+    //     {
+    //       icon: '⚠️',
+    //     }
+    //   );
+    //   return true;
+    // }
+
     if (isEditing) {
       toast(
         'Please confirm the creation of the new label first before proceeding',

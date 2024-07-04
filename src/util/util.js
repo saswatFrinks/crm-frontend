@@ -26,6 +26,7 @@ export function getRandomHexColor(brightness = null) {
       color += letters[randomIndex];
     }
   }
+  console.log("bright", {brightness, color})
   return color;
 }
 
@@ -72,6 +73,7 @@ const arraysEqual = (a, b) => {
 
 export const compareArrays = (annotRects, iniLabels) => {
   let flag = false;
+  console.log("arr11", annotRects, iniLabels);
 
   for (let rect of annotRects) {
     let initialLabel = iniLabels.find((label) => label.uuid === rect.uuid);

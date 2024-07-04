@@ -93,14 +93,6 @@ export default function Actions({ cancel, submit }) {
   };
 
   const handleDrawBox = () => {
-    console.log(
-      'drawModebox',
-      imageStatus.drawMode,
-      !isEditing,
-      imageStatus.drawMode === true,
-      prevStatus === 'finish',
-      inspectionReq === 2 && step !== 1
-    );
     if (
       !isEditing ||
       imageStatus.drawMode === true ||
@@ -110,14 +102,12 @@ export default function Actions({ cancel, submit }) {
       return;
 
     let ret = false;
-    console.log('handleDrawBox', { rectangles, currentRoiId });
     rectangles.forEach((rect) => {
       if (rect.roiId && rect.roiId === currentRoiId) {
         ret = true;
       }
     });
     if (ret) return;
-    console.log('click rectangular selection', { IMAGE_STATUS });
     setImageStatus((t) => ({
       ...IMAGE_STATUS,
       draw: !t.draw,
@@ -128,7 +118,6 @@ export default function Actions({ cancel, submit }) {
   };
 
   const handleDrawPolygon = () => {
-    console.log('drawModepoly', imageStatus.drawMode);
     if (
       !isEditing ||
       imageStatus.drawMode === true ||
@@ -217,7 +206,7 @@ export default function Actions({ cancel, submit }) {
     {
       title: 'Rectangular Selection',
       icon: Box,
-      action: handleDrawBox,
+      // action: handleDrawBox,
       active:
         (inspectionReq === 0 || inspectionReq === 1 || step == 1) &&
         imageStatus.draw &&
@@ -240,7 +229,7 @@ export default function Actions({ cancel, submit }) {
     {
       title: 'Polygon Selection',
       icon: Poly,
-      action: handleDrawPolygon,
+      // action: handleDrawPolygon,
       active:
         inspectionReq === 2 &&
         step == 2 &&
