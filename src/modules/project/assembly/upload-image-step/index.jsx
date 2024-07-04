@@ -172,7 +172,7 @@ const UploadImagesStep = () => {
       imagesResponse.forEach((img) => {
         tempImages.set(img.index, {
           id: img.imageId,
-          fileName: `${img.imageId}.png`,
+          fileName: img.name,
           checked: false,
           number: img.index,
           url: `${import.meta.env.VITE_BASE_API_URL}/configurationImage/view?imageId=${img.imageId}`,

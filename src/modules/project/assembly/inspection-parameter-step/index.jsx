@@ -55,7 +55,6 @@ import {
 export default function InspectionParameterStep(props) {
   // type: moving | stationary {{ASSEMBLY_CONFIG}}
   const { type = ASSEMBLY_CONFIG.STATIONARY, nextRef } = props;
-  // console.log(type)
   const param = useParams();
 
   const setModalState = useSetRecoilState(modalAtom);
@@ -108,8 +107,6 @@ export default function InspectionParameterStep(props) {
     return res1 || res2;
   };
 
-  // console.log("movingForm:", movingForm)
-
   nextRef.current = {
     handleSubmit: handleSubmit,
   };
@@ -149,7 +146,6 @@ export default function InspectionParameterStep(props) {
   const validate = (values) => {
     let errorFound = false;
     const updatedErrors = new Map(errors);
-    console.log('configuration:', configuration);
 
     configuration.rois.forEach((roi, roiIndex) => {
       roi.parts.forEach((obj, objIndex) => {
@@ -178,14 +174,12 @@ export default function InspectionParameterStep(props) {
           projectId: param.projectId,
         },
       });
-      // console.log('configuration:', selectedConfiguration);
       setClassOptions(classes.data.data);
     } catch (error) {}
   };
 
   useEffect(() => {
     getClasses();
-    // console.log('configuration:', selectedConfiguration);
     return () => setModalState(false);
   }, []);
 
@@ -194,7 +188,6 @@ export default function InspectionParameterStep(props) {
       return;
     }
     let tempRois = cloneDeep(configuration.rois);
-    // console.log('confRois:', configuration.rois);
     if (tempRois[0]?.parts[0]?.class === '') {
       tempRois[0].parts[0].class = classOptions.filter(
         (cl) => cl.id !== configuration?.primaryObjectClass
@@ -217,7 +210,6 @@ export default function InspectionParameterStep(props) {
     }
 
     let tempRois = cloneDeep(configuration.rois);
-    // console.log('confRois:', configuration.rois);
     tempRois[0]?.parts.forEach((part) => {
       if (part.class == '' || part.class == configuration?.primaryObjectClass) {
         const takeClass = classOptions.filter(
@@ -238,7 +230,6 @@ export default function InspectionParameterStep(props) {
   }, [configuration.primaryObjectClass, classOptions]);
 
   const addRoi = () => {
-    // console.log('addRoi1', { configuration });
     if (isEditing) {
       toast('Please confirm the current ROI', {
         icon: '⚠️',
@@ -267,15 +258,8 @@ export default function InspectionParameterStep(props) {
       draw: false,
     }));
   };
-  // console.log({formData})
 
   const addObject = (roiId) => {
-    // if(isEditing) {
-    //   toast('Please confirm the current ROI', {
-    //     icon: '⚠️',
-    //   });
-    //   return;
-    // }
     setConfiguration((config) => ({
       ...config,
       rois: config.rois.map((roi) => ({
@@ -372,22 +356,9 @@ export default function InspectionParameterStep(props) {
   };
 
   const handleClickLabel = (id, title) => {
-    // handleDrawBox();
     setIsEditing(true);
     setCurrentRoiId(id);
     let type = 'rec';
-    // console.log('imageStatus1', { configuration, rectangles, polygons });
-    // let ind = configuration.rois.findIndex(
-    //   (rect) => rect.title == title && rect.rectType == RECTANGLE_TYPE.ROI
-    // );
-
-    // if(ind === -1) {
-    //   ind = configuration.rois.findIndex(
-    //     (poly) => poly.title == title && poly.polyType == RECTANGLE_TYPE.ROI
-    //   );
-    // }
-
-    // setStatusCheck(configuration.rois[ind].status )
 
     let idx = rectangles.findIndex(
       (rect) => rect.title == title && rect.rectType == RECTANGLE_TYPE.ROI
@@ -403,25 +374,11 @@ export default function InspectionParameterStep(props) {
     if (idx >= 0) {
       if (type === 'rec' && rectangles[idx]?.uuid) {
         setSelectedRectId(rectangles[idx].uuid);
-        // setImageStatus((t) => ({
-        //   ...t,
-        //   drawMode: 'RECT',
-        // }));
       } else {
         setSelectedPolyId(polygons[idx]?.uuid);
-        // setImageStatus((t) => ({
-        //   ...t,
-        //   drawMode: 'POLY',
-        // }));
       }
     }
 
-    // let idx = rectangles.findIndex(
-    //   (rect) => rect.roiId == id && rect.rectType == RECTANGLE_TYPE.ROI
-    // );
-    // if (idx >= 0) {
-    //   setSelectedRectId(rectangles[idx].uuid);
-    // }
     setConfiguration((t) => ({
       ...t,
       rois: t.rois.map((k) => ({
@@ -560,29 +517,6 @@ export default function InspectionParameterStep(props) {
             </div>
           </div>
 
-          {/* <div className="flex items-center gap-2">
-            <Label main={false}>Primary Object Class Annotation:</Label>
-            <div className="ml-2 w-44 max-w-xs">
-              <Button
-                size="tiny"
-                // color={genLabelClass(t.status)}
-                fullWidth={false}
-                onClick={() => {
-                  if (isEditing) {
-                    toast('Please confirm the current Class', {
-                      icon: '⚠️',
-                    });
-                    return;
-                  }
-                }}
-              >
-                <div className="flex items-center gap-2">
-                  <Pen /> Label Class
-                </div>
-              </Button>
-            </div>
-          </div> */}
-
           <Hr />
         </div>
       );
@@ -640,7 +574,6 @@ export default function InspectionParameterStep(props) {
 
     const newErrors = new Map(errors);
     const errorData = newErrors.get(fieldKey) || {};
-    console.log('value', value);
     if (key === 'objectName' && value) {
       errorData.name = '';
     } else if (key === 'objectQty' && value) {
@@ -651,8 +584,6 @@ export default function InspectionParameterStep(props) {
     newErrors.set(fieldKey, errorData);
     setErrors(newErrors);
   };
-
-  // console.log({ configuration });
 
   return (
     <>
@@ -695,15 +626,8 @@ export default function InspectionParameterStep(props) {
                   size="tiny"
                   color={genLabelClass(t.status)}
                   fullWidth={false}
-                  // disabled={isEditing ? true : false}
                   onClick={() => {
                     if (isEditing) {
-                      // toast(
-                      //   `${
-                      //     t.status === STATUS.EDITING
-                      //       ? 'Please confirm the edit of the ROI'
-                      //       : 'Please confirm the creation of the new ROI first before proceeding'
-                      //   }`,
                       toast('Please confirm the current ROI', {
                         icon: '⚠️',
                       });
@@ -844,12 +768,15 @@ export default function InspectionParameterStep(props) {
                             value={configuration.rois[i].parts[objIndex].class}
                             onChange={(e) => {
                               let temp = '';
+                              if(configuration.rois[i].parts?.map(p => p.class)?.includes(e.target.value)){
+                                toast.error('Class already selected in another Object.');
+                                return;
+                              }
                               classOptions.forEach((opt) => {
                                 if (opt.id === e.target.value) {
                                   temp = opt.name;
                                 }
                               });
-                              console.log({ id: e.target.value, temp });
                               setConfiguration((d) => ({
                                 ...d,
                                 rois: d.rois.map((roi, locRIdx) => {
