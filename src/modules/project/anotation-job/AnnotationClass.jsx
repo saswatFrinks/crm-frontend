@@ -6,12 +6,18 @@ import {
   editingAtom,
   imageStatusAtom,
   imgBrightnessAtom,
+  inspectionReqAtom,
   labelClassAtom,
+  lastActionNameAtom,
   polygonsTypeAtom,
   rectanglesTypeAtom,
 } from '../state';
 import { rectangleColorAtom } from '../assembly/state';
 import toast from 'react-hot-toast';
+
+import {
+  ACTION_NAMES,
+} from '@/core/constants';
 
 export default function AnnotationClass({ labelClass, isPrimary }) {
   const [selectedClassId, setSelectedClassId] = useRecoilState(labelClassAtom);
@@ -24,6 +30,9 @@ export default function AnnotationClass({ labelClass, isPrimary }) {
 
   const [rectangleColor, setRectangleColor] =
     useRecoilState(rectangleColorAtom);
+
+  const [inspectionReq, setInspectionReq] = useRecoilState(inspectionReqAtom);
+  const [actionName, setActionName] = useRecoilState(lastActionNameAtom);
 
   const handleClick = async (t) => {
     if (isEditing === true) {
@@ -39,7 +48,13 @@ export default function AnnotationClass({ labelClass, isPrimary }) {
     setRectangleType(RECTANGLE_TYPE.ANNOTATION_LABEL);
     setPolygonType(RECTANGLE_TYPE.ANNOTATION_LABEL);
     setSelectedClassId(t);
-    setImageStatus((prev) => ({...prev, draw: !prev.draw}))
+    setImageStatus((prev) => ({
+      ...prev,
+      draw: !prev.draw,
+      drawing: true,
+      drawMode: inspectionReq !== 2 ? 'RECT' : 'POLY',
+    }));
+    setActionName(ACTION_NAMES.SELECTED);
   };
 
   // useEffect(() => {
@@ -65,9 +80,13 @@ export default function AnnotationClass({ labelClass, isPrimary }) {
   return (
     <div className="">
       {isPrimary ? (
-        <p className="mb-4 mt-10 break-all font-medium">Click the Primary Object Class below to label it in the image</p>
+        <p className="mb-4 mt-10 break-all font-medium">
+          Click the Primary Object Class below to label it in the image
+        </p>
       ) : (
-        <p className="mb-4 mt-10 break-all font-medium">Click the classes below to label them</p>
+        <p className="mb-4 mt-10 break-all font-medium">
+          Click the classes below to label them
+        </p>
       )}
       <ul className="flex flex-wrap gap-4">
         {labelClass.map((t, i) => (
@@ -86,7 +105,10 @@ export default function AnnotationClass({ labelClass, isPrimary }) {
               });
             }}
           >
-            <Box size="xs" labelColor={imageBrightness >= 128 ? '#ddd' : '#000'}/>
+            <Box
+              size="xs"
+              labelColor={imageBrightness >= 128 ? '#ddd' : '#000'}
+            />
             {t.name}
           </li>
         ))}

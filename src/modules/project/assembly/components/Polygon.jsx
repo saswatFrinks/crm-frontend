@@ -76,6 +76,7 @@ const Polygon = ({
           text={`${shape?.title}`}
           fontSize={15}
           fill={shape.fill}
+          fontStyle='bold'
         />
       )}
       <Line

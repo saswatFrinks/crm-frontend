@@ -32,6 +32,7 @@ import {
   currentPolygonIdAtom,
   imageStatusAtom,
   imgBrightnessAtom,
+  inspectionReqAtom,
   // rectangleColorAtom
 } from '../../state';
 import {
@@ -103,6 +104,8 @@ export default function LabelImage({ type, save }) {
   const [initialLabels, setInitialLabels] = useRecoilState(initialLabelsAtom);
 
   const [labelId, setLabelId] = useRecoilState(currentLabelIdAtom);
+
+  const [inspectionReq, setInspectionReq] = useRecoilState(inspectionReqAtom);
 
   let selectedRois = [];
   let idCntr = -1;
@@ -263,7 +266,6 @@ export default function LabelImage({ type, save }) {
   };
 
   const handleClassClick = async (e, i, col) => {
-    console.log({ isEditing }, 'editing');
     if (isEditing) {
       toast(
         'Please confirm the creation of the new label first before proceeding',
@@ -277,7 +279,7 @@ export default function LabelImage({ type, save }) {
     if (labelClasses[i]?.status) {
       setPrevStatus(labelClasses[i]?.status);
     }
-    console.log({ label: labelClasses[i] });
+
     setIsEditing(true);
     setRectangleType(RECTANGLE_TYPE.ANNOTATION_LABEL);
     setPolygonType(RECTANGLE_TYPE.ANNOTATION_LABEL);
@@ -285,7 +287,7 @@ export default function LabelImage({ type, save }) {
       ...rectangleColor,
       selectedColor: col,
     });
-    // console.log("name",labelClasses[i].name)
+
     const update = {
       name: labelClasses[i].name,
       count: labelClasses[i].count,
@@ -302,7 +304,9 @@ export default function LabelImage({ type, save }) {
       status: STATUS.EDITING,
     };
 
-    setImageStatus((t) => ({ ...t, draw: !t.draw }));
+    setImageStatus((t) => ({ ...t, draw: !t.draw , drawing: true,
+      drawMode: inspectionReq !== 2 ? "RECT" : "POLY",}));
+      setActionName(ACTION_NAMES.SELECTED);
   };
 
   const curIndex = images.findIndex((image) => image.id == selectedFile?.id);
@@ -355,7 +359,7 @@ export default function LabelImage({ type, save }) {
         return { ...prev, ...updates };
       });
     }
-    console.log({ annotations });
+
     if (annotations.length) {
       if (annotations?.x) {
         setSelectedRectId(annotations[0].uuid);
@@ -365,8 +369,6 @@ export default function LabelImage({ type, save }) {
       setLabelId(annotations[0].uuid);
     }
   }, [selectedRois, annotationMap]);
-
-  console.log({ selectedRois, annotationMap, primaryClass });
 
   // useEffect(() => {
   //   setRectangleColor({...rectangleColor})
@@ -482,13 +484,6 @@ export default function LabelImage({ type, save }) {
   React.useEffect(() => {
     labelsRef.current = labelClasses;
   }, [labelClasses]);
-
-  console.log(
-    { selectedRois },
-    { initialLabels },
-    { selectedRectId },
-    { labelId }
-  );
 
   const renderLabelHeading = () => {
     if (type !== ASSEMBLY_CONFIG.MOVING) return <></>;

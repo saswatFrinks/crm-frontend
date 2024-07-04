@@ -37,7 +37,11 @@ import {
   inspectionReqAtom,
   imgBrightnessAtom,
 } from '../state';
-import { compareArrays, getAverageBrightness, getRandomHexColor } from '@/util/util';
+import {
+  compareArrays,
+  getAverageBrightness,
+  getRandomHexColor,
+} from '@/util/util';
 import {
   ACTION_NAMES,
   ASSEMBLY_CONFIG,
@@ -81,7 +85,8 @@ export default function AnnotationJob() {
   const setSelectedPolyId = useSetRecoilState(currentPolygonIdAtom);
   const [modalOpen, setModalOpen] = useRecoilState(modalAtom);
   const [type, setType] = useState(ASSEMBLY_CONFIG.STATIONARY);
-  const [imageBrightness, setImageBrightness] = useRecoilState(imgBrightnessAtom);
+  const [imageBrightness, setImageBrightness] =
+    useRecoilState(imgBrightnessAtom);
 
   // const [primaryClass, setPrimaryClass] = useState(null);
 
@@ -115,7 +120,7 @@ export default function AnnotationJob() {
         },
       });
       !data.data.isItemFixed && setType(ASSEMBLY_CONFIG.MOVING);
-      setInspectionReq(data?.data?.inspectionType)
+      setInspectionReq(data?.data?.inspectionType);
     } catch (error) {
       console.log(error);
     }
@@ -164,7 +169,7 @@ export default function AnnotationJob() {
       });
       // const color = getRandomHexColor();
       let avgBrightness = null;
-      if(firstImage){
+      if (firstImage) {
         const img = new window.Image();
         img.crossOrigin = 'Anonymous';
         img.src = firstImage.url;
@@ -173,17 +178,17 @@ export default function AnnotationJob() {
             try {
               resolve(getAverageBrightness(img));
             } catch (err) {
-              toast.error('Error loading image')
+              toast.error('Error loading image');
               reject(err);
             }
           };
           img.onerror = (err) => {
-            toast.error('Error loading image')
+            toast.error('Error loading image');
             reject(err);
           };
         });
       }
-      setImageBrightness(avgBrightness)
+      setImageBrightness(avgBrightness);
       const colors = [];
       const labelClassArr = classes.data.data.map((cls) => {
         // const findColor = rectangleColor.all.find(
@@ -192,15 +197,14 @@ export default function AnnotationJob() {
         // console.log({ findColor });
         // const color = findColor ? findColor : getUniqueHexColor(colors);
         const color = getUniqueHexColor(colors, avgBrightness);
-        console.log({ cls });
         colors.push({
           ...cls,
           color: color,
         });
         return { ...cls, color: color };
       });
-      console.log({colors})
-      
+      console.log({ colors });
+
       await getRois(labelClassArr, avgBrightness);
       // setRectangleColor((prev) => ({
       //   ...prev,
@@ -210,7 +214,6 @@ export default function AnnotationJob() {
         setRectangleColor((prev) => ({ ...prev, all: colors }));
     } catch (error) {}
   };
-  console.log('lael CLaseef', labelClass)
 
   const cancel = () => {
     setImageStatus((prev) => ({
@@ -247,8 +250,6 @@ export default function AnnotationJob() {
   //   })
   // }
 
-  console.log({ initialLabels }, { annotationClasses });
-
   const handleExit = () => {
     if (isEditing) {
       toast(
@@ -269,21 +270,45 @@ export default function AnnotationJob() {
       return [...prev, ...rectangles, ...polygons];
     }, []);
 
-    const cls = [
-      ...(annotationClasses[selectedImage.id].rectangles || []),
-      ...(annotationClasses[selectedImage.id].polygons || []),
-    ];
+    let flag = true;
 
-    if (
-      initialLabels[selectedImage.id]?.length === cls.length &&
-      !compareArrays(imageSpecificRects, initialLabels[selectedImage.id])
-    ) {
-      setModalOpen(false);
+    images.map((img) => {
+      if (annotationClasses[img.id]?.changed === true) {
+        const cl = [
+          ...(annotationClasses[img.id]?.rectangles || []),
+          ...(annotationClasses[img.id]?.polygons || []),
+        ];
+        // console.log('lo1', { cl, initialLabels, annotationClasses });
+        if (
+          initialLabels[img.id]?.length !== cl.length ||
+          compareArrays(cl, initialLabels[img.id])
+        ) {
+          flag = false;
+        }
+      }
+    });
+
+    if (flag) {
       nav('..', { relative: 'route', state: location.state });
+      setModalOpen(false);
     } else {
       setModalOpen(true);
     }
-    console.log({ modalOpen });
+
+    // const cls = [
+    //   ...(annotationClasses[selectedImage.id].rectangles || []),
+    //   ...(annotationClasses[selectedImage.id].polygons || []),
+    // ];
+
+    // if (
+    //   initialLabels[selectedImage.id]?.length === cls.length &&
+    //   !compareArrays(imageSpecificRects, initialLabels[selectedImage.id])
+    // ) {
+    //   setModalOpen(false);
+    //   nav('..', { relative: 'route', state: location.state });
+    // } else {
+    //   setModalOpen(true);
+    // }
   };
 
   const updateAnnotation = async () => {
@@ -296,6 +321,8 @@ export default function AnnotationJob() {
       );
       return;
     }
+    setSelectedRectId(null);
+    setSelectedPolyId(null);
     const imgMap = {};
     const changedList = Object.values(annotationClasses).filter(
       (cls) => cls.changed
@@ -305,24 +332,54 @@ export default function AnnotationJob() {
     const imageSpecificRects = changedList.reduce((prev, cur) => {
       return [...prev, ...(cur.rectangles || []), ...(cur.polygons || [])];
     }, []);
-    
-    const cls = [
-      ...(annotationClasses[selectedImage.id].rectangles || []),
-      ...(annotationClasses[selectedImage.id].polygons || []),
-    ];
 
-    if (
-      initialLabels[selectedImage.id]?.length === cls.length &&
-      !compareArrays(cls, initialLabels[selectedImage.id])
-    ) {
+    let flag = true;
+
+    images.map((img) => {
+      if (annotationClasses[img.id]?.changed === true) {
+        console.log('checked', img.id);
+        const cl = [
+          ...(annotationClasses[img.id]?.rectangles || []),
+          ...(annotationClasses[img.id]?.polygons || []),
+        ];
+        // console.log('lo1', { cl, initialLabels, annotationClasses });
+        if (
+          initialLabels[img.id]?.length !== cl.length ||
+          compareArrays(cl, initialLabels[img.id])
+        ) {
+          flag = false;
+        }
+      }
+      // const cl = [
+      //   ...(annotationClasses[img.id]?.rectangles || []),
+      //   ...(annotationClasses[img.id]?.polygons || []),
+      // ];
+      // // console.log('lo1', { cl, initialLabels, annotationClasses });
+      // if (
+      //   initialLabels[img.id]?.length !== cl.length ||
+      //   compareArrays(cl, initialLabels[img.id])
+      // ) {
+      //   flag = false;
+      // }
+    });
+
+    if (flag) {
       toast.success('No changes to update');
       setModalOpen(false);
       return true;
     }
+    // if (
+    //   initialLabels[selectedImage.id]?.length === cls.length &&
+    //   !compareArrays(cls, initialLabels[selectedImage.id])
+    // ) {
+    //   toast.success('No changes to update');
+    //   setModalOpen(false);
+    //   return true;
+    // }
+
     // if (imageSpecificRects.length == 0) return false;
     const imageIds = [];
     imageSpecificRects.forEach((rect) => {
-      // console.log(annotationMap, rect.uuid);
       // if (!imageIds.includes(rect.imageId)) imageIds.push(rect.imageId);
       const classNo = annotationMap[rect.uuid];
       if (!rect?.points) {
@@ -343,7 +400,6 @@ export default function AnnotationJob() {
             imgMap[rect.imageId] += ` ${point}`;
           });
           imgMap[rect.imageId] += '\n';
-          console.log('old', imgMap[rect.imageId]);
         } else {
           imgMap[rect.imageId] = `${classNo}`;
           rect.points.map((point) => {
@@ -359,9 +415,7 @@ export default function AnnotationJob() {
     const formData = new FormData();
     changedList.forEach((item) => {
       const id = item.imageId;
-      console.log(id);
       const fileContents = imgMap[id] || '';
-      console.log({ fileContents });
       const fileBlob = new Blob([fileContents], { type: 'text/plain' });
       formData.append('files', fileBlob, id);
       imageIds.push(id);
@@ -389,6 +443,7 @@ export default function AnnotationJob() {
         ...prev,
         [selectedImage.id]: imageSpecificRects,
       }));
+
       return data.data?.success;
     } catch (e) {
       toast.error(
@@ -411,7 +466,7 @@ export default function AnnotationJob() {
           configurationId,
         },
       });
-      
+
       const data = roiData.data?.data?.data;
       const primaryClassObj = roiData?.data?.data?.primaryClass;
       setPrimaryClass(primaryClassObj);
@@ -424,7 +479,9 @@ export default function AnnotationJob() {
           if (!roiMap[roiId]) {
             if (conf.rois.coordinates.length === 4) {
               const [x1, y1, x2, y2] = conf.rois.coordinates;
-              const color = labelClassArr.find(cl => cl.name === conf.rois.name)?.color || getRandomHexColor(avgBrightness);
+              const color =
+                labelClassArr.find((cl) => cl.name === conf.rois.name)?.color ||
+                getRandomHexColor(avgBrightness);
               rects.push({
                 ...BASE_RECT,
                 id: i,
@@ -442,7 +499,9 @@ export default function AnnotationJob() {
                 uuid: v4(),
               });
             } else {
-              const color = labelClassArr.find(cl => cl.name === conf.rois.name)?.color || getRandomHexColor(avgBrightness);
+              const color =
+                labelClassArr.find((cl) => cl.name === conf.rois.name)?.color ||
+                getRandomHexColor(avgBrightness);
               rects.push({
                 ...BASE_RECT,
                 id: i,
@@ -454,14 +513,14 @@ export default function AnnotationJob() {
                 title: conf.rois.name,
                 points: conf.rois.coordinates,
                 uuid: v4(),
-                closed: true
+                closed: true,
               });
             }
           }
           roiMap[roiId] = true;
           classesSet.add(conf.parts.classId);
         });
-        if(primaryClassObj?.id)classesSet.add(primaryClassObj?.id)
+        if (primaryClassObj?.id) classesSet.add(primaryClassObj?.id);
         // console.log({classesSet, labelClassArr})
         setLabelClass(
           labelClassArr.filter((cls) => {
@@ -492,7 +551,6 @@ export default function AnnotationJob() {
   }, []);
 
   React.useEffect(() => {
-    console.log('Images triggered');
     if (images?.length) {
       setSelectedImage(images[0]);
     }
@@ -522,14 +580,13 @@ export default function AnnotationJob() {
 
   //load annotation file and load rectangles
   React.useEffect(() => {
-    console.log('check', annotationLoadeFlag[selectedImage?.id], selectedImage, rectangleColor.all.length)
     if (
       selectedImage &&
       !annotationLoadeFlag[selectedImage.id] &&
       rectangleColor.all.length
     ) {
       const getData = async () => {
-        console.log(`getting ${selectedImage?.id}`)
+        console.log(`getting ${selectedImage?.id}`);
         const newStat = {
           ...DEFAULT_ANNOTATION,
           imageId: selectedImage.id,
@@ -602,7 +659,6 @@ export default function AnnotationJob() {
                 annotUpdates[uuid] = cls;
               }
             });
-            // console.log('UPdate from txt', annotUpdates, configuredData);
             setAnnotationMap((prev) => ({ ...prev, ...annotUpdates }));
             // setRectangles(prev=>[...prev, ...configuredData]);
             // newStat.rectangles = configuredData;
@@ -618,7 +674,6 @@ export default function AnnotationJob() {
             newStat.rectangles = recs;
             newStat.polygons = polys;
 
-            console.log({ newStat });
             setInitialLabels((prev) => ({
               ...prev,
               [selectedImage.id]: configuredData,
@@ -658,7 +713,7 @@ export default function AnnotationJob() {
   const udpateAndExit = async () => {
     await updateAnnotation();
     setModalOpen(false);
-    nav('..', { relative: 'route', state: location.state  });
+    nav('..', { relative: 'route', state: location.state });
   };
 
   React.useEffect(() => {
@@ -711,21 +766,26 @@ export default function AnnotationJob() {
     }
   }, [imageStatus.drawMode]);
 
-  console.log({labelClass})
+  console.log({ labelClass });
 
   const renderAnnotationHeading = () => {
-    if(type === ASSEMBLY_CONFIG.MOVING){
-      return <div className="flex flex-col gap-4 p-4">
-        <AnnotationClass labelClass={labelClass.filter(lc => lc.id === primaryClass?.id)} isPrimary={true} />
-        <AnnotationLabels
-          labelClass={labelClass.filter(lc => lc.id === primaryClass?.id)}
-          selectedImageId={selectedImage?.id}
-          isPrimary={true}
-        />
-      </div>
+    if (type === ASSEMBLY_CONFIG.MOVING) {
+      return (
+        <div className="flex flex-col gap-4 p-4">
+          <AnnotationClass
+            labelClass={labelClass.filter((lc) => lc.id === primaryClass?.id)}
+            isPrimary={true}
+          />
+          <AnnotationLabels
+            labelClass={labelClass.filter((lc) => lc.id === primaryClass?.id)}
+            selectedImageId={selectedImage?.id}
+            isPrimary={true}
+          />
+        </div>
+      );
     }
-    return <></>
-  }
+    return <></>;
+  };
 
   return (
     <>
@@ -762,31 +822,40 @@ export default function AnnotationJob() {
         </Modal>
       )}
       <div className="grid h-screen grid-cols-12">
-        <div className="col-span-3 grid grid-rows-12 border-r-[1px] border-black" style={{height: '100vh', overflow: 'hidden'}}>
-          <div className="row-span-11 relative flex flex-col bg-white">
+        <div
+          className="col-span-3 grid grid-rows-12 border-r-[1px] border-black"
+          style={{ height: '100vh', overflow: 'hidden' }}
+        >
+          <div className="relative row-span-11 flex flex-col bg-white">
             <h1 className=" border-b-[1px] px-6 pb-6 pt-6 text-3xl font-bold">
               Annotation Job
             </h1>
             {loader ? (
-              <div className="flex w-[80%] h-[200px] flex-col items-center justify-center gap-4 m-auto p-4 shadow-xl rounded-lg">
-                <div className="text-lg font-medium">Getting Classes and Labels</div>
+              <div className="m-auto flex h-[200px] w-[80%] flex-col items-center justify-center gap-4 rounded-lg p-4 shadow-xl">
+                <div className="text-lg font-medium">
+                  Getting Classes and Labels
+                </div>
                 <div className="loading w-[70%] px-4 text-center"></div>
               </div>
             ) : (
-              <div className="flex flex-col h-full mb-[90px] overflow-y-auto">
+              <div className="mb-[90px] flex h-full flex-col overflow-y-auto">
                 {renderAnnotationHeading()}
                 <div className="flex grow flex-col  gap-4 p-4">
-                  <AnnotationClass labelClass={labelClass.filter(lc => lc.id !== primaryClass?.id)} />
+                  <AnnotationClass
+                    labelClass={labelClass.filter(
+                      (lc) => lc.id !== primaryClass?.id
+                    )}
+                  />
                   <AnnotationLabels
-                    labelClass={labelClass.filter(lc => lc.id !== primaryClass?.id)}
+                    labelClass={labelClass.filter(
+                      (lc) => lc.id !== primaryClass?.id
+                    )}
                     selectedImageId={selectedImage?.id}
                   />
                 </div>
               </div>
             )}
-            <div
-              className="border-t-[1px] absolute w-full bg-white border-black bottom-0 py-2"
-            >
+            <div className="absolute bottom-0 w-full border-t-[1px] border-black bg-white py-2">
               <p className="text-center">
                 {annotatedCount}/{images.length} Images Annotated
               </p>
@@ -854,18 +923,18 @@ export default function AnnotationJob() {
                         }
                       }}
                       rectangles={[
-                        ...rois.filter(r=>!r.points),
-                        ...(annotationClasses[selectedImage?.id]?.rectangles || [])
-                        ]
-                      }
+                        ...rois.filter((r) => !r.points),
+                        ...(annotationClasses[selectedImage?.id]?.rectangles ||
+                          []),
+                      ]}
                       title={selectedClass?.name || 'Label'}
                       image={image}
                       imageId={selectedImage?.id}
                       polygons={[
-                        ...rois.filter(r=>r.points),
-                        ...(annotationClasses[selectedImage?.id]?.polygons || [])
-                        ]
-                      }
+                        ...rois.filter((r) => r.points),
+                        ...(annotationClasses[selectedImage?.id]?.polygons ||
+                          []),
+                      ]}
                       onPolyUpdate={(polys) => {
                         console.log('poly updated');
                         const annots = polys.filter(

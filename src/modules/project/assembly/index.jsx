@@ -54,7 +54,11 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { cloneDeep } from 'lodash';
 import toast from 'react-hot-toast';
-import { compareArrays, getAverageBrightness, getRandomHexColor } from '@/util/util';
+import {
+  compareArrays,
+  getAverageBrightness,
+  getRandomHexColor,
+} from '@/util/util';
 import { v4 } from 'uuid';
 import UploadImagesStep from './upload-image-step/index';
 import SpinLoader from '@/shared/icons/SpinLoader';
@@ -159,7 +163,8 @@ export default function Assembly() {
 
   const canGoNext = !(
     images.length !== 10 ||
-    (step == 0 && images.some((img) => !img)) || !selectedImage
+    (step == 0 && images.some((img) => !img)) ||
+    !selectedImage
   );
   const navigate = useNavigate();
 
@@ -178,8 +183,7 @@ export default function Assembly() {
       );
       return;
     }
-    console.log({ annotationRects }); // has all the label rectangles
-    // console.log('initial', initialLabels);
+    // console.log({ annotationRects }); // has all the label rectangles
 
     if (
       initialLabels.length === annotationRects.length &&
@@ -194,8 +198,8 @@ export default function Assembly() {
     //   return true;
     // }
 
-    // console.log({annotationRects});
     annotationRects.forEach((rect) => {
+      console.log("imageIds", rect.points, labelsEdited[rect.imageId])
       if (!labelsEdited[rect.imageId]) return;
       const classNo = annotationMap[rect.uuid];
       if (!rect?.points) {
@@ -216,7 +220,6 @@ export default function Assembly() {
             imgMap[rect.imageId] += ` ${point}`;
           });
           imgMap[rect.imageId] += '\n';
-          console.log('old', imgMap[rect.imageId]);
         } else {
           imgMap[rect.imageId] = `${classNo}`;
           rect.points.map((point) => {
@@ -229,7 +232,6 @@ export default function Assembly() {
       }
     });
 
-    console.log({ imgMap }, { labelsEdited });
     const formData = new FormData();
     const imageIds = [];
     // console.log({images}) // conatins the 10 uploaded images
@@ -242,10 +244,12 @@ export default function Assembly() {
         imageIds.push(img.id || '');
       }
     });
-    console.log({ imageIds });
+
     formData.append('configurationId', configurationId);
     formData.append('imageIds', imageIds);
-    console.log({ imageIds });
+
+    console.log("imageIds", {imageIds, imgMap, annotationRects})
+
     if (!imageIds.length) {
       toast.success('No changes to update');
       return true;
@@ -313,7 +317,7 @@ export default function Assembly() {
     if (!canGoNext) t = 0;
     else if (t == 0) {
       const next = await getRois();
-      console.log({next})
+      console.log({ next });
       t++;
     } else if (t == 1) {
       if (nextRef.current) {
@@ -373,12 +377,12 @@ export default function Assembly() {
         status: k.id == currentRoiId ? prevStatus : k.status,
       })),
     }));
-    setLabelClass(prev => {
+    setLabelClass((prev) => {
       return {
         ...prev,
-        status: prevStatus
-      }
-    })
+        status: prevStatus,
+      };
+    });
     setSelectedRectId(null);
     setSelectedPolyId(null);
   };
@@ -412,13 +416,13 @@ export default function Assembly() {
               : k.status,
       })),
     }));
-    setLabelClass(prev => {
-      if(!prev.id)return null
+    setLabelClass((prev) => {
+      if (!prev.id) return null;
       return {
         ...prev,
-        status: STATUS.FINISH
-      }
-    })
+        status: STATUS.FINISH,
+      };
+    });
     setRectangleType(RECTANGLE_TYPE.ROI);
     setPolygonType(RECTANGLE_TYPE.ROI);
   };
@@ -442,31 +446,49 @@ export default function Assembly() {
           configurationId,
         },
       });
-      console.log({ roiData });
+      // console.log({ roiData });
       let data = roiData.data?.data?.data;
-      data = data.sort((a, b) => a.rois.name.localeCompare(b.rois.name));
+      data = data?.sort((a, b) => a.rois.name.localeCompare(b.rois.name));
       console.log({ data });
-      const temp = [...data];
-      temp.length &&
-        temp.map((item, index) => {
-          console.log('inside map:', item);
-          setConfiguration((prev) => ({
-            ...prev,
-            productFlow: item.configuration.direction,
-          }));
-          if (item.parts.isTracker) {
-            console.log('updating config');
+      // const temp = [...data];
+      // temp.length &&
+      //   temp.map((item, index) => {
+      //     console.log('inside map:', item);
+      //     setConfiguration((prev) => ({
+      //       ...prev,
+      //       productFlow: item.configuration.direction,
+      //     }));
+      //     if (item.parts.isTracker) {
+      //       console.log('updating config');
+      //       setConfiguration((prev) => ({
+      //         ...prev,
+      //         primaryObject: item.parts.name,
+      //         primaryObjectClass: item.parts.classId,
+      //         direction: item.configuration.direction,
+      //       }));
+      //       data.splice(index, 1);
+      //     }
+      //   });
+      if (data?.length) {
+        const temp = [...data];
+        temp.length &&
+          temp.map((item, index) => {
+            console.log('inside map:', item);
             setConfiguration((prev) => ({
               ...prev,
-              primaryObject: item.parts.name,
-              primaryObjectClass: item.parts.classId,
-              direction: item.configuration.direction,
+              productFlow: item.configuration.direction,
             }));
-            data.splice(index, 1);
-          }
-        });
-      console.log('data here:', data);
-      if (data.length) {
+            if (item.parts.isTracker) {
+              console.log('updating config');
+              setConfiguration((prev) => ({
+                ...prev,
+                primaryObject: item.parts.name,
+                primaryObjectClass: item.parts.classId,
+                direction: item.configuration.direction,
+              }));
+              data.splice(index, 1);
+            }
+          });
         const partsMap = {};
         const roiMap = {};
         const rects = [];
@@ -481,12 +503,12 @@ export default function Assembly() {
             try {
               resolve(getAverageBrightness(img));
             } catch (err) {
-              toast.error('Error loading image')
+              toast.error('Error loading image');
               reject(err);
             }
           };
           img.onerror = (err) => {
-            toast.error('Error loading image')
+            toast.error('Error loading image');
             reject(err);
           };
         });
@@ -508,7 +530,7 @@ export default function Assembly() {
             //!do rectangle here too
             // const [ x1, y1, x2, y2] = conf.rois.coordinates.length > 4 ? ;
             const points = conf.rois.coordinates;
-            console.log('from index', selectedImage)
+            console.log('from index', selectedImage);
             const color = getRandomHexColor(avgBrightness);
             const uuid = v4();
 
@@ -599,12 +621,17 @@ export default function Assembly() {
         //     ...configUpdate,
         //   }));
         // }
+      } else if (type === ASSEMBLY_CONFIG.MOVING) {
+        setConfiguration((prev) => ({
+          ...prev,
+          rois: [DEFAULT_ROI],
+        }));
       }
       setNextLoader(false);
       setStep(1);
       return true;
     } catch (e) {
-      toast.error(e.message || e?.response?.data?.data?.message)
+      toast.error(e.message || e?.response?.data?.data?.message);
       setNextLoader(false);
       return false;
     } finally {
@@ -612,6 +639,7 @@ export default function Assembly() {
       setNextLoader(false);
     }
   };
+  console.log('mkc', configuration);
 
   useEffect(() => {
     setLabelsEdited({});
@@ -798,9 +826,7 @@ export default function Assembly() {
                     : ''
                 }
               >
-                {
-                  nextLoader ? 'Loading...' : step == 3 ? 'Finish' : 'Next'
-                }
+                {nextLoader ? 'Loading...' : step == 3 ? 'Finish' : 'Next'}
               </Button>
             </div>
           </div>

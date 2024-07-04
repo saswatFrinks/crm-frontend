@@ -32,6 +32,8 @@ import {
   selectedFileAtom,
   imageStatusAtom,
   currentPolygonIdAtom,
+  inspectionReqAtom,
+  lastActionNameAtom,
 } from '../../state';
 import ArrowUp from '@/shared/icons/ArrowUp';
 import DeleteObjectModal from './DeleteObjectModal';
@@ -44,7 +46,11 @@ import {
 } from '../../project-configuration/state';
 import { cloneDeep } from 'lodash';
 import toast from 'react-hot-toast';
-import { prevStatusAtom, statusCheckAtom } from '../state';
+import { prevStatusAtom, statusCheckAtom, stepAtom } from '../state';
+import {
+  ACTION_NAMES,
+  IMAGE_STATUS,
+} from '@/core/constants';
 
 export default function InspectionParameterStep(props) {
   // type: moving | stationary {{ASSEMBLY_CONFIG}}
@@ -90,6 +96,11 @@ export default function InspectionParameterStep(props) {
   const [prevStatus, setPrevStatus] = useRecoilState(prevStatusAtom);
 
   const [previousPrimaryClass, setPreviousPrimaryClass] = React.useState('');
+
+  const [inspectionReq, setInspectionReq] = useRecoilState(inspectionReqAtom);
+  const [step, setStep] = useRecoilState(stepAtom);
+  const currentRoiId = useRecoilValue(currentRoiIdAtom);
+  const [actionName, setActionName] = useRecoilState(lastActionNameAtom);
 
   const handleSubmit = () => {
     const res1 = validate(formData);
@@ -335,9 +346,33 @@ export default function InspectionParameterStep(props) {
     return `obj-${id}`;
   };
 
-  // console.log('rects:', rectangles);
+  const handleDrawBox = () => {
+    if (
+      !isEditing ||
+      imageStatus.drawMode === true ||
+      (step === 1 && prevStatus === 'finish') ||
+      (inspectionReq === 2 && step !== 1)
+    )
+      return;
+
+    let ret = false;
+    rectangles.forEach((rect) => {
+      if (rect.roiId && rect.roiId === currentRoiId) {
+        ret = true;
+      }
+    });
+    if (ret) return;
+    // setImageStatus((t) => ({
+    //   ...IMAGE_STATUS,
+    //   draw: !t.draw,
+    //   drawing: !t.drawing,
+    //   drawMode: 'RECT',
+    // }));
+    setActionName(ACTION_NAMES.SELECTED);
+  };
 
   const handleClickLabel = (id, title) => {
+    // handleDrawBox();
     setIsEditing(true);
     setCurrentRoiId(id);
     let type = 'rec';
@@ -368,8 +403,16 @@ export default function InspectionParameterStep(props) {
     if (idx >= 0) {
       if (type === 'rec' && rectangles[idx]?.uuid) {
         setSelectedRectId(rectangles[idx].uuid);
+        // setImageStatus((t) => ({
+        //   ...t,
+        //   drawMode: 'RECT',
+        // }));
       } else {
         setSelectedPolyId(polygons[idx]?.uuid);
+        // setImageStatus((t) => ({
+        //   ...t,
+        //   drawMode: 'POLY',
+        // }));
       }
     }
 
@@ -390,7 +433,10 @@ export default function InspectionParameterStep(props) {
     setImageStatus((t) => ({
       ...t,
       draw: !t.draw,
+      drawing: true,
+      drawMode: "RECT",
     }));
+    
   };
 
   const genLabelClass = (status) => {
