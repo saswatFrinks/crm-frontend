@@ -45,7 +45,7 @@ const RadialProgressBar = ({ value, max = 100, size = 200, strokeWidth = 10, sho
       <hr className="absolute w-16 h-0.5 bg-white border-none" style={{ transform: 'rotate(162deg)' }} />
       <hr className="absolute w-16 h-0.5 bg-white border-none" style={{ transform: 'rotate(198deg)' }} />
       <hr className="absolute w-16 h-0.5 bg-white border-none" style={{ transform: 'rotate(234deg)' }} />
-      <span className="absolute text-md font-bold w-full">{percentage}%</span>
+      <span className="absolute text-md font-bold w-full mx-auto">{percentage}%</span>
     </div>
   );
 };
