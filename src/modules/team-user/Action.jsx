@@ -60,7 +60,7 @@ export default function Action(props) {
                 if(setId){
                   setId(id);
                 }
-                handleOpenModal('delete');
+                handleOpenModal('delete', id);
 
                 if (deleteImageById) {
                   deleteImageById(id);

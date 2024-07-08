@@ -71,20 +71,26 @@ export default function CameraConfiguration() {
     setOpenDrawer(true);
   };
 
-  const handleOpenModal = async (type) => {
+  const handleOpenModal = async (type, deleteId = null) => {
     if(type === 'delete'){
       const instanceStatus = await axiosInstance.get('/cameraConfig/instance-status', {
         params: {
           projectId: params.projectId 
         }
       })
+      const maxOrder = Math.max(...cameraConfigs.map(item => item.order));
+      const element = cameraConfigs.find(item => item.id === deleteId);
+      const isHighestOrder = element ? element.order === maxOrder : false;
       if(instanceStatus.data.data.data !== 0){
         setTitle(
           `There are existing Instances which are using this camera configuration. If you delete it, those Instances
           will lose all data related to this camera configuration along with loss of other data stored within this
-          configuration as well (like datasets, ROIs, classes, etc.). Do you want to proceed to delete this camera
-          configuration (which will delete this configuration from the existing Instances) ?`
+          configuration as well (like datasets, ROIs, classes, etc.). 
+          ${!isHighestOrder ? 'This action will additionally update the capture order for the remaining Camera Configurations.' : ''}
+          Do you want to proceed to delete this camera configuration (which will delete this configuration from the existing Instances) ?`
         )
+      }else if(!isHighestOrder){
+        setTitle('This action will additionally update the capture order for the remaining Camera Configurations. Do you want to proceed to delete this camera configuration?');
       }
     }
     setModalState(true);
@@ -149,7 +155,7 @@ export default function CameraConfiguration() {
             title="Add Camera Configuration"
           />
 
-          {cameraConfigs.map((cameraConfig, i) => {
+          {cameraConfigs.sort((a, b) => a.order - b.order).map((cameraConfig, i) => {
             return (
               <Link
                 to={`camera-config/${cameraConfig.id}`}
@@ -158,26 +164,29 @@ export default function CameraConfiguration() {
                   ...location.state,
                   cameraConfigName: cameraConfig.name,
                 }}
-                className=" flex basis-80 items-center justify-between rounded-md border border-gray-300/90 bg-white px-10 py-4 shadow-sm"
+                className="rounded-md border border-gray-300/90 bg-white px-10 py-4 shadow-sm min-w-[20%]"
               >
-                <div className="inline-flex rounded-md bg-[#E7E7FF]/50 p-2">
-                  <CiFileOn className="h-6 w-6 text-f-primary duration-100 group-hover:h-6 group-hover:w-6" />
+                <div className='flex basis-80 items-center justify-between'>
+                  <div className="inline-flex rounded-md bg-[#E7E7FF]/50 p-2">
+                    <CiFileOn className="h-6 w-6 text-f-primary duration-100 group-hover:h-6 group-hover:w-6" />
+                  </div>
+                  {cameraConfig.name}
+                  <div
+                    onClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                    }}
+                  >
+                    <Action
+                      id={cameraConfig.id}
+                      handleEdit={handleEdit}
+                      handleOpenModal={handleOpenModal}
+                      editIndex={i}
+                      setId={setId}
+                    />
+                  </div>
                 </div>
-                {cameraConfig.name}
-                <div
-                  onClick={(event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                  }}
-                >
-                  <Action
-                    id={cameraConfig.id}
-                    handleEdit={handleEdit}
-                    handleOpenModal={handleOpenModal}
-                    editIndex={i}
-                    setId={setId}
-                  />
-                </div>
+                <div className='text-base text-gray-500 text-center'>Capture Order: {cameraConfig?.order}</div>
               </Link>
             );
           })}

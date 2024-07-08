@@ -60,7 +60,7 @@ export default function Finish({isMoving}) {
     .map((classObj) => classObj.name);
   const dataset = filterDataSet(useRecoilValue(datasetAtom));
   const primaryClasses = useRecoilValue(primaryClassAtom);
-  console.log(dataset, {primaryClasses});
+  console.log(dataset, {primaryClasses, configuration});
 
   return (
     <div className="flex flex-col gap-8">
@@ -117,7 +117,7 @@ export default function Finish({isMoving}) {
           Following configurations will run this AI model:
         </p>
         <div className="p-4">
-          {configuration.map((obj, i) => {
+          {configuration.map((obj) => {
             return (
               obj.check && (
                 <div key={obj.roi.id}>

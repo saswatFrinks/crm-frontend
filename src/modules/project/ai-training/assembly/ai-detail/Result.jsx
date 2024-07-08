@@ -252,9 +252,7 @@ export default function Result() {
     let roundedTestingData = Math.round(testingData);
     let roundedValidationData = Math.round(validationData);
     let roundedTrainingData = Math.round(trainingData);
-
-    console.log({trainingData, validationData, testingData, roundedTestingData, roundedValidationData, roundedTrainingData})
-
+    
     let total = roundedTestingData + roundedValidationData + roundedTrainingData;
 
     let difference = x - total;

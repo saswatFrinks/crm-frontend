@@ -597,7 +597,7 @@ const KonvaImageView = ({
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
+        onMouseLeave={(e) => e.preventDefault()}
         onDblClick={handleDoubleClick}
         ref={stageRef}
       >
