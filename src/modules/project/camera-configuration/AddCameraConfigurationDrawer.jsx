@@ -12,6 +12,7 @@ import React, { useEffect, useState } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import { useParams } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
+import { validate } from 'uuid';
 
 const objectivesModulesMapping = {
   assemblyInspection: 'Assembly',
@@ -56,10 +57,17 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
     });
     if (res.data.data.length > 0) objectives.push('dimensioningInspection');
 
-    formik.setValues({
-      ...formik.values,
-      objectives,
-    });
+    if(editConfig){
+      formik.setValues({
+        ...formik.values,
+        objectives: editConfig.objectives.map(obj => objectives[obj]),
+        name: editConfig?.name
+      });
+    }
+    // formik.setValues({
+    //   ...formik.values,
+    //   objectives,
+    // });
     setInitialObjectives(objectives);
 
   };
@@ -67,7 +75,6 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
   const formik = useFormik({
     initialValues: {
       name: '',
-      order: '',
       objectives: [],
     },
     validate: (values) => {
@@ -82,6 +89,10 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
         errors.name = validateRegexString(values.name);
       }
 
+      if(values.objectives.length === 0){
+        errors.objectives = 'Please select at least 1 objective';
+      }
+
       return errors;
     },
     onSubmit: async (values) => {
@@ -94,7 +105,6 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
         });
         let data = {
           name: values.name,
-          order: values.order,
           modules: modules,
           capturePositionId: params.cameraPositionId,
         };
@@ -130,7 +140,7 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
   const afterSubmit = () => {
     fetchAllCameraConfigs();
     closeDrawer();
-    formik.setValues({'name': '', 'order': '', objectives: [...initialObjectives]})
+    formik.setValues({'name': '', objectives: [...initialObjectives]})
   }
 
   const handleCheckboxChange = (value) => {
@@ -176,8 +186,9 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
       formik.setValues({
         ...formik.values,
         name: editConfig?.name,
-        order: editConfig?.order,
       });
+    }else {
+      formik.resetForm();
     }
   }, [editConfig]);
 
@@ -219,7 +230,7 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
           errorMessage={formik.errors.name}
         />
       </div>
-      <div>
+      {/* <div>
         <Label htmlFor="file">Capture Order</Label>
         <Input
           placeholder="Enter Capture Order"
@@ -231,7 +242,7 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
           value={formik.values.order}
           errorMessage={formik.errors.order}
         />
-      </div>
+      </div> */}
       <div>
         <Label>Select Objective</Label>
         <div className="flex gap-2">
@@ -297,6 +308,9 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
           </Label>
         </div>
       </div>
+      {formik.errors.objectives ? (
+        <p className="text-sm text-red-500">{formik.errors.objectives}</p>
+      ) : null}
     </div>
   );
 });

@@ -624,6 +624,7 @@ export default function Assembly() {
         selectedColor: getRandomHexColor(),
       });
       setImageBrightness(null);
+      setPosition(null);
     };
   }, []);
 

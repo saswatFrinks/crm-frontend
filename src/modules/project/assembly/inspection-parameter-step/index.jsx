@@ -123,6 +123,11 @@ export default function InspectionParameterStep(props) {
   const validateMoving = (values) => {
     if (type !== ASSEMBLY_CONFIG.MOVING) return false;
 
+    if(capturePosition === null){
+      toast.error('Please label the capture co-ordinate');
+      return true;
+    }
+
     let errorFound = false;
     const flowError =
       !values.productFlow && !configuration.productFlow
