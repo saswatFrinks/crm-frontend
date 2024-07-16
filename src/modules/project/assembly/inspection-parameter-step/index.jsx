@@ -46,11 +46,12 @@ import {
 } from '../../project-configuration/state';
 import { cloneDeep } from 'lodash';
 import toast from 'react-hot-toast';
-import { prevStatusAtom, statusCheckAtom, stepAtom } from '../state';
+import { captureAtom, prevStatusAtom, statusCheckAtom, stepAtom } from '../state';
 import {
   ACTION_NAMES,
   IMAGE_STATUS,
 } from '@/core/constants';
+import Slider from '@/shared/ui/Slider';
 
 export default function InspectionParameterStep(props) {
   // type: moving | stationary {{ASSEMBLY_CONFIG}}
@@ -70,7 +71,7 @@ export default function InspectionParameterStep(props) {
   const [classOptions, setClassOptions] = useRecoilState(classOptionsAtom);
 
   const setCurrentRoiId = useSetRecoilState(currentRoiIdAtom);
-  const setSelectedRectId = useSetRecoilState(currentRectangleIdAtom);
+  const [selectedRectId, setSelectedRectId] = useRecoilState(currentRectangleIdAtom);
   const setSelectedPolyId = useSetRecoilState(currentPolygonIdAtom);
   const [rectangles, setRectangles] = useRecoilState(rectanglesAtom);
   const [polygons, setPolygons] = useRecoilState(polygonsAtom);
@@ -93,6 +94,7 @@ export default function InspectionParameterStep(props) {
 
   const [isEditing, setIsEditing] = useRecoilState(editingAtom);
   const [prevStatus, setPrevStatus] = useRecoilState(prevStatusAtom);
+  const [capturePosition, setCapturePosition] = useRecoilState(captureAtom);
 
   const [previousPrimaryClass, setPreviousPrimaryClass] = React.useState('');
 
@@ -467,6 +469,32 @@ export default function InspectionParameterStep(props) {
               </div>
             ))}
           </div>
+          <div className="mt-2">
+            <Button
+              size="tiny"
+              color={isEditing ? 'warn' : (capturePosition === null ? 'primary' : 'success')}
+              fullWidth={false}
+              onClick={() => {
+                if (isEditing) {
+                  toast('Please confirm the current ROI', {
+                    icon: '⚠️',
+                  });
+                  return;
+                }
+                setSelectedRectId('capture-coordinate');
+                setIsEditing(true);
+              }}
+            >
+              <div className="flex items-center gap-2">
+                <Pen /> Capture Coordinate
+              </div>
+            </Button>
+          </div>
+          {selectedRectId === 'capture-coordinate' && (
+            <div className="mt-2">
+              <Slider title={''} value={capturePosition} setValue={setCapturePosition} toFixed={4} />
+            </div>
+          )}
           <span className="text-sm text-red-500">
             {movingErrors?.productFlowError}
           </span>

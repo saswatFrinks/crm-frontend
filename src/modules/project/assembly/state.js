@@ -125,4 +125,7 @@ export const statusCheckAtom = atom({
   default: false,
 })
 
-
+export const captureAtom = atom({
+  key: "captureAtom",
+  default: null
+})

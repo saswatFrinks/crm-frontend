@@ -21,6 +21,7 @@ import Actions from './components/Actions';
 import { useParams } from 'react-router-dom';
 
 import {
+  captureAtom,
   editingRectAtom,
   initialLabelsAtom,
   loadedLabelsAtom,
@@ -90,6 +91,7 @@ export default function Assembly() {
   const [imageStatus, setImageStatus] = useRecoilState(imageStatusAtom);
 
   const [selectedImage, setSelectedImage] = useRecoilState(selectedFileAtom);
+  const [position, setPosition] = useRecoilState(captureAtom);
   // const [images, setImages] = useRecoilState(uploadedFileListAtom);
 
   // const rois = useRecoilValue(rectanglesAtom).filter(
@@ -138,6 +140,7 @@ export default function Assembly() {
   const [initialLabels, setInitialLabels] = useRecoilState(initialLabelsAtom);
   const [labelId, setLabelId] = useRecoilState(currentLabelIdAtom);
   const [initialRectangles, setInitialRectnagles] = useState([]);
+  const setCapturePosition = useSetRecoilState(captureAtom);
 
   const [rectangleColor, setRectangleColor] =
     useRecoilState(rectangleColorAtom);
@@ -373,6 +376,9 @@ export default function Assembly() {
         status: prevStatus,
       };
     });
+    if(selectedRectId === 'capture-coordinate'){
+      setCapturePosition(configuration.coordinate);
+    }
     setSelectedRectId(null);
     setSelectedPolyId(null);
   };
@@ -449,7 +455,9 @@ export default function Assembly() {
                 primaryObject: item.parts.name,
                 primaryObjectClass: item.parts.classId,
                 direction: item.configuration.direction,
+                coordinate: item?.configuration?.coordinate !== null ? Number(item?.configuration?.coordinate) : null
               }));
+              setPosition(item?.configuration?.coordinate !== null ? Number(item?.configuration?.coordinate) : null)
               data.splice(index, 1);
             }
           });
@@ -625,6 +633,7 @@ export default function Assembly() {
     // const temp = configuration;
     temp = {
       ...temp,
+      coordinate: position
     };
     temp.direction = parseInt(temp.productFlow);
     temp.id = configurationId;
@@ -789,7 +798,7 @@ export default function Assembly() {
               className="row-span-11 flex flex-col items-center justify-center gap-4 bg-[#EAEDF1]"
               style={{ overflow: 'hidden' }}
             >
-              <UploadImage />
+              <UploadImage type={type} />
             </div>
 
             <div className="flex items-center justify-between border-t-[1px] border-gray-400 bg-white">
