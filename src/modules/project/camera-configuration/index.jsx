@@ -326,12 +326,14 @@ export default function CameraConfiguration() {
           </div>
         }
       >
-        <AddCameraConfigurationDrawer
-          editConfig={editConfig}
-          ref={ref}
-          closeDrawer={closeDrawer}
-          fetchAllCameraConfigs={fetchAllCameraConfigs}
-        />
+        {open && (
+          <AddCameraConfigurationDrawer
+            editConfig={editConfig}
+            ref={ref}
+            closeDrawer={closeDrawer}
+            fetchAllCameraConfigs={fetchAllCameraConfigs}
+          />
+        )}
       </Drawer>
     </>
   );

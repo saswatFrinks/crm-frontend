@@ -12,6 +12,7 @@ import React, { useEffect, useState } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import { useParams } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
+import { validate } from 'uuid';
 
 const objectivesModulesMapping = {
   assemblyInspection: 'Assembly',
@@ -56,10 +57,17 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
     });
     if (res.data.data.length > 0) objectives.push('dimensioningInspection');
 
-    formik.setValues({
-      ...formik.values,
-      objectives,
-    });
+    if(editConfig){
+      formik.setValues({
+        ...formik.values,
+        objectives: editConfig.objectives.map(obj => objectives[obj]),
+        name: editConfig?.name
+      });
+    }
+    // formik.setValues({
+    //   ...formik.values,
+    //   objectives,
+    // });
     setInitialObjectives(objectives);
 
   };
@@ -79,6 +87,10 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
 
       if(formik.touched.name && values.name && validateRegexString(values.name) !== ''){
         errors.name = validateRegexString(values.name);
+      }
+
+      if(values.objectives.length === 0){
+        errors.objectives = 'Please select at least 1 objective';
       }
 
       return errors;
@@ -296,6 +308,9 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
           </Label>
         </div>
       </div>
+      {formik.errors.objectives ? (
+        <p className="text-sm text-red-500">{formik.errors.objectives}</p>
+      ) : null}
     </div>
   );
 });
