@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Stage, Rect, Layer, Transformer, Image, Circle, Line } from 'react-konva';
 import Rectangle from './Rectangle';
 import Crosshair from './Crosshair';
-import { ACTION_NAMES, BASE_RECT, RECTANGLE_TYPE } from '@/core/constants';
+import { ACTION_NAMES, ASSEMBLY_CONFIG, BASE_RECT, RECTANGLE_TYPE } from '@/core/constants';
 import { getAverageBrightness, getRandomHexColor } from '@/util/util';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import {
@@ -21,6 +21,7 @@ import { rectangleColorAtom, stepAtom } from '../state';
 import { v4 } from 'uuid';
 import Polygon from './Polygon';
 import { cropLine, snapPolygonToBoundary } from '@/util/geometry';
+import CaptureLine from './CaptureLine';
 
 const KonvaImageView = ({
   image,
@@ -31,6 +32,8 @@ const KonvaImageView = ({
   polygons,
   onPolyUpdate,
   polyDraw,
+  page = '',
+  type = null
 }) => {
   const coverRef = React.useRef(null);
   const canvasRef = React.useRef(null);
@@ -746,6 +749,16 @@ const KonvaImageView = ({
               onChange={() => {}}
               // scale={origin.scale}
               // offset={{x: 0, y: 0}}
+            />
+          )}
+          {(page === 'configuration' && type === ASSEMBLY_CONFIG.MOVING) && (
+            <CaptureLine 
+              isSelected = {selectedRectId === 'capture-coordinate'}
+              size={canvaSize} 
+              offset={origin} 
+              scale={origin.scale}
+              width={image.width} 
+              height={image.height} 
             />
           )}
         </Layer>

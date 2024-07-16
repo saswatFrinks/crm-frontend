@@ -21,7 +21,7 @@ import KonvaImageView from './KonvaImageView';
 import toast from 'react-hot-toast';
 import axiosInstance from '@/core/request/aixosinstance';
 
-export default function UploadImage() {
+export default function UploadImage({type=null}) {
   const [file, setFile] = React.useState(null);
   const [imageLoading, setImageLoading] = useState(
     Array.from({ length: 10 }, () => false)
@@ -207,6 +207,8 @@ export default function UploadImage() {
               polygons={polygons}
               onPolyUpdate={updatePolygons}
               polyDraw={polyDraw}
+              page='configuration'
+              type={type}
             />
           ) : null}
         </>

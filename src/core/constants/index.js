@@ -132,6 +132,7 @@ export const DEFAULT_ASSEMBLY={
   productFlow: 0,
   primaryObject: '',
   primaryObjectClass: '',
+  coordinate: null,
   rois: [],
 }
 
