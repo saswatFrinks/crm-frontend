@@ -634,7 +634,7 @@ export default function Assembly() {
     // const temp = configuration;
     temp = {
       ...temp,
-      coordinate: position
+      coordinate: type === ASSEMBLY_CONFIG.MOVING ? position : undefined
     };
     temp.direction = parseInt(temp.productFlow);
     temp.id = configurationId;
