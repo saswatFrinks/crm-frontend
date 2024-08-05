@@ -142,7 +142,10 @@ export default function Sidebar() {
     },
   ];
   return (
-    <div className="fixed left-0 top-0 flex h-screen w-16 flex-col items-center  px-2 py-4 shadow-md" style={{ zIndex: 9999 }}>
+    <div
+      className="fixed left-0 top-0 flex h-screen w-16 flex-col items-center  px-2 py-4 shadow-md"
+      style={{ zIndex: 9999 }}
+    >
       <Link to="/" className="mb-8">
         <img src={logo} alt="frink logo" width={200} />
       </Link>
@@ -170,13 +173,15 @@ export default function Sidebar() {
                 {t.icon(pathname.includes(t.pathname))}
               </div>
             </NavLink>
-            <span
-              style={hover == i ? { opacity: 1 } : { opacity: 0 }}
-              className="absolute left-full top-1/2 ml-2 -translate-y-1/2 transform rounded-md bg-f-primary px-2 py-1 
-              text-sm text-white opacity-0 transition-opacity duration-300 z-50"
-            >
-              {t.name}
-            </span>
+            {hover == i && (
+              <span
+                style={hover == i ? { opacity: 1 } : { opacity: 0 }}
+                className="absolute left-full top-1/2 z-50 ml-2 -translate-y-1/2 transform rounded-md bg-f-primary px-2 
+              py-1 text-sm text-white opacity-0 transition-opacity duration-300"
+              >
+                {t.name}
+              </span>
+            )}
           </li>
         ))}
       </ul>
