@@ -44,7 +44,7 @@ export default function AddPlantModal({fetchAllPlants}) {
         fetchAllPlants();
         setOpenModal(false);
       } catch (error) {
-        toast.error(error?.response?.data?.data?.details);
+        toast.error(error?.response?.data?.data?.details?.userMessage || error?.response?.data?.data?.message);
       }
     },
   });
