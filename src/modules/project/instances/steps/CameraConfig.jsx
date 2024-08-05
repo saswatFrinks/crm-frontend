@@ -23,7 +23,7 @@ const CameraConfig = ({formRef, configUploaded}) => {
 
   const columns = ['Variant', 'Camera Position', 'Camera Config', 'Upload Camera Config File']
 
-  const headings = ['fps', 'gain', 'gamma', 'height', 'width', 'pin'];
+  const headings = ['Gain', 'Gamma', 'Height', 'Width', 'AcquisitionFrameRate', 'ExposureTime', 'TriggerSource'];
 
   React.useEffect(() => {
     const cameraConfigData = addInstance?.mappingData?.map(d => ({
@@ -131,7 +131,7 @@ const CameraConfig = ({formRef, configUploaded}) => {
       const details = response?.data?.data;
 
       setConfigDetails((prev) => {
-        const isNull = headings.some(heading => details[heading] == null);
+        const isNull = headings.every(heading => details[heading] == null);
         prev.set(configId, isNull ? null : details)
         return prev;
       });
@@ -229,13 +229,13 @@ const CameraConfig = ({formRef, configUploaded}) => {
           ) : (
             <div className="flex gap-4 items-center justify-center">
               <div className="flex flex-col items-start gap-2">
-                {headings.map(heading => (
-                  <h3 className='font-bold'>{heading.charAt(0).toUpperCase() + heading.slice(1)}:</h3>
+                {headings.map((heading, i) => (
+                  (modalConfig && modalConfig[heading]) ? <h3 className='font-bold' key={i}>{heading.charAt(0).toUpperCase() + heading.slice(1)}:</h3> : <></>
                 ))}
               </div>
               <div className="flex flex-col items-start gap-2">
-                {headings.map(heading => (
-                  <h3>{modalConfig ? modalConfig[heading] : null}</h3>
+                {headings.map((heading, i) => (
+                  (modalConfig && modalConfig[heading]) ? <h3 key={i}>{modalConfig ? modalConfig[heading] : null}</h3> : <></>
                 ))}
               </div>
             </div>

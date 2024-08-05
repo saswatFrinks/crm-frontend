@@ -88,7 +88,7 @@ export default function CameraPosition() {
             <Link
               to={`/project/${params.projectId}`}
               className="flex items-center gap-2"
-              state={{...location.state}}
+              state={{ ...location.state }}
             >
               <ArrowRight />
               <span>{location.state.projectName}</span>
@@ -96,7 +96,7 @@ export default function CameraPosition() {
             <Link
               to={`/project/${params.projectId}/variant/${params.variantId}`}
               className="flex items-center gap-2"
-              state={{...location.state}}
+              state={{ ...location.state }}
             >
               <ArrowRight />
               <span>{location.state.variantName}</span>
@@ -120,37 +120,37 @@ export default function CameraPosition() {
           />
 
           {cameraPositions.map((cameraPosition, i) => {
-            return (
-              <Link
-                to={`camera-position/${cameraPosition.id}`}
-                key={cameraPosition.id}
-                state={{
-                  ...location.state,
-                  cameraPositionName: cameraPosition.name,
-                }}
-                className=" flex basis-80 items-center justify-between rounded-md border border-gray-300/90 bg-white px-10 py-4 shadow-sm"
-              >
-                <div className="inline-flex rounded-md bg-[#E7E7FF]/50 p-2">
-                  <CiFileOn className="h-6 w-6 text-f-primary duration-100 group-hover:h-6 group-hover:w-6" />
-                </div>
-                {cameraPosition.name}
-                <div
-                  onClick={(event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
+              return (
+                <Link
+                  to={`camera-position/${cameraPosition.id}`}
+                  key={cameraPosition.id}
+                  state={{
+                    ...location.state,
+                    cameraPositionName: cameraPosition.name,
                   }}
+                  className=" flex basis-80 items-center justify-between rounded-md border border-gray-300/90 bg-white px-10 py-4 shadow-sm"
                 >
-                  <Action
-                    id={cameraPosition.id}
-                    handleEdit={handleEdit}
-                    handleOpenModal={handleOpenModal}
-                    editIndex={i}
-                    setId={setId}
-                  />
-                </div>
-              </Link>
-            );
-          })}
+                  <div className="inline-flex rounded-md bg-[#E7E7FF]/50 p-2">
+                    <CiFileOn className="h-6 w-6 text-f-primary duration-100 group-hover:h-6 group-hover:w-6" />
+                  </div>
+                  {cameraPosition.name}
+                  <div
+                    onClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                    }}
+                  >
+                    <Action
+                      id={cameraPosition.id}
+                      handleEdit={handleEdit}
+                      handleOpenModal={handleOpenModal}
+                      editIndex={i}
+                      setId={setId}
+                    />
+                  </div>
+                </Link>
+              );
+            })}
         </div>
       </div>
     </>
