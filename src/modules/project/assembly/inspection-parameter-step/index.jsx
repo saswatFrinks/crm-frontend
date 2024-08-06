@@ -44,7 +44,7 @@ import {
   classOptionsAtom,
   selectedConfigurationAtom,
 } from '../../project-configuration/state';
-import { cloneDeep, identity } from 'lodash';
+import { cloneDeep } from 'lodash';
 import toast from 'react-hot-toast';
 import { captureAtom, prevStatusAtom, statusCheckAtom, stepAtom } from '../state';
 import {
