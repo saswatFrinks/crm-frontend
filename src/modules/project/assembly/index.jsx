@@ -136,6 +136,7 @@ export default function Assembly() {
   const setLabelsLoaded = useSetRecoilState(loadedLabelsAtom);
   const [labelsEdited, setLabelsEdited] = useRecoilState(labelEditedAtom);
   const [roisLoaded, setRoisLoaded] = useState(false);
+  const [reloadRoisLoader, setReloadRoisLoader] = useState(false);
 
   const [initialLabels, setInitialLabels] = useRecoilState(initialLabelsAtom);
   const [labelId, setLabelId] = useRecoilState(currentLabelIdAtom);
@@ -339,6 +340,9 @@ export default function Assembly() {
       return;
     }
     setSelectedImage(images[0]);
+    if(step === 2){
+      reloadRois()
+    }
     setStep((t) => {
       if (t == 0) return t;
       return t - 1;
@@ -607,6 +611,63 @@ export default function Assembly() {
     }
   };
 
+  const reloadRois = async () => {
+    try {
+      setReloadRoisLoader(true);
+      const roiData = await axiosInstance.get('/configuration/classes', {
+        params: {
+          configurationId,
+        },
+      });
+      let data = roiData.data?.data?.data;
+      data = data?.sort((a, b) => a.rois.name.localeCompare(b.rois.name));
+
+      let roiMap = {}
+      let partsMap = {}
+
+      data?.forEach((conf, i) => {
+        const roiId = conf.rois.id;
+        if (!roiMap[roiId]) {
+          roiMap[roiId] = {
+            id: i,
+            title: conf.rois.name,
+            identity: roiId,
+            checked: false,
+            status: STATUS.FINISH,
+            open: true,
+            parts: [],
+          };
+        }
+        if (!partsMap[roiId]) {
+          partsMap[roiId] = [];
+        }
+        partsMap[roiId].push({
+          id: i,
+          objectName: conf.parts?.name || '',
+          class: conf.parts?.classId || '',
+          className: conf.assembly_class?.name || '',
+          operation: conf.parts?.operator,
+          qty: conf.parts?.count,
+          classify: conf.assembly_class?.classify ? 'on' : false,
+          checked: false,
+          open: true,
+        });
+      });
+      for (let roiId in roiMap) {
+        roiMap[roiId].parts = partsMap[roiId];
+      }
+
+      setConfiguration((t) => ({
+        ...t,
+        rois: Object.values(roiMap),
+      }));
+    } catch(error) {
+      toast.error(error.message || error?.response?.data?.data?.message);
+    } finally {
+      setReloadRoisLoader(false);
+    }
+  }
+
   useEffect(() => {
     setLabelsEdited({});
     setLabelId(null);
@@ -735,6 +796,9 @@ export default function Assembly() {
   return (
     <>
       <div className="grid h-screen grid-cols-12 ">
+        {reloadRoisLoader && (
+          <ProjectCreateLoader title='Loading ROIs' />
+        )}
         <div
           className={`${step === 3 ? 'col-span-12 px-10' : 'col-span-5'} grid grid-rows-12 border-r-[1px] border-gray-400 bg-white`}
           style={{ maxHeight: '100vh', overflow: 'hidden' }}

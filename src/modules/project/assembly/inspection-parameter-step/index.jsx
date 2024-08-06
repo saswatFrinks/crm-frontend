@@ -44,7 +44,7 @@ import {
   classOptionsAtom,
   selectedConfigurationAtom,
 } from '../../project-configuration/state';
-import { cloneDeep } from 'lodash';
+import { cloneDeep, identity } from 'lodash';
 import toast from 'react-hot-toast';
 import { captureAtom, prevStatusAtom, statusCheckAtom, stepAtom } from '../state';
 import {
@@ -52,6 +52,7 @@ import {
   IMAGE_STATUS,
 } from '@/core/constants';
 import Slider from '@/shared/ui/Slider';
+import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader';
 
 export default function InspectionParameterStep(props) {
   // type: moving | stationary {{ASSEMBLY_CONFIG}}
@@ -80,6 +81,7 @@ export default function InspectionParameterStep(props) {
 
   const [formData, setFormData] = useState(new Map());
   const [errors, setErrors] = useState(new Map());
+  const [deleteRoiLoader, setDeleteRoiLoader] = useState(false);
 
   const [movingForm, setMovingForm] = useState({
     productFlow: '',
@@ -313,19 +315,46 @@ export default function InspectionParameterStep(props) {
     }));
   };
 
-  const deleteRoi = () => {
+  const deleteRoi = async () => {
     let roiIds = [];
     setConfiguration((t) => {
       const ret = t.rois.filter((k) => !k.checked);
-      roiIds = t.rois.filter((ele) => ele.checked).map(k => k.id);
+      roiIds = t.rois.filter((ele) => ele.checked).map(k => {
+        if(k.identity){
+          return {
+            id: k.id,
+            identity: k.identity
+          }
+        }else{
+          return {
+            id: k.id
+          }
+        }
+      });
       return {
         ...t,
         rois: ret,
       };
     });
     if (roiIds.length > 0) {
-      setRectangles((rects) => rects.filter((rect) => !roiIds.includes(rect.roiId)));
-      setPolygons((polys) => polys.filter((poly) => !roiIds.includes(poly.roiId)));
+      try {
+        setDeleteRoiLoader(true);
+        await Promise.all(roiIds.map(async (roi) => {
+          if(roi.identity){
+            await axiosInstance.delete('/roi', {
+              params: {
+                roiId: roi.identity
+              }
+            })
+          }
+        }));
+        setRectangles((rects) => rects.filter((rect) => !roiIds.some(r => r.id === rect.roiId)));
+        setPolygons((polys) => polys.filter((poly) => !roiIds.some(r => r.id === poly.roiId)));
+      } catch (err) {
+        toast.error(err?.response?.data?.data?.message)
+      } finally {
+        setDeleteRoiLoader(false);
+      }
     }
     setImageStatus((t) => ({
       ...t,
@@ -556,6 +585,9 @@ export default function InspectionParameterStep(props) {
     }
     return (
       <div className="mb-4">
+        {deleteRoiLoader && (
+          <ProjectCreateLoader title='Deleting ROI'/>
+        )}
         <div className="mb-4 flex justify-end gap-4">
           {configuration.rois.some((t) => t.checked) && (
             <Button
