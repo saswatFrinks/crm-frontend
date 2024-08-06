@@ -51,6 +51,7 @@ import {
   selectedFileAtom,
   inspectionReqAtom,
   imgBrightnessAtom,
+  cachedFileListAtom,
 } from '../state';
 import { useNavigate } from 'react-router-dom';
 import { cloneDeep } from 'lodash';
@@ -163,6 +164,7 @@ export default function Assembly() {
     }
   };
   const [images, setImages] = useRecoilState(uploadedFileListAtom);
+  const cachedImages = useRecoilValue(cachedFileListAtom);
 
   const canGoNext = !(
     images.length !== 10 ||
@@ -339,7 +341,7 @@ export default function Assembly() {
       );
       return;
     }
-    setSelectedImage(images[0]);
+    setSelectedImage(cachedImages[0]?.url ? cachedImages[0] : images[0]);
     if(step === 2){
       reloadRois()
     }
