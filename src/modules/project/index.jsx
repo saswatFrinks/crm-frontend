@@ -11,6 +11,7 @@ import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader';
 import axiosInstance from '@/core/request/aixosinstance';
 import { getOrganizationId } from '@/util/util';
 import storageService from '@/core/storage';
+import { useRef } from 'react';
 
 export default function Home() {
   const [open, setOpenDrawer] = React.useState(false);
@@ -18,6 +19,8 @@ export default function Home() {
   const [projects, setProjects] = React.useState([]);
   const [projectEditIndex, setProjectEditIndex] = React.useState(null);
   const [projectForDelete, setProjectForDelete] = React.useState(null);
+
+  const scrollRef = useRef();
 
   const fetchAllProjects = async () => {
     const paramObj = {};
@@ -123,6 +126,7 @@ export default function Home() {
 
       {open && <Drawer
         isOpen={open}
+        scrollRef={scrollRef}
         handleClose={closeDrawer}
         title={(projectEditIndex != null) ? 'Edit Project ' : 'Create a new project'}
         footer={
@@ -153,6 +157,7 @@ export default function Home() {
           setShowLoader={setShowLoader}
           fetchAllProjects={fetchAllProjects}
           projectToEdit={projects[projectEditIndex]}
+          scrollRef={scrollRef}
         />
         {showLoader && <ProjectCreateLoader />}
       </Drawer>}

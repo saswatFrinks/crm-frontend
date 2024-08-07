@@ -2,7 +2,7 @@ import { IoClose } from 'react-icons/io5';
 import { tv } from 'tailwind-variants';
 
 export default function Drawer(props) {
-  const { isOpen, handleClose, title, children, footer = null, size } = props;
+  const { isOpen, handleClose, title, children, footer = null, size, scrollRef = null } = props;
 
   const backdrop = tv({
     base: 'fixed left-0 top-0 z-40 flex h-full w-full  bg-[#B4B6B8]/50 duration-200',
@@ -43,7 +43,7 @@ export default function Drawer(props) {
           {title}
           <IoClose size={20} className="cursor-pointer" onClick={handleClose} />
         </div>
-        <div className="h-[calc(100vh-100px)] overflow-y-auto p-4">
+        <div className="h-[calc(100vh-100px)] overflow-y-auto p-4" ref={scrollRef}>
           {children}
         </div>
 
