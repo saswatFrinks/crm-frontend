@@ -11,6 +11,7 @@ import React from 'react';
 import { CiFileOn } from 'react-icons/ci';
 import Action from '@/modules/team-user/Action';
 import DeleteModal from '@/modules/team-user/DeleteModal';
+import toast from 'react-hot-toast';
 
 export default function CameraPosition() {
   const setModalState = useSetRecoilState(modalAtom);
@@ -19,6 +20,7 @@ export default function CameraPosition() {
   const [action, setAction] = React.useState('add');
   const [editIndex, setEditIndex] = React.useState(0);
   const [id, setId] = React.useState('');
+  const [project, setProject] = React.useState({});
   const location = useLocation();
 
   const deleteCameraPosition = async () => {
@@ -43,8 +45,24 @@ export default function CameraPosition() {
     setCameraPositions(res.data.data);
   };
 
+  const fetchProject = async () => {
+    try {
+      const res = await axiosInstance.get('/project', {
+        params: {
+          projectId: params.projectId,
+        },
+      });
+      setProject(res?.data?.data);
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.data?.message || 'Cannot fetch project details'
+      );
+    }
+  };
+
   React.useEffect(() => {
     fetchAllCameraPosition();
+    fetchProject();
 
     return () => setModalState(false);
   }, []);
@@ -114,9 +132,12 @@ export default function CameraPosition() {
         <div className="mt-10 flex flex-wrap gap-6">
           <Variant.Create
             onClick={() => {
+              if(project?.isCameraFixed && cameraPositions?.length === project?.cameraCount)return;
               handleOpenModal('add');
             }}
             title="Add Camera Position"
+            disabled={project?.isCameraFixed && cameraPositions?.length === project?.cameraCount}
+            hoverText={`Only ${project?.cameraCount} Camera Positions are allowed`}
           />
 
           {cameraPositions.map((cameraPosition, i) => {
