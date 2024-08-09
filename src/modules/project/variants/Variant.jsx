@@ -2,6 +2,7 @@ import PlusFile from '@/shared/icons/PlusFile';
 import { CiFileOn } from 'react-icons/ci';
 import { Link } from 'react-router-dom';
 import Action from '@/modules/team-user/Action';
+import { useState } from 'react';
 
 function Card({ title = 'Variant name', to, state, id, deleteFn, handleOpenModal }) {
   return (
@@ -25,15 +26,24 @@ function Card({ title = 'Variant name', to, state, id, deleteFn, handleOpenModal
 }
 
 function Create(props) {
-  const { onClick, title = 'Add New Variant' } = props;
+  const { onClick, title = 'Add New Variant', disabled = false, hoverText='' } = props;
+
+  const [hover, setHover] = useState(false);
 
   return (
     <div
-      className="flex basis-80 cursor-pointer items-center justify-center rounded-md border border-f-primary/25 bg-[#E7E7FF]/25 px-6 py-6 shadow-sm  duration-100 hover:bg-[#C6C4FF]"
+      className={`flex basis-80 items-center justify-center rounded-md border px-6 py-6 shadow-sm  duration-100 ${disabled ? 'border-2 border-gray-300 relative' : 'hover:bg-[#C6C4FF] border-f-primary/25 bg-[#E7E7FF]/25 cursor-pointer'}`}
       onClick={onClick}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
     >
-      <p className="flex items-center gap-4 font-semibold text-f-primary">
-        <PlusFile />
+      {disabled && hover && (
+        <div className="absolute bottom-full p-2 rounded-md bg-f-primary text-white mb-2">
+          {hoverText}
+        </div>
+      )}
+      <p className={`flex items-center gap-4 font-semibold ${disabled ? 'text-gray-400' : 'text-f-primary'}`}>
+        <PlusFile stroke={disabled ? 'gray' : ''}/>
         {title}
       </p>
     </div>
