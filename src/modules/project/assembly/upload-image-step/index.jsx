@@ -183,7 +183,8 @@ const UploadImagesStep = () => {
       }
       setImages(tempImages);
     } catch (error) {
-      toast.error(error?.message || error?.response?.data?.data?.message);
+      console.log({error})
+      // toast.error(error?.message || error?.response?.data?.data?.message);
     } finally {
       if(setAllLoaders){
         Array.from({ length: 3 }, () => '').forEach((_, i) => {

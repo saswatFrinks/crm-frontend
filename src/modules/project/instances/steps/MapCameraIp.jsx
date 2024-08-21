@@ -132,7 +132,7 @@ const MapCameraIp = ({formRef}) => {
     });
     cameraIp.forEach((ip, index) => {
       formErrors[index] = !ip ? `Please map camera IP ${index+1}` : ''
-    })
+    }) 
     return formErrors;
   }
 
