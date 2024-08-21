@@ -10,25 +10,34 @@ export const getOrganizationId = () => {
 export function getRandomHexColor(brightness = null) {
   const letters = '0123456789ABCDEF';
   let color = '#';
-  if(!brightness){
+
+  const generateColorComponent = (isDark) => {
+    let component = '';
+    for (let i = 0; i < 2; i++) {
+      if (isDark) {
+        component += letters[Math.floor(Math.random() * 6) + 10]; 
+      } else {
+        component += letters[Math.floor(Math.random() * 10)]; 
+      }
+    }
+    return component;
+  };
+
+  if (!brightness) {
     for (let i = 0; i < 6; i++) {
       color += letters[Math.floor(Math.random() * 16)];
     }
-  }else{
+  } else {
     const isDark = brightness < 128;
-    for (let i = 0; i < 6; i++) {
-      let randomIndex;
-      if (isDark) {
-        randomIndex = Math.floor(Math.random() * 10) + 6;
-      } else {
-        randomIndex = Math.floor(Math.random() * 10);
-      }
-      color += letters[randomIndex];
+    for (let i = 0; i < 3; i++) {
+      color += generateColorComponent(isDark);
     }
   }
-  console.log("bright", {brightness, color})
+
+  console.log("bright", { brightness, color });
   return color;
 }
+
 
 export function removeDuplicates(array) {
   const seen = {};

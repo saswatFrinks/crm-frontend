@@ -170,6 +170,13 @@ const MapCameraIp = ({formRef}) => {
           </thead>
           <tbody>
             {data?.map((dataItem, index) => {
+              const variantId = dataItem?.variantId;
+              const ipExcludeOptions = [];
+              data?.forEach((d, i) => {
+                if(d.variantId === variantId && i !== index && cameraIp[i]){
+                  ipExcludeOptions.push(cameraIp[i]);
+                }
+              })
               return (
                 <tr
                   className="border-b odd:bg-white even:bg-[#C6C4FF]/10"
@@ -180,7 +187,7 @@ const MapCameraIp = ({formRef}) => {
                   <td className="px-6 py-4">
                     <Select
                       disabled={loaders[index]}
-                      options={cameraIps}
+                      options={cameraIps.filter(i => !ipExcludeOptions.includes(i.id))}
                       value = {cameraIp[index] !== null ? cameraIp[index] : ''}
                       placeholder='Select Camera'
                       onChange = {(e) => {

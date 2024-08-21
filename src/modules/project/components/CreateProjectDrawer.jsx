@@ -16,7 +16,7 @@ import Info from '@/shared/icons/Info';
 import InputTag from '@/shared/ui/InputTag';
 
 const CreateProjectDrawer = React.forwardRef((props, ref) => {
-  const { closeDrawer, setShowLoader, fetchAllProjects, projectToEdit } = props;
+  const { closeDrawer, setShowLoader, fetchAllProjects, projectToEdit, scrollRef } = props;
   const [plants, setPlants] = React.useState([]);
   const [teams, setTeams] = React.useState([]);
   const [variants, setVariants] = React.useState([]);
@@ -377,6 +377,12 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
       )
     );
   }, [variants, formik.values.objectives]);
+
+  useEffect(() => {
+    if(scrollRef?.current?.scrollTop && scrollRef?.current?.scrollHeight){
+      scrollRef.current.scrollTop = scrollRef?.current?.scrollHeight
+    }
+  }, [scrollRef?.current?.scrollHeight, formik.values.objectives])
 
   return (
     <form onSubmit={formik.handleSubmit} className="flex flex-col gap-4">
