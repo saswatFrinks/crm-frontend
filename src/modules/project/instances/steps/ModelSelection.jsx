@@ -217,7 +217,7 @@ const ModelSelection = ({ formRef, project }) => {
       </p>
 
       {data?.map((modelData, index) => (
-        <Accordion open={open[index]}>
+        <Accordion key={index} open={open[index]}>
           <AccordionHeader onClick={() => handleOpen(index)}>
             <div className="mr-2">
               <Icon open={open[index]} />
@@ -228,12 +228,12 @@ const ModelSelection = ({ formRef, project }) => {
             >
               <div className="flex justify-between" style={{ width: '70%' }}>
                 {keys.map((key) => (
-                  <div>{modelData[key]}</div>
+                  <div key={key}>{modelData[key]}</div>
                 ))}
               </div>
-              <div className="flex justify-end gap-2" style={{ width: '30%' }}>
-                {modelData.classes.map((classData) => (
-                  <Chip color={classColors.get(classData?.id)?.color}>
+              <div className="flex justify-end gap-2 flex-wrap" style={{ width: '30%' }}>
+                {modelData.classes.map((classData, i) => (
+                  <Chip key={i} color={classColors.get(classData?.id)?.color}>
                     {classData?.name}
                   </Chip>
                 ))}
@@ -254,7 +254,7 @@ const ModelSelection = ({ formRef, project }) => {
                 ?.filter((mo) => !mo.isTracker)
                 ?.map((model) => (
                   <>
-                    <div className="mb-0.5 flex justify-between rounded-md bg-[#F0F0FF] px-2 py-2">
+                    <div className="mb-0.5 flex justify-between rounded-md bg-[#F0F0FF] px-2 py-2 gap-2">
                       <div className="whitespace-nowrap border-black font-medium text-gray-900">
                         <Radio
                           id={model?.id}
@@ -274,10 +274,10 @@ const ModelSelection = ({ formRef, project }) => {
                           Number(model?.createdAt)
                         ).toLocaleDateString()}
                       </div>
-                      <div className="mr-4 flex justify-end gap-2">
-                        {model?.classes?.map((id) => {
+                      <div className="mr-4 flex justify-end gap-2 flex-wrap">
+                        {model?.classes?.map((id, i) => {
                           return (
-                            <Chip color={classColors.get(id)?.color}>
+                            <Chip key={i} color={classColors.get(id)?.color}>
                               {classColors.get(id)?.name}
                             </Chip>
                           );
@@ -298,13 +298,13 @@ const ModelSelection = ({ formRef, project }) => {
           </p>
 
           {data?.map((modelData, index) => (
-            <Accordion open={open[index]}>
+            <Accordion key={index} open={open[index]}>
               <AccordionHeader onClick={() => handleOpen(index)}>
                 <div className="mr-2">
                   <Icon open={open[index]} />
                 </div>
                 <div
-                  className="flex justify-between gap-4"
+                  className="flex justify-between gap-4 flex-wrap"
                   style={{ width: '100%' }}
                 >
                   <div
@@ -313,7 +313,7 @@ const ModelSelection = ({ formRef, project }) => {
                   >
                     {keys.map((key) => {
                       if(key == 'roiName')return <></>
-                      return <div>{modelData[key]}</div>
+                      return <div key={key}>{modelData[key]}</div>
                     })}
                     <div>{modelData?.primaryClass?.name}</div>
                   </div>
@@ -357,7 +357,7 @@ const ModelSelection = ({ formRef, project }) => {
                               Number(model?.createdAt)
                             ).toLocaleDateString()}
                           </div>
-                          <div className="mr-4 flex justify-end gap-2">
+                          <div className="mr-4 flex justify-end gap-2 flex-wrap">
                             <Chip color={classColors.get(modelData?.primaryClass?.id)?.color}>
                               {classColors.get(modelData?.primaryClass?.id)?.name}
                             </Chip>

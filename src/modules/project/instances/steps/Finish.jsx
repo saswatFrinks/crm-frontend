@@ -54,20 +54,21 @@ const Finish = ({ formRef, project }) => {
       </h2>
 
       <div>
-        {addInstance?.mappingData?.map((data) => (
-          <div>
+        {addInstance?.mappingData?.map((data, i) => (
+          <div key={i}>
             <div
               className="my-2 flex justify-between gap-4"
               style={{ width: '100%' }}
             >
-              <div className="flex justify-between" style={{ width: '70%' }}>
+              <div className="flex justify-between flex-wrap" style={{ width: '70%' }}>
                 {keys.map((key) => (
-                  <div>{data[key]}</div>
+                  <div key={key}>{data[key]}</div>
                 ))}
               </div>
-              <div className="flex justify-end gap-2" style={{ width: '30%' }}>
-                {data.classes.map((classData) => (
+              <div className="flex justify-end gap-2 flex-wrap" style={{ width: '30%' }}>
+                {data.classes.map((classData, i) => (
                   <Chip
+                  key={i}
                     color={addInstance?.colorClasses?.get(classData?.id)?.color}
                   >
                     {classData?.name}
@@ -76,7 +77,7 @@ const Finish = ({ formRef, project }) => {
               </div>
             </div>
             <hr className="h-px border-0 bg-gray-400 dark:bg-gray-700" />
-            {data?.models?.map((model) => {
+            {data?.models?.map((model, i) => {
               if (
                 addInstance?.modelSelection?.modelRoiMap?.get(data?.roiId) !=
                 model?.id
@@ -86,15 +87,16 @@ const Finish = ({ formRef, project }) => {
                 <div
                   className="flex justify-between py-2"
                   style={{ backgroundColor: '#E7E7FF' }}
+                  key={i}
                 >
                   <div style={{ textAlign: 'left' }}>{model?.name}</div>
                   <div>
                     {new Date(Number(model?.createdAt)).toLocaleDateString()}
                   </div>
-                  <div className="mr-4 flex justify-end gap-2">
-                    {model?.classes?.map((id) => {
+                  <div className="mr-4 flex justify-end gap-2 flex-wrap">
+                    {model?.classes?.map((id, i) => {
                       return (
-                        <Chip color={addInstance?.colorClasses?.get(id)?.color}>
+                        <Chip key={i} color={addInstance?.colorClasses?.get(id)?.color}>
                           {addInstance?.colorClasses?.get(id)?.name}
                         </Chip>
                       );
@@ -115,23 +117,23 @@ const Finish = ({ formRef, project }) => {
           </h2>
 
           <div>
-            {addInstance?.mappingData?.map((data) => (
-              <div>
+            {addInstance?.mappingData?.map((data, i) => (
+              <div key={i}>
                 <div
                   className="my-2 flex justify-between gap-4"
                   style={{ width: '100%' }}
                 >
                   <div
-                    className="flex justify-between"
+                    className="flex justify-between flex-wrap"
                     style={{ width: '70%' }}
                   >
                     {keys.map((key) => {
                       if(key === 'roiName')return <></>
-                      return <div>{data[key]}</div>
+                      return <div key={key}>{data[key]}</div>
                     })}
                   </div>
                   <div
-                    className="flex justify-end gap-2"
+                    className="flex justify-end gap-2 flex-wrap"
                     style={{ width: '30%' }}
                   >
                     <Chip
@@ -142,7 +144,7 @@ const Finish = ({ formRef, project }) => {
                   </div>
                 </div>
                 <hr className="h-px border-0 bg-gray-400 dark:bg-gray-700" />
-                {data?.models?.map((model) => {
+                {data?.models?.map((model, i) => {
                   if (
                     addInstance?.modelSelection?.primaryRoiMap?.get(
                       data?.roiId
@@ -153,6 +155,7 @@ const Finish = ({ formRef, project }) => {
                     <div
                       className="flex justify-between py-2"
                       style={{ backgroundColor: '#E7E7FF' }}
+                      key={i}
                     >
                       <div style={{ textAlign: 'left' }}>{model?.name}</div>
                       <div>
@@ -160,7 +163,7 @@ const Finish = ({ formRef, project }) => {
                           Number(model?.createdAt)
                         ).toLocaleDateString()}
                       </div>
-                      <div className="mr-4 flex justify-end gap-2">
+                      <div className="mr-4 flex justify-end gap-2 flex-wrap">
                         <Chip
                           color={addInstance?.colorClasses?.get(data?.primaryClass?.id)?.color}
                         >

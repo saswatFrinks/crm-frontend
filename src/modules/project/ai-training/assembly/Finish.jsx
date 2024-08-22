@@ -89,7 +89,7 @@ export default function Finish({isMoving}) {
           <label htmlFor="" className="font-semibold">
             Primary Object Classes:
           </label>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {removeDuplicates(primaryClasses.map(cl => cl.className)).map((className, index) => (
               <Chip key={className} color={`color-${index + 1}`}>
                 {className}
@@ -103,7 +103,7 @@ export default function Finish({isMoving}) {
         <label htmlFor="" className="font-semibold">
           Classes:
         </label>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {classes.filter(cl => !primaryClasses.map(c => c.className).includes(cl)).map((className, index) => (
             <Chip key={className} color={`color-${index + 1}`}>
               {className}
@@ -126,7 +126,7 @@ export default function Finish({isMoving}) {
                     <div className="flex-1">{obj.capturePosition.name}</div>
                     <div className="flex-1">{obj.cameraConfig.name}</div>
                     <div className="flex-1">{obj.roi.name}</div>
-                    <div className="flex flex-1 gap-2">
+                    <div className="flex flex-1 gap-2 flex-wrap">
                       {obj.classes.map((className, index) => (
                         <Chip key={className} color={`color-${index + 1}`}>
                           {className}
