@@ -274,7 +274,7 @@ export default function Configuration({ setLoading, formRef, isMoving }) {
 
       <div className="flex flex-col gap-4">
         <p className='font-medium'>Select the classes you wish to train this AI model for:</p>
-        <div className="flex gap-4">
+        <div className="flex gap-4 flex-wrap">
           {classes.map((classObj) => {
             const isPrimary = primaryClasses.find(cl => cl.id === classObj.id) ? true : false;
             return (
