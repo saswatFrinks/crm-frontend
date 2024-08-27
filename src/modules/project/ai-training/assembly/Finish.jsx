@@ -47,7 +47,7 @@ const filterDataSet = (data) => {
   return dataset;
 };
 
-export default function Finish({isMoving}) {
+export default function Finish({ isMoving }) {
   const modelInfo = useRecoilValue(modelInfoAtom);
   const configuration = useRecoilValue(configurationAtom);
   // const modelSize = useRecoilValue(modelSizeAtom);
@@ -60,7 +60,7 @@ export default function Finish({isMoving}) {
     .map((classObj) => classObj.name);
   const dataset = filterDataSet(useRecoilValue(datasetAtom));
   const primaryClasses = useRecoilValue(primaryClassAtom);
-  console.log(dataset, {primaryClasses, configuration});
+  console.log(dataset, { primaryClasses, configuration });
 
   return (
     <div className="flex flex-col gap-8">
@@ -89,12 +89,14 @@ export default function Finish({isMoving}) {
           <label htmlFor="" className="font-semibold">
             Primary Object Classes:
           </label>
-          <div className="flex gap-2 flex-wrap">
-            {removeDuplicates(primaryClasses.map(cl => cl.className)).map((className, index) => (
-              <Chip key={className} color={`color-${index + 1}`}>
-                {className}
-              </Chip>
-            ))}
+          <div className="flex flex-wrap gap-2">
+            {removeDuplicates(primaryClasses.map((cl) => cl.className)).map(
+              (className, index) => (
+                <Chip key={className} color={`color-${index + 1}`}>
+                  {className}
+                </Chip>
+              )
+            )}
           </div>
         </div>
       )}
@@ -103,12 +105,16 @@ export default function Finish({isMoving}) {
         <label htmlFor="" className="font-semibold">
           Classes:
         </label>
-        <div className="flex gap-2 flex-wrap">
-          {classes.filter(cl => !primaryClasses.map(c => c.className).includes(cl)).map((className, index) => (
-            <Chip key={className} color={`color-${index + 1}`}>
-              {className}
-            </Chip>
-          ))}
+        <div className="flex flex-wrap gap-2">
+          {classes
+            .filter(
+              (cl) => !primaryClasses.map((c) => c.className).includes(cl)
+            )
+            .map((className, index) => (
+              <Chip key={className} color={`color-${index + 1}`}>
+                {className}
+              </Chip>
+            ))}
         </div>
       </div>
 
@@ -126,8 +132,8 @@ export default function Finish({isMoving}) {
                     <div className="flex-1">{obj.capturePosition.name}</div>
                     <div className="flex-1">{obj.cameraConfig.name}</div>
                     <div className="flex-1">{obj.roi.name}</div>
-                    <div className="flex flex-1 gap-2 flex-wrap">
-                      {obj.classes.map((className, index) => (
+                    <div className="flex flex-1 flex-wrap gap-2">
+                      {[...new Set(obj.classes)].map((className, index) => (
                         <Chip key={className} color={`color-${index + 1}`}>
                           {className}
                         </Chip>
@@ -147,7 +153,9 @@ export default function Finish({isMoving}) {
           Following datasets will be used for training:
         </p>
         <div className="p-4">
-          <div className='text-lg border-b-[1px] text-right'>Annotated Images</div>
+          <div className="border-b-[1px] text-right text-lg">
+            Annotated Images
+          </div>
           {dataset.map((obj, i) => (
             <div key={obj.roi.id}>
               <div className="flex justify-between gap-2 border-b-[1px] py-2">
@@ -168,7 +176,7 @@ export default function Finish({isMoving}) {
                         className={`text-${folder.annotated ? 'green' : 'red'}-500`}
                       ></p>
                     </div>
-                    <div className="flex-1 text-right pr-4">
+                    <div className="flex-1 pr-4 text-right">
                       <p
                         className={`text-${folder.annotated ? 'green' : 'red'}-500`}
                       >
