@@ -46,11 +46,13 @@ import {
 } from '../../project-configuration/state';
 import { cloneDeep } from 'lodash';
 import toast from 'react-hot-toast';
-import { captureAtom, prevStatusAtom, statusCheckAtom, stepAtom } from '../state';
 import {
-  ACTION_NAMES,
-  IMAGE_STATUS,
-} from '@/core/constants';
+  captureAtom,
+  prevStatusAtom,
+  statusCheckAtom,
+  stepAtom,
+} from '../state';
+import { ACTION_NAMES, IMAGE_STATUS } from '@/core/constants';
 import Slider from '@/shared/ui/Slider';
 import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader';
 
@@ -72,7 +74,9 @@ export default function InspectionParameterStep(props) {
   const [classOptions, setClassOptions] = useRecoilState(classOptionsAtom);
 
   const setCurrentRoiId = useSetRecoilState(currentRoiIdAtom);
-  const [selectedRectId, setSelectedRectId] = useRecoilState(currentRectangleIdAtom);
+  const [selectedRectId, setSelectedRectId] = useRecoilState(
+    currentRectangleIdAtom
+  );
   const setSelectedPolyId = useSetRecoilState(currentPolygonIdAtom);
   const [rectangles, setRectangles] = useRecoilState(rectanglesAtom);
   const [polygons, setPolygons] = useRecoilState(polygonsAtom);
@@ -116,16 +120,16 @@ export default function InspectionParameterStep(props) {
   };
 
   const productFlowOptions = [
-    {id: 3, icon: <ArrowUp className="rotate-180" />},
-    {id: 4, icon: <ArrowUp />},
-    {id: 1, icon: <ArrowUp className="-rotate-90" />},
-    {id: 2, icon: <ArrowUp className="rotate-90" />}
-  ]
+    { id: 3, icon: <ArrowUp className="rotate-180" /> },
+    { id: 4, icon: <ArrowUp /> },
+    { id: 1, icon: <ArrowUp className="-rotate-90" /> },
+    { id: 2, icon: <ArrowUp className="rotate-90" /> },
+  ];
 
   const validateMoving = (values) => {
     if (type !== ASSEMBLY_CONFIG.MOVING) return false;
 
-    if(capturePosition === null){
+    if (capturePosition === null) {
       toast.error('Please label the capture co-ordinate');
       return true;
     }
@@ -319,18 +323,20 @@ export default function InspectionParameterStep(props) {
     let roiIds = [];
     setConfiguration((t) => {
       const ret = t.rois.filter((k) => !k.checked);
-      roiIds = t.rois.filter((ele) => ele.checked).map(k => {
-        if(k.identity){
-          return {
-            id: k.id,
-            identity: k.identity
+      roiIds = t.rois
+        .filter((ele) => ele.checked)
+        .map((k) => {
+          if (k.identity) {
+            return {
+              id: k.id,
+              identity: k.identity,
+            };
+          } else {
+            return {
+              id: k.id,
+            };
           }
-        }else{
-          return {
-            id: k.id
-          }
-        }
-      });
+        });
       return {
         ...t,
         rois: ret,
@@ -339,19 +345,25 @@ export default function InspectionParameterStep(props) {
     if (roiIds.length > 0) {
       try {
         setDeleteRoiLoader(true);
-        await Promise.all(roiIds.map(async (roi) => {
-          if(roi.identity){
-            await axiosInstance.delete('/roi', {
-              params: {
-                roiId: roi.identity
-              }
-            })
-          }
-        }));
-        setRectangles((rects) => rects.filter((rect) => !roiIds.some(r => r.id === rect.roiId)));
-        setPolygons((polys) => polys.filter((poly) => !roiIds.some(r => r.id === poly.roiId)));
+        await Promise.all(
+          roiIds.map(async (roi) => {
+            if (roi.identity) {
+              await axiosInstance.delete('/roi', {
+                params: {
+                  roiId: roi.identity,
+                },
+              });
+            }
+          })
+        );
+        setRectangles((rects) =>
+          rects.filter((rect) => !roiIds.some((r) => r.id === rect.roiId))
+        );
+        setPolygons((polys) =>
+          polys.filter((poly) => !roiIds.some((r) => r.id === poly.roiId))
+        );
       } catch (err) {
-        toast.error(err?.response?.data?.data?.message)
+        toast.error(err?.response?.data?.data?.message);
       } finally {
         setDeleteRoiLoader(false);
       }
@@ -427,9 +439,8 @@ export default function InspectionParameterStep(props) {
       ...t,
       draw: !t.draw,
       drawing: true,
-      drawMode: "RECT",
+      drawMode: 'RECT',
     }));
-    
   };
 
   const genLabelClass = (status) => {
@@ -482,7 +493,7 @@ export default function InspectionParameterStep(props) {
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-4">
             <Label main={false}>Product Flow:</Label>
-            {productFlowOptions.map(opt => (
+            {productFlowOptions.map((opt) => (
               <div className="flex items-center gap-2">
                 <Radio
                   name="productFlow"
@@ -506,7 +517,13 @@ export default function InspectionParameterStep(props) {
           <div className="mt-2">
             <Button
               size="tiny"
-              color={isEditing ? 'warn' : (capturePosition === null ? 'primary' : 'success')}
+              color={
+                isEditing && selectedRectId === 'capture-coordinate'
+                  ? 'warn'
+                  : capturePosition === null
+                    ? 'primary'
+                    : 'success'
+              }
               fullWidth={false}
               onClick={() => {
                 if (isEditing) {
@@ -526,7 +543,12 @@ export default function InspectionParameterStep(props) {
           </div>
           {selectedRectId === 'capture-coordinate' && (
             <div className="mt-2">
-              <Slider title={''} value={capturePosition} setValue={setCapturePosition} toFixed={4} />
+              <Slider
+                title={''}
+                value={capturePosition}
+                setValue={setCapturePosition}
+                toFixed={4}
+              />
             </div>
           )}
           <span className="text-sm text-red-500">
@@ -585,9 +607,7 @@ export default function InspectionParameterStep(props) {
     }
     return (
       <div className="mb-4">
-        {deleteRoiLoader && (
-          <ProjectCreateLoader title='Deleting ROI'/>
-        )}
+        {deleteRoiLoader && <ProjectCreateLoader title="Deleting ROI" />}
         <div className="mb-4 flex justify-end gap-4">
           {configuration.rois.some((t) => t.checked) && (
             <Button
@@ -833,8 +853,14 @@ export default function InspectionParameterStep(props) {
                             value={configuration.rois[i].parts[objIndex].class}
                             onChange={(e) => {
                               let temp = '';
-                              if(configuration.rois[i].parts?.map(p => p.class)?.includes(e.target.value)){
-                                toast.error('Class already selected in another Object.');
+                              if (
+                                configuration.rois[i].parts
+                                  ?.map((p) => p.class)
+                                  ?.includes(e.target.value)
+                              ) {
+                                toast.error(
+                                  'Class already selected in another Object.'
+                                );
                                 return;
                               }
                               classOptions.forEach((opt) => {

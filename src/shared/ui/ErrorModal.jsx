@@ -5,7 +5,7 @@ import { useRecoilState } from 'recoil'
 import { modalAtom } from '../states/modal.state'
 import Cross from '../icons/Cross'
 
-const ErrorModal = ({error}) => {
+const ErrorModal = ({error, setOpenModal = null}) => {
   const [open, setOpen] = useRecoilState(modalAtom);
 
   if(!error)setOpen(false);
@@ -22,7 +22,10 @@ const ErrorModal = ({error}) => {
           <Button 
             color='primary'
             fullWidth={false}
-            onClick={() => setOpen(false)}
+            onClick={() => {
+              if(setOpenModal)setOpenModal(false)
+              else setOpen(false)
+            }}
           >
             OK
           </Button>

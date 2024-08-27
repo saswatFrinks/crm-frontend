@@ -7,7 +7,6 @@ import {
   ACTION_NAMES,
   ASSEMBLY_CONFIG,
   BASE_RECT,
-  DEFAULT_ASSEMBLY,
   DEFAULT_ROI,
   RECTANGLE_TYPE,
   STATUS,
@@ -29,7 +28,7 @@ import {
   rectangleColorAtom,
   stepAtom,
 } from './state';
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import axiosInstance from '@/core/request/aixosinstance';
 import {
   annotationMapAtom,
@@ -63,7 +62,8 @@ import {
 } from '@/util/util';
 import { v4 } from 'uuid';
 import UploadImagesStep from './upload-image-step/index';
-import SpinLoader from '@/shared/icons/SpinLoader';
+import ErrorModal from '@/shared/ui/ErrorModal';
+import LocalModal from '@/shared/ui/LocalModal';
 
 export default function Assembly() {
   const [isEditing, setIsEditing] = useRecoilState(editingAtom);
@@ -72,6 +72,7 @@ export default function Assembly() {
   const setImageBrightness = useSetRecoilState(imgBrightnessAtom);
 
   const [nextLoader, setNextLoader] = useState(false);
+  const [error, setError] = useState('');
 
   const { projectId, configurationId } = useParams();
 
@@ -447,6 +448,7 @@ export default function Assembly() {
       });
       let data = roiData.data?.data?.data;
       data = data?.sort((a, b) => a.rois.name.localeCompare(b.rois.name));
+      data = structuredClone(data)
       if (data?.length) {
         const temp = [...data];
         temp.length &&
@@ -464,7 +466,10 @@ export default function Assembly() {
                 coordinate: item?.configuration?.coordinate !== null ? Number(item?.configuration?.coordinate) : null
               }));
               setPosition(item?.configuration?.coordinate !== null ? Number(item?.configuration?.coordinate) : null)
-              data.splice(index, 1);
+              // data[index] = {
+              //   ...data[index],
+              //   parts: {}
+              // }
             }
           });
         const partsMap = {};
@@ -555,17 +560,19 @@ export default function Assembly() {
           //     primaryObjectClass: conf.parts?.name || '',
           //   };
           // }
-          partsMap[roiId].push({
-            id: i,
-            objectName: conf.parts?.name || '',
-            class: conf.parts?.classId || '',
-            className: conf.assembly_class?.name || '',
-            operation: conf.parts?.operator,
-            qty: conf.parts?.count,
-            classify: conf.assembly_class?.classify ? 'on' : false,
-            checked: false,
-            open: true,
-          });
+          if(!conf?.parts?.isTracker){
+            partsMap[roiId].push({
+              id: i,
+              objectName: conf.parts?.name || '',
+              class: conf.parts?.classId || '',
+              className: conf.assembly_class?.name || '',
+              operation: conf.parts?.operator,
+              qty: conf.parts?.count,
+              classify: conf.assembly_class?.classify ? 'on' : false,
+              checked: false,
+              open: true,
+            });
+          }
         });
         for (let roiId in roiMap) {
           roiMap[roiId].parts = partsMap[roiId];
@@ -643,17 +650,19 @@ export default function Assembly() {
         if (!partsMap[roiId]) {
           partsMap[roiId] = [];
         }
-        partsMap[roiId].push({
-          id: i,
-          objectName: conf.parts?.name || '',
-          class: conf.parts?.classId || '',
-          className: conf.assembly_class?.name || '',
-          operation: conf.parts?.operator,
-          qty: conf.parts?.count,
-          classify: conf.assembly_class?.classify ? 'on' : false,
-          checked: false,
-          open: true,
-        });
+        if(!conf?.parts?.isTracker){
+          partsMap[roiId].push({
+            id: i,
+            objectName: conf.parts?.name || '',
+            class: conf.parts?.classId || '',
+            className: conf.assembly_class?.name || '',
+            operation: conf.parts?.operator,
+            qty: conf.parts?.count,
+            classify: conf.assembly_class?.classify ? 'on' : false,
+            checked: false,
+            open: true,
+          });
+        }
       });
       for (let roiId in roiMap) {
         roiMap[roiId].parts = partsMap[roiId];
@@ -734,6 +743,15 @@ export default function Assembly() {
         parts: tempParts,
       };
     });
+    let isValidRoi = true;
+    temp?.rois?.forEach(roi => {
+      isValidRoi = roi?.parts?.length > 0;
+    })
+    if(!isValidRoi && type === ASSEMBLY_CONFIG.STATIONARY){
+      setError('There should be at least one object in each ROI')
+      // setOpenModal(true);
+      return;
+    }
     // if (temp.direction != 0) {
     //   temp.rois[0].primaryObject = null;
     // }
@@ -800,6 +818,18 @@ export default function Assembly() {
       <div className="grid h-screen grid-cols-12 ">
         {reloadRoisLoader && (
           <ProjectCreateLoader title='Loading ROIs' />
+        )}
+        {error && (
+          <LocalModal
+            isOpen={error}
+            onClose={() => setError('')}
+            isHalf={true}
+          >
+            <ErrorModal
+              error={error}
+              setOpenModal={() => setError('')}
+            />
+          </LocalModal>
         )}
         <div
           className={`${step === 3 ? 'col-span-12 px-10' : 'col-span-5'} grid grid-rows-12 border-r-[1px] border-gray-400 bg-white`}
