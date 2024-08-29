@@ -346,12 +346,14 @@ const ModelSelection = ({ formRef, project }) => {
                     })}
                     <div>{modelData?.primaryClass?.name}</div>
                   </div>
-                  <div>{modelData?.roiName}</div>
-                  {/* <Chip
-                    color={classColors.get(modelData?.primaryClass?.id)?.color}
-                  >
-                    {classColors.get(modelData?.primaryClass?.id)?.name}
-                  </Chip> */}
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <div>{modelData?.roiName}</div>
+                    <Chip
+                      color={classColors.get(modelData?.primaryClass?.id)?.color}
+                    >
+                      {classColors.get(modelData?.primaryClass?.id)?.name}
+                    </Chip> 
+                  </div>
                 </div>
               </AccordionHeader>
               {primaryOpen[index] && (
