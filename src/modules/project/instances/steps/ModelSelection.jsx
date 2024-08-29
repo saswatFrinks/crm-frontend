@@ -174,15 +174,16 @@ const ModelSelection = ({ formRef, project }) => {
   const handleSubmit = async () => {
     try {
       if (!validate()) {
-        if (dataLength === 0 || selectedModels?.size !== dataLength)
-          throw new Error('Please Select Model of all the ROIs');
+        // if (dataLength === 0 || selectedModels?.size !== dataLength)
+        //   throw new Error('Please Select Model of all the ROIs');
         return null;
       }
       if (
-        (dataLength === 0 || selectedModels?.size !== dataLength) &&
+        selectedModels?.size !== nonPrimaryDataLength &&
         nonPrimaryDataLength > 0
       )
-        throw new Error('Please Select Model of all the ROIs');
+      {console.log('in first')
+        throw new Error('Please Select Model of all the ROIs');}
       if (
         isMoving &&
         selectedPrimaryModels?.size !==
