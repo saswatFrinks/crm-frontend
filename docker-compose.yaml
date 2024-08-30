@@ -1,0 +1,14 @@
+version: '3.9'
+
+services:
+  assembly_frontend:
+    container_name: assembly_frontend
+    build: .
+    image: assembly_frontend
+
+    volumes:
+      - /etc/timezone:/etc/timezone
+      - /etc/localtime:/etc/localtime
+
+    ports:
+      - 3000:3000
