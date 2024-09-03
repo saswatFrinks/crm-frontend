@@ -1,5 +1,6 @@
 import React from 'react';
 import { Circle, Line, Text } from 'react-konva';
+import PolyVertice from './PolyVertice';
 
 const Polygon = ({
   shape,
@@ -21,6 +22,7 @@ const Polygon = ({
     for (let i = 0; i < arr?.length; i += 2) {
       const x = arr[i] * sc + ox;
       const y = arr[i + 1] * sc + oy;
+      console.log('values are 1 ', arr[i], arr[i+1], {x, y, sc, ox, oy})
       points.push(x);
       points.push(y);
       grouped.push([x, y]);
@@ -44,6 +46,7 @@ const Polygon = ({
       for (let i = 0; i < arr?.length; i += 2) {
         const x = arr[i] * sc + ox;
         const y = arr[i + 1] * sc + oy;
+        console.log('values are 2 ', arr[i], arr[i+1], {x, y, sc, ox, oy})
         points.push(x);
         points.push(y);
         grouped.push([x, y]);
@@ -61,7 +64,7 @@ const Polygon = ({
         shapeRef.current.y(0);
       }
     };
-    console.log("NaN case", shape.points, offset, scale)
+    console.log("NaN case", [...shape.points], offset, scale)
     cb();
   }, [shape, shapeRef, offset, scale]);
 
@@ -119,13 +122,12 @@ const Polygon = ({
       {isSelected &&
         polyPoints.map((vertex, i) => {
           return (
-            <Circle
+            <PolyVertice
               key={i}
               radius={6}
               stroke={'#02CCFE'}
               fill={`#f1f1f13D`}
-              x={vertex[0]}
-              y={vertex[1]}
+              vertex={vertex}
               strokeWidth={2}
               draggable={true}
               onMouseDown={(e) => (e.cancelBubble = true)}
