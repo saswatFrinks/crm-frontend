@@ -343,8 +343,8 @@ export default function Assembly() {
       return;
     }
     setSelectedImage(cachedImages[0]?.url ? cachedImages[0] : images[0]);
-    if(step === 2){
-      reloadRois()
+    if (step === 2) {
+      reloadRois();
     }
     setStep((t) => {
       if (t == 0) return t;
@@ -383,7 +383,7 @@ export default function Assembly() {
         status: prevStatus,
       };
     });
-    if(selectedRectId === 'capture-coordinate'){
+    if (selectedRectId === 'capture-coordinate') {
       setCapturePosition(configuration.coordinate);
     }
     setSelectedRectId(null);
@@ -448,7 +448,7 @@ export default function Assembly() {
       });
       let data = roiData.data?.data?.data;
       data = data?.sort((a, b) => a.rois.name.localeCompare(b.rois.name));
-      data = structuredClone(data)
+      data = structuredClone(data);
       if (data?.length) {
         const temp = [...data];
         temp.length &&
@@ -463,9 +463,16 @@ export default function Assembly() {
                 primaryObject: item.parts.name,
                 primaryObjectClass: item.parts.classId,
                 direction: item.configuration.direction,
-                coordinate: item?.configuration?.coordinate !== null ? Number(item?.configuration?.coordinate) : null
+                coordinate:
+                  item?.configuration?.coordinate !== null
+                    ? Number(item?.configuration?.coordinate)
+                    : null,
               }));
-              setPosition(item?.configuration?.coordinate !== null ? Number(item?.configuration?.coordinate) : null)
+              setPosition(
+                item?.configuration?.coordinate !== null
+                  ? Number(item?.configuration?.coordinate)
+                  : null
+              );
               // data[index] = {
               //   ...data[index],
               //   parts: {}
@@ -560,7 +567,7 @@ export default function Assembly() {
           //     primaryObjectClass: conf.parts?.name || '',
           //   };
           // }
-          if(!conf?.parts?.isTracker){
+          if (!conf?.parts?.isTracker) {
             partsMap[roiId].push({
               id: i,
               objectName: conf.parts?.name || '',
@@ -631,8 +638,8 @@ export default function Assembly() {
       let data = roiData.data?.data?.data;
       data = data?.sort((a, b) => a.rois.name.localeCompare(b.rois.name));
 
-      let roiMap = {}
-      let partsMap = {}
+      let roiMap = {};
+      let partsMap = {};
 
       data?.forEach((conf, i) => {
         const roiId = conf.rois.id;
@@ -650,7 +657,7 @@ export default function Assembly() {
         if (!partsMap[roiId]) {
           partsMap[roiId] = [];
         }
-        if(!conf?.parts?.isTracker){
+        if (!conf?.parts?.isTracker) {
           partsMap[roiId].push({
             id: i,
             objectName: conf.parts?.name || '',
@@ -672,12 +679,12 @@ export default function Assembly() {
         ...t,
         rois: Object.values(roiMap),
       }));
-    } catch(error) {
+    } catch (error) {
       toast.error(error.message || error?.response?.data?.data?.message);
     } finally {
       setReloadRoisLoader(false);
     }
-  }
+  };
 
   useEffect(() => {
     setLabelsEdited({});
@@ -706,7 +713,7 @@ export default function Assembly() {
     // const temp = configuration;
     temp = {
       ...temp,
-      coordinate: type === ASSEMBLY_CONFIG.MOVING ? position : undefined
+      coordinate: type === ASSEMBLY_CONFIG.MOVING ? position : undefined,
     };
     temp.direction = parseInt(temp.productFlow);
     temp.id = configurationId;
@@ -744,11 +751,11 @@ export default function Assembly() {
       };
     });
     let isValidRoi = true;
-    temp?.rois?.forEach(roi => {
+    temp?.rois?.forEach((roi) => {
       isValidRoi = roi?.parts?.length > 0;
-    })
-    if(!isValidRoi && type === ASSEMBLY_CONFIG.STATIONARY){
-      setError('There should be at least one object in each ROI')
+    });
+    if (!isValidRoi && type === ASSEMBLY_CONFIG.STATIONARY) {
+      setError('There should be at least one object in each ROI');
       // setOpenModal(true);
       return;
     }
@@ -792,10 +799,9 @@ export default function Assembly() {
       return data.data?.success;
     } catch (e) {
       toast.error(
-        e?.response?.data?.data?.message
-          ? // ? `${e?.response?.data?.data?.message}. All fields are required`
-            'All ROIs label are required!'
-          : 'Failed'
+        e?.response?.data?.data?.details?.message ||
+          e?.response?.data?.data?.message ||
+          'All ROIs label are required!'
       );
     }
   };
@@ -816,19 +822,10 @@ export default function Assembly() {
   return (
     <>
       <div className="grid h-screen grid-cols-12 ">
-        {reloadRoisLoader && (
-          <ProjectCreateLoader title='Loading ROIs' />
-        )}
+        {reloadRoisLoader && <ProjectCreateLoader title="Loading ROIs" />}
         {error && (
-          <LocalModal
-            isOpen={error}
-            onClose={() => setError('')}
-            isHalf={true}
-          >
-            <ErrorModal
-              error={error}
-              setOpenModal={() => setError('')}
-            />
+          <LocalModal isOpen={error} onClose={() => setError('')} isHalf={true}>
+            <ErrorModal error={error} setOpenModal={() => setError('')} />
           </LocalModal>
         )}
         <div

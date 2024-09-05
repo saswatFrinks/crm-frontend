@@ -117,6 +117,10 @@ const Instances = () => {
 
   const deleteInstance = async () => {
     try {
+      if(instances.length === 1){
+        toast.error('Atleast one instance should exist')
+        return;
+      }
       await axiosInstance.delete('/instance/delete-draft', {
         params: {
           instanceId: id

@@ -31,7 +31,7 @@ export default function Input({ errorMessage, size, value, className, ...props }
   return (
     <div className="relative">
       <input
-        type="text"
+        type={props.type || 'text'}
         disabled={props?.disabled}
         className={input({ size, errorMessage: '' + Boolean(errorMessage) })}
         placeholder="Placeholder text"
