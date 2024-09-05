@@ -48,13 +48,12 @@ const KonvaImageView = ({
   page = '',
   type = null,
 }) => {
-  console.log('polygons', polygons);
   const coverRef = React.useRef(null);
   const canvasRef = React.useRef(null);
   const stageRef = React.useRef(null);
 
   const [imageStatus, setImageStatus] = useRecoilState(imageStatusAtom);
-  const isEditing = useRecoilValue(editingAtom);
+  // const isEditing = useRecoilValue(editingAtom);
 
   const [rectangleColor, setRectangleColor] =
     useRecoilState(rectangleColorAtom);
@@ -90,10 +89,6 @@ const KonvaImageView = ({
   const [scaledRectangles, setScaledRectangles] = useState([]);
   const [scaledPolygons, setScaledPolygons] = useState([]);
 
-  const [curPoly, setCurPoly] = React.useState(null);
-
-  console.log({ rectStart });
-
   const handleScroll = (evt) => {
     const e = evt.evt;
     e.preventDefault();
@@ -113,7 +108,6 @@ const KonvaImageView = ({
     const cords = { x: originX, y: originY };
     setOrigin({ ...cords, scale: newScale });
   };
-  console.log({ drawMode: imageStatus.drawMode });
 
   const handleMouseDown = (evt) => {
     const e = evt.evt;
@@ -272,7 +266,6 @@ const KonvaImageView = ({
     const e = evt.evt;
 
     const stage = coverRef.current;
-    const { width, height } = stage.getBoundingClientRect();
 
     if (
       imageStatus.drawing &&
@@ -329,7 +322,6 @@ const KonvaImageView = ({
       // setSelectedRectId(null);
     }
     // setImageStatus((a) => ({ ...a, ...updateObj }));
-    console.log(imageStatus);
     setImageStatus((prev) => ({
       ...prev,
       // draw: false,
@@ -386,7 +378,7 @@ const KonvaImageView = ({
       imageBoundaryX,
       imageBoundaryY
     );
-    console.log(snappedPoints);
+    console.log({snappedPoints});
 
     const totalPoints = snappedPoints.length;
     for (let i = 0; i < totalPoints; i += 2) {
@@ -424,10 +416,8 @@ const KonvaImageView = ({
 
   const handleDoubleClick = (e) => {
     if (imageStatus.drawMode === 'POLY' && currentPoly?.points?.length > 2) {
-      const pos = stageRef.current.getPointerPosition();
       const poly = { ...currentPoly, closed: true };
       poly.points = normalizePolygonPoints(poly.points);
-      console.log('Polies', poly.points);
       try {
         poly.points = cropPolygonPoints(poly.points);
         onPolyUpdate([...polygons, poly]);
@@ -550,7 +540,7 @@ const KonvaImageView = ({
       });
     }
     setScaledRectangles(modified);
-  }, [rectangles, image?.width]);
+  }, [rectangles, image]);
 
   useEffect(() => {
     const modified = [];
@@ -576,7 +566,6 @@ const KonvaImageView = ({
       setLastAction(null);
     }
   }, [lastAction]);
-  console.log({ rectStart, currentPoly });
 
   //to put the selected rectangle on top to select it
   React.useEffect(() => {
@@ -627,7 +616,7 @@ const KonvaImageView = ({
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        onMouseLeave={(e) => e.preventDefault()}
+        onMouseLeave={(e) => {e.currentTarget.preventDefault(); e.cancelBubble = true}}
         onDblClick={handleDoubleClick}
         ref={stageRef}
       >
@@ -755,6 +744,7 @@ const KonvaImageView = ({
                     try {
                       let points = normalizePolygonPoints(res.points);
                       points = cropPolygonPoints(points);
+                      if(points.length < 6) throw new Error()
                       polyCp[i] = { ...res, points };
                     } catch (e) {
                       polyCp[i] = { ...res, points: [...polyCp[i].points] };

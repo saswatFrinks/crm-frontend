@@ -51,6 +51,8 @@ export const snapPolygonToBoundary = (points, boundaryX, boundaryY) => {
     boundaryY
   );
 
+  console.log('isOutside', isOutsideBoundary)
+
   if (isOutsideBoundary) {
     // Find the minimum and maximum x and y coordinates
     let minX = boundaryX;
@@ -73,6 +75,8 @@ export const snapPolygonToBoundary = (points, boundaryX, boundaryY) => {
       minX < 0 ? -minX : maxX > boundaryX ? boundaryX - maxX : 0;
     const translateY =
       minY < 0 ? -minY : maxY > boundaryY ? boundaryY - maxY : 0;
+
+      console.log({translateX, translateY})
 
     // Translate the points to snap the polygon into the boundary
     const snappedPoints = points.map((coord, index) => {

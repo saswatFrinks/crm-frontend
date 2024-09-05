@@ -5,6 +5,7 @@ export default function PolyVertice({vertex, ...rest}){
   const ref = React.useRef(null)
 
   React.useEffect(()=>{
+    if(!ref?.current) return;
     ref.current.x(vertex[0])
     ref.current.y(vertex[1])
   }, [vertex])
