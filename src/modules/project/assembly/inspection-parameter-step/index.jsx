@@ -165,7 +165,9 @@ export default function InspectionParameterStep(props) {
         const key = `${roiIndex}-${objIndex}`;
         const nameError = !obj.objectName ? 'Object name is required' : '';
         const classError = !obj.className ? 'Class is required' : '';
-        const qtyError = !obj.qty ? 'Object quantity is required' : '';
+        const qtyError = obj.qty >= 0 ? (
+          obj.qty < 128 ? '' : 'Object quantity cannot be greater than 127'
+        ) : 'Object quantity is required';
         if (nameError || classError || qtyError) errorFound = true;
 
         updatedErrors.set(key, {
@@ -670,6 +672,8 @@ export default function InspectionParameterStep(props) {
     setErrors(newErrors);
   };
 
+  const integerInputExcludes = ['-', '.', 'e', 'E']
+
   return (
     <>
       <Modal>{renderModal()}</Modal>
@@ -941,10 +945,15 @@ export default function InspectionParameterStep(props) {
                           <Input
                             placeholder="Enter object qty"
                             type="number"
-                            min="1"
+                            min="0"
                             size="xs"
                             value={configuration.rois[i].parts[objIndex].qty}
                             onChange={(e) => {
+                              const value = e.target.value;
+
+                              if (integerInputExcludes.some(i => value.includes(i))) {
+                                return;
+                              }
                               setConfiguration((d) => ({
                                 ...d,
                                 rois: d.rois.map((roi, locRIdx) => {
@@ -975,6 +984,11 @@ export default function InspectionParameterStep(props) {
                             errorMessage={
                               errors.get(`${t.id}-${objIndex}`)?.qty
                             }
+                            onKeyDown={(event) => {
+                              if (integerInputExcludes.includes(event.key)) {
+                                event.preventDefault();
+                              }
+                            }}
                           />
                         </div>
                       </div>
