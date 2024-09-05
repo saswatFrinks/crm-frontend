@@ -1,8 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import { Stage, Rect, Layer, Transformer, Image, Circle, Line } from 'react-konva';
+import {
+  Stage,
+  Rect,
+  Layer,
+  Transformer,
+  Image,
+  Circle,
+  Line,
+} from 'react-konva';
 import Rectangle from './Rectangle';
 import Crosshair from './Crosshair';
-import { ACTION_NAMES, ASSEMBLY_CONFIG, BASE_RECT, RECTANGLE_TYPE } from '@/core/constants';
+import {
+  ACTION_NAMES,
+  ASSEMBLY_CONFIG,
+  BASE_RECT,
+  RECTANGLE_TYPE,
+} from '@/core/constants';
 import { getAverageBrightness, getRandomHexColor } from '@/util/util';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import {
@@ -33,8 +46,9 @@ const KonvaImageView = ({
   onPolyUpdate,
   polyDraw,
   page = '',
-  type = null
+  type = null,
 }) => {
+  console.log('polygons', polygons);
   const coverRef = React.useRef(null);
   const canvasRef = React.useRef(null);
   const stageRef = React.useRef(null);
@@ -78,7 +92,7 @@ const KonvaImageView = ({
 
   const [curPoly, setCurPoly] = React.useState(null);
 
-  console.log({rectStart})
+  console.log({ rectStart });
 
   const handleScroll = (evt) => {
     const e = evt.evt;
@@ -99,7 +113,7 @@ const KonvaImageView = ({
     const cords = { x: originX, y: originY };
     setOrigin({ ...cords, scale: newScale });
   };
-  console.log({drawMode: imageStatus.drawMode})
+  console.log({ drawMode: imageStatus.drawMode });
 
   const handleMouseDown = (evt) => {
     const e = evt.evt;
@@ -108,12 +122,10 @@ const KonvaImageView = ({
     const pointerPosition = stage2.getPointerPosition();
 
     const stage = coverRef.current;
-    
 
     if (imageStatus.drawMode === 'POLY' || imageStatus.drawMode === 'RECT') {
       //called when rectangle is drawn
       if (imageStatus.drawMode === 'POLY') {
-
         const newPoints = currentPoly?.points?.concat([
           pointerPosition.x,
           pointerPosition.y,
@@ -129,11 +141,11 @@ const KonvaImageView = ({
                   ele.polyType == RECTANGLE_TYPE.ANNOTATION_LABEL &&
                   ele.imageId == imageId
               ).length || 0;
-        
 
         // const color = getRandomHexColor();
         const color =
-          rectangleColor.selectedColor === '#fff' || polygonType === RECTANGLE_TYPE.ROI
+          rectangleColor.selectedColor === '#fff' ||
+          polygonType === RECTANGLE_TYPE.ROI
             ? getRandomHexColor()
             : rectangleColor.selectedColor;
         setCurrentPoly({
@@ -240,13 +252,12 @@ const KonvaImageView = ({
     setImageStatus((p) => ({ ...p, drawMode: 'POLY' }));
   }, [polyDraw, imageStatus.drawMode]);
 
-
   const normalizePolygonPoints = (arr) => {
     return arr.map((pt, i) => {
       if (i % 2 == 0) {
         return (pt - origin.x) / origin.scale / image.width;
       }
-      return (pt - origin.y) / origin.scale / image.width;
+      return (pt - origin.y) / origin.scale / image.height;
     });
 
     // return {
@@ -256,8 +267,6 @@ const KonvaImageView = ({
     //   height: height / origin.scale / image.height,
     // };
   };
-
-  
 
   const handleMouseMove = (evt) => {
     const e = evt.evt;
@@ -299,7 +308,7 @@ const KonvaImageView = ({
 
   const handleMouseUp = () => {
     // const updateObj = { dragging: false };
-    console.log('mouse up')
+    console.log('mouse up');
     if (imageStatus.drawing) {
       const normalizedValue = {
         action: 'RECTANGLE',
@@ -313,14 +322,14 @@ const KonvaImageView = ({
       setCurrentPoly(null);
       // updateObj['drawMode'] = false;
       // updateObj['drawing'] = false;
-      if(normalizedValue.uuid){
+      if (normalizedValue.uuid) {
         setSelectedRectId(normalizedValue.uuid);
       }
     } else {
       // setSelectedRectId(null);
     }
     // setImageStatus((a) => ({ ...a, ...updateObj }));
-    console.log(imageStatus)
+    console.log(imageStatus);
     setImageStatus((prev) => ({
       ...prev,
       // draw: false,
@@ -339,7 +348,6 @@ const KonvaImageView = ({
 
   const resetGraph = (newScale = null) => {
     if (image?.height && canvasRef?.current) {
-
       const cover = coverRef.current;
       const { width, height } = cover.getBoundingClientRect();
 
@@ -373,49 +381,58 @@ const KonvaImageView = ({
     const imageBoundaryX = 1;
     const imageBoundaryY = 1;
 
-    let snappedPoints = snapPolygonToBoundary(polyPoints, imageBoundaryX, imageBoundaryY);
+    let snappedPoints = snapPolygonToBoundary(
+      polyPoints,
+      imageBoundaryX,
+      imageBoundaryY
+    );
     console.log(snappedPoints);
 
     const totalPoints = snappedPoints.length;
-    for(let i = 0; i<totalPoints; i+=2){
+    for (let i = 0; i < totalPoints; i += 2) {
       const x1 = snappedPoints[i];
-      const y1 = snappedPoints[i+1];
+      const y1 = snappedPoints[i + 1];
 
-      const x2 = snappedPoints[(i+2) % totalPoints];
-      const y2 = snappedPoints[(i+3) % totalPoints];
+      const x2 = snappedPoints[(i + 2) % totalPoints];
+      const y2 = snappedPoints[(i + 3) % totalPoints];
 
-      const changedPoints = cropLine({x1, x2, y1, y2, boundaryX: imageBoundaryX, boundaryY: imageBoundaryY});
-      console.log(changedPoints)
-      if(changedPoints==null){
-        for(let j = 0; j<3; j++) snappedPoints[i+j] =null;
-      }
-      else {
+      const changedPoints = cropLine({
+        x1,
+        x2,
+        y1,
+        y2,
+        boundaryX: imageBoundaryX,
+        boundaryY: imageBoundaryY,
+      });
+      console.log(changedPoints);
+      if (changedPoints == null) {
+        for (let j = 0; j < 3; j++) snappedPoints[i + j] = null;
+      } else {
         snappedPoints[i] = changedPoints.x1;
-        snappedPoints[i+1] = changedPoints.y1;
-        snappedPoints[(i+2)% totalPoints] = changedPoints.x2;
-        snappedPoints[(i+3) % totalPoints] = changedPoints.y2;
+        snappedPoints[i + 1] = changedPoints.y1;
+        snappedPoints[(i + 2) % totalPoints] = changedPoints.x2;
+        snappedPoints[(i + 3) % totalPoints] = changedPoints.y2;
       }
-      console.log("iterating", i, snappedPoints)
+      console.log('iterating', i, snappedPoints);
     }
-    const result = snappedPoints.filter(ele=>ele!==null);
+    const result = snappedPoints.filter((ele) => ele !== null);
 
-    if(result.length < 6) throw new Error();
-    
+    if (result.length < 6) throw new Error();
+
     return result;
-  }
+  };
 
   const handleDoubleClick = (e) => {
-    
     if (imageStatus.drawMode === 'POLY' && currentPoly?.points?.length > 2) {
       const pos = stageRef.current.getPointerPosition();
       const poly = { ...currentPoly, closed: true };
       poly.points = normalizePolygonPoints(poly.points);
-      try{
+      console.log('Polies', poly.points);
+      try {
         poly.points = cropPolygonPoints(poly.points);
         onPolyUpdate([...polygons, poly]);
         setSelectedPolyId(currentPoly.uuid);
-      }
-      catch(e){}
+      } catch (e) {}
     }
     setCurrentPoly(null);
     setImageStatus((prev) => ({
@@ -539,12 +556,14 @@ const KonvaImageView = ({
     const modified = [];
     if (image?.width) {
       polygons?.forEach((poly) => {
-        const points = poly?.points?.map((point) => point * image.width);
+        const points = poly?.points?.map((point, i) =>
+          i % 2 == 0 ? point * image.width : point * image.height
+        );
         modified.push({ ...poly, points });
       });
     }
     setScaledPolygons(modified);
-  }, [polygons, image?.width]);
+  }, [polygons, image]);
 
   React.useEffect(() => {
     if (lastAction && lastAction !== ACTION_NAMES.SELECTED) {
@@ -557,29 +576,37 @@ const KonvaImageView = ({
       setLastAction(null);
     }
   }, [lastAction]);
-  console.log({rectStart, currentPoly})
+  console.log({ rectStart, currentPoly });
 
   //to put the selected rectangle on top to select it
   React.useEffect(() => {
-    if(selectedRectId){
-      const selectedRect = scaledRectangles.find(rect => rect.uuid === selectedRectId);
-      const remainingRects = scaledRectangles.filter(rect => rect.uuid !== selectedRectId);
-      if(selectedRect){
+    if (selectedRectId) {
+      const selectedRect = scaledRectangles.find(
+        (rect) => rect.uuid === selectedRectId
+      );
+      const remainingRects = scaledRectangles.filter(
+        (rect) => rect.uuid !== selectedRectId
+      );
+      if (selectedRect) {
         setScaledRectangles([...remainingRects, selectedRect]);
       }
     }
-  }, [selectedRectId])
+  }, [selectedRectId]);
 
   //to put the selected polygon on top to select it
   React.useEffect(() => {
-    if(selectedPolyId){
-      const selectedPoly = scaledPolygons.find(poly => poly.uuid === selectedPolyId);
-      const remainingPolys = scaledPolygons.filter(poly => poly.uuid !== selectedPolyId);
-      if(selectedPoly){
+    if (selectedPolyId) {
+      const selectedPoly = scaledPolygons.find(
+        (poly) => poly.uuid === selectedPolyId
+      );
+      const remainingPolys = scaledPolygons.filter(
+        (poly) => poly.uuid !== selectedPolyId
+      );
+      if (selectedPoly) {
         setScaledPolygons([...remainingPolys, selectedPoly]);
       }
     }
-  }, [selectedPolyId])
+  }, [selectedPolyId]);
 
   return (
     <div
@@ -675,8 +702,8 @@ const KonvaImageView = ({
                 canvasSize={canvaSize}
               />
               <Crosshair
-                x={currentPoly.x+currentPoly.width}
-                y={currentPoly.y+currentPoly.height}
+                x={currentPoly.x + currentPoly.width}
+                y={currentPoly.y + currentPoly.height}
                 canvasSize={canvaSize}
               />
             </>
@@ -700,18 +727,17 @@ const KonvaImageView = ({
                     );
                     const index = polygons.findIndex((r) => r.uuid == e.uuid);
                     if (index >= 0) {
-                      let buf = normalizePolygonPoints(e.points)
-                      try{
-                        buf = cropPolygonPoints(buf)
+                      let buf = normalizePolygonPoints(e.points);
+                      try {
+                        buf = cropPolygonPoints(buf);
                         const normalizedValue = {
                           ...polygons[index],
                           // ...normalizeDimensions(e),
-                          points: buf
+                          points: buf,
                         };
                         // handleValueReset(normalizedValue);
                         onPolyUpdate([...unchanged, normalizedValue]);
-                      }
-                      catch(e){
+                      } catch (e) {
                         onPolyUpdate([...polygons]);
                       }
                       // const ref = e.target.attrs
@@ -726,13 +752,12 @@ const KonvaImageView = ({
                   }
                   onTransform={(res) => {
                     const polyCp = [...polygons];
-                    try{
+                    try {
                       let points = normalizePolygonPoints(res.points);
                       points = cropPolygonPoints(points);
                       polyCp[i] = { ...res, points };
-                    }
-                    catch(e){
-                      polyCp[i] = { ...res, points: [...(polyCp[i].points)] };
+                    } catch (e) {
+                      polyCp[i] = { ...res, points: [...polyCp[i].points] };
                     }
                     onPolyUpdate(polyCp);
                   }}
@@ -751,14 +776,14 @@ const KonvaImageView = ({
               // offset={{x: 0, y: 0}}
             />
           )}
-          {(page === 'configuration' && type === ASSEMBLY_CONFIG.MOVING) && (
-            <CaptureLine 
-              isSelected = {selectedRectId === 'capture-coordinate'}
-              size={canvaSize} 
-              offset={origin} 
+          {page === 'configuration' && type === ASSEMBLY_CONFIG.MOVING && (
+            <CaptureLine
+              isSelected={selectedRectId === 'capture-coordinate'}
+              size={canvaSize}
+              offset={origin}
               scale={origin.scale}
-              width={image.width} 
-              height={image.height} 
+              width={image.width}
+              height={image.height}
             />
           )}
         </Layer>
