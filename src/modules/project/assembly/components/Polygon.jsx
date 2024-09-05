@@ -5,8 +5,10 @@ import PolyVertice from './PolyVertice';
 const movementThreshold = 100;
 
 const checkThresholdViolation = (points, evt, posIndex) => {
-  return Math.abs(points[posIndex] - evt.offsetX) > movementThreshold ||
-    Math.abs(points[posIndex + 1] - evt.offsetY) > movementThreshold;
+  return (
+    Math.abs(points[posIndex] - evt.offsetX) > movementThreshold ||
+    Math.abs(points[posIndex + 1] - evt.offsetY) > movementThreshold
+  );
 };
 
 const Polygon = ({
@@ -16,6 +18,7 @@ const Polygon = ({
   onTransform,
   offset,
   scale,
+  freeze = false,
   ...rest
 }) => {
   const shapeRef = React.useRef(null);
@@ -138,12 +141,20 @@ const Polygon = ({
               onMouseDown={(e) => (e.cancelBubble = true)}
               onMouseUp={(e) => (e.cancelBubble = true)}
               onDragMove={(e) => {
+                if (freeze) {
+                  e.cancelBubble = true;
+                  return;
+                }
                 const newPoints = [...points];
                 const posIndex = 2 * i;
 
-                const threshViolation = checkThresholdViolation(newPoints, e.evt, posIndex)
-                if (threshViolation){
-                  setPoints(newPoints)
+                const threshViolation = checkThresholdViolation(
+                  newPoints,
+                  e.evt,
+                  posIndex
+                );
+                if (threshViolation) {
+                  setPoints(newPoints);
                   return;
                 }
                 newPoints[posIndex] = e.evt.offsetX;
@@ -152,11 +163,19 @@ const Polygon = ({
                 setPoints(newPoints);
               }}
               onDragEnd={(e) => {
+                // if (freeze) {
+                //   e.cancelBubble = true;
+                //   return;
+                // }
                 const newPoints = [...points];
                 const posIndex = 2 * i;
 
-                const threshViolation = checkThresholdViolation(newPoints, e.evt, posIndex)
-                if (threshViolation){
+                const threshViolation = checkThresholdViolation(
+                  newPoints,
+                  e.evt,
+                  posIndex
+                );
+                if (threshViolation) {
                   onTransform({ ...shape, points: newPoints });
                   return;
                 }

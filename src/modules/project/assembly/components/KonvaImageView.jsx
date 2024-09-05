@@ -267,10 +267,7 @@ const KonvaImageView = ({
 
     const stage = coverRef.current;
 
-    if (
-      imageStatus.drawing &&
-      (imageStatus.drawMode === 'POLY' || imageStatus.drawMode === 'RECT')
-    ) {
+    if (imageStatus.drawing && imageStatus.drawMode === 'RECT') {
       const stage2 = evt.target.getStage();
       const pointerPosition = stage2.getPointerPosition();
 
@@ -302,7 +299,7 @@ const KonvaImageView = ({
   const handleMouseUp = () => {
     // const updateObj = { dragging: false };
     console.log('mouse up');
-    if (imageStatus.drawing) {
+    if (imageStatus.drawing && imageStatus.drawMode === 'RECT') {
       const normalizedValue = {
         action: 'RECTANGLE',
         ...currentPoly,
@@ -318,20 +315,18 @@ const KonvaImageView = ({
       if (normalizedValue.uuid) {
         setSelectedRectId(normalizedValue.uuid);
       }
-    } else {
-      // setSelectedRectId(null);
+      // setImageStatus((a) => ({ ...a, ...updateObj }));
+      setImageStatus((prev) => ({
+        ...prev,
+        // draw: false,
+        dragging: false,
+        drawing: false,
+        drawMode:
+          prev.drawMode === 'RECT' || prev.drawMode === 'POLY'
+            ? true
+            : prev.drawMode,
+      }));
     }
-    // setImageStatus((a) => ({ ...a, ...updateObj }));
-    setImageStatus((prev) => ({
-      ...prev,
-      // draw: false,
-      dragging: false,
-      drawing: false,
-      drawMode:
-        prev.drawMode === 'RECT' || prev.drawMode === 'POLY'
-          ? true
-          : prev.drawMode,
-    }));
   };
 
   useEffect(() => {
@@ -378,7 +373,7 @@ const KonvaImageView = ({
       imageBoundaryX,
       imageBoundaryY
     );
-    console.log({snappedPoints});
+    console.log({ snappedPoints });
 
     const totalPoints = snappedPoints.length;
     for (let i = 0; i < totalPoints; i += 2) {
@@ -616,7 +611,10 @@ const KonvaImageView = ({
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        onMouseLeave={(e) => {e.currentTarget.preventDefault(); e.cancelBubble = true}}
+        onMouseLeave={(e) => {
+          e.currentTarget.preventDefault();
+          e.cancelBubble = true;
+        }}
         onDblClick={handleDoubleClick}
         ref={stageRef}
       >
@@ -744,7 +742,7 @@ const KonvaImageView = ({
                     try {
                       let points = normalizePolygonPoints(res.points);
                       points = cropPolygonPoints(points);
-                      if(points.length < 6) throw new Error()
+                      if (points.length < 6) throw new Error();
                       polyCp[i] = { ...res, points };
                     } catch (e) {
                       polyCp[i] = { ...res, points: [...polyCp[i].points] };
@@ -759,9 +757,13 @@ const KonvaImageView = ({
             })}
           {currentPoly?.points && (
             <Polygon
+              freeze={true}
               shape={currentPoly}
               isSelected={true}
               onChange={() => {}}
+              onTransform={e=>{
+                setCurrentPoly({...currentPoly, points: [...e.points]})
+              }}
               // scale={origin.scale}
               // offset={{x: 0, y: 0}}
             />
