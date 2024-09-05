@@ -67,7 +67,7 @@ const Polygon = ({
 
   return (
     <>
-      {shape?.title && (
+      {shape?.title && shape?.points && (
         <Text
           // x={(offset?.x || 0) + offset?.x * scale}
           // y={(offset?.y || 0) + offset?.y * scale }
