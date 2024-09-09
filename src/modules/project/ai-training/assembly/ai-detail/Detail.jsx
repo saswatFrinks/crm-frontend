@@ -53,7 +53,7 @@ export default function Detail({ loader, modelInfo, datasets }) {
               <label htmlFor="" className="font-semibold">
                 Primary Object Class:
               </label>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 {removeDuplicates(modelInfo?.rois?.map(r => r?.primaryClass?.className)).map((item, index) => {
                     return (
                       <Chip key={index} color={classColors.get(item)?.color}>
@@ -68,7 +68,7 @@ export default function Detail({ loader, modelInfo, datasets }) {
               <label htmlFor="" className="font-semibold">
                 Classes:
               </label>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 {modelInfo?.hasOwnProperty('classes') &&
                   modelInfo.classes?.length &&
                   modelInfo.classes.map((item, index) => {
@@ -97,7 +97,7 @@ export default function Detail({ loader, modelInfo, datasets }) {
                       <div className="flex-1">{roiItem.cameraConfig}</div>
                       <div className="flex-1">{roiItem.roi}</div>
                       {!modelInfo?.isTracker && (
-                        <div className="flex flex-1 gap-2">
+                        <div className="flex flex-1 gap-2 flex-wrap">
                           {roiItem?.hasOwnProperty('classes') &&
                             roiItem.classes?.length &&
                             roiItem.classes.map((item, index) => {
