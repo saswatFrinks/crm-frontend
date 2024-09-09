@@ -46,7 +46,7 @@ export default function InputTag(props) {
 
   return (
     <div className="flex w-full flex-wrap items-center gap-4">
-      <div className="relative flex w-full flex-wrap items-center rounded-md border border-gray-300 p-2">
+      <div className="relative flex w-full flex-wrap items-center rounded-md border border-gray-300 p-2 gap-3">
         {initialTags.length > 0 &&
           initialTags.map((tag) => (
             <div

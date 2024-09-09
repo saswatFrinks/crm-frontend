@@ -127,7 +127,9 @@ export default function Result() {
       });
       setDatasetCount(response.data?.data?.datasets.reduce((prev, cur)=> prev + cur.annotatedImages, 0));
     }
-    catch(e){}
+    catch(e){
+      toast.error(e?.response?.data?.data?.message)
+    }
   }
 
   const getModelData = async () => {

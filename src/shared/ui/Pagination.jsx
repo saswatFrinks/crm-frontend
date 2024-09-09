@@ -104,7 +104,8 @@ export default function Pagination({ chevornsMovement = 5 }) {
     return cacheAfterDelete;
   };
 
-  const cacheImages = async (index) => {
+  const cacheImages = async () => {
+    const index = currentIndex;
     try {
       const cacheAfterDelete = deleteOlderCaches(index);
       const cacheMap = new Map(cacheAfterDelete);
@@ -210,7 +211,7 @@ export default function Pagination({ chevornsMovement = 5 }) {
     }
     changeLoader(allImages[currentIndex]?.id, true);
     setSelectedImage(allImages[currentIndex]);
-    cacheImages(currentIndex);
+    cacheImages();
   }, [currentIndex, allImages]);
 
   return (

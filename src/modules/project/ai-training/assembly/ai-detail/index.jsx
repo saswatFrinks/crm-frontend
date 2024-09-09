@@ -114,7 +114,7 @@ export default function AIDetail() {
         <ModalBody>
           Some of the output files of the model training are not generated due to insufficient training data used. Below is the list of such missing files:
           <br/>
-            {modalInfo.map((entry, i)=><h4 className="font-semibold">{i+1}. {entry}</h4>)}
+            {modalInfo.map((entry, i)=><h4 key={i} className="font-semibold">{i+1}. {entry}</h4>)}
           <br/>
           We recommend using at least 100 images per configuration to train the model correctly.
           </ModalBody>
