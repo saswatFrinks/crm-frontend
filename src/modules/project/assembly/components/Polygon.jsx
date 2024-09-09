@@ -74,14 +74,16 @@ const Polygon = ({
     cb();
   }, [shape, shapeRef, offset, scale]);
 
+  const sc = scale || 1
+
   return (
     <>
-      {shape?.title && shape?.points && (
+      {!freeze && shape?.title && shape?.points.length && (
         <Text
           // x={(offset?.x || 0) + offset?.x * scale}
           // y={(offset?.y || 0) + offset?.y * scale }
-          x={shape?.points[0] * scale + (offset?.x || 0)}
-          y={shape.points[1] * scale + (offset?.y || 0) - 17}
+          x={shape.points[0] * sc + (offset?.x || 0)}
+          y={shape.points[1] * sc + (offset?.y || 0) - 17}
           text={`${shape?.title}`}
           fontSize={15}
           fill={shape.fill}
@@ -167,6 +169,7 @@ const Polygon = ({
                 //   e.cancelBubble = true;
                 //   return;
                 // }
+                e.cancelBubble = true
                 const newPoints = [...points];
                 const posIndex = 2 * i;
 

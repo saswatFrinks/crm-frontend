@@ -53,7 +53,7 @@ const KonvaImageView = ({
   const stageRef = React.useRef(null);
 
   const [imageStatus, setImageStatus] = useRecoilState(imageStatusAtom);
-  // const isEditing = useRecoilValue(editingAtom);
+  const isEditing = useRecoilValue(editingAtom);
 
   const [rectangleColor, setRectangleColor] =
     useRecoilState(rectangleColorAtom);
@@ -267,7 +267,10 @@ const KonvaImageView = ({
 
     const stage = coverRef.current;
 
-    if (imageStatus.drawing && imageStatus.drawMode === 'RECT') {
+    if (
+      imageStatus.drawing &&
+      (imageStatus.drawMode === 'POLY' || imageStatus.drawMode === 'RECT')
+    ) {
       const stage2 = evt.target.getStage();
       const pointerPosition = stage2.getPointerPosition();
 
@@ -299,6 +302,9 @@ const KonvaImageView = ({
   const handleMouseUp = () => {
     // const updateObj = { dragging: false };
     console.log('mouse up');
+    if (imageStatus.drawing && imageStatus.drawMode === 'POLY') {
+      return;
+    }
     if (imageStatus.drawing && imageStatus.drawMode === 'RECT') {
       const normalizedValue = {
         action: 'RECTANGLE',
@@ -315,18 +321,21 @@ const KonvaImageView = ({
       if (normalizedValue.uuid) {
         setSelectedRectId(normalizedValue.uuid);
       }
-      // setImageStatus((a) => ({ ...a, ...updateObj }));
-      setImageStatus((prev) => ({
-        ...prev,
-        // draw: false,
-        dragging: false,
-        drawing: false,
-        drawMode:
-          prev.drawMode === 'RECT' || prev.drawMode === 'POLY'
-            ? true
-            : prev.drawMode,
-      }));
+    } else if (!isEditing) {
+      // setSelectedRectId(null);
+      setSelectedPolyId(null);
     }
+    // setImageStatus((a) => ({ ...a, ...updateObj }));
+    setImageStatus((prev) => ({
+      ...prev,
+      // draw: false,
+      dragging: false,
+      drawing: false,
+      drawMode:
+        prev.drawMode === 'RECT' || prev.drawMode === 'POLY'
+          ? true
+          : prev.drawMode,
+    }));
   };
 
   useEffect(() => {
@@ -761,11 +770,9 @@ const KonvaImageView = ({
               shape={currentPoly}
               isSelected={true}
               onChange={() => {}}
-              onTransform={e=>{
-                setCurrentPoly({...currentPoly, points: [...e.points]})
+              onTransform={(e) => {
+                setCurrentPoly({ ...currentPoly, points: [...e.points] });
               }}
-              // scale={origin.scale}
-              // offset={{x: 0, y: 0}}
             />
           )}
           {page === 'configuration' && type === ASSEMBLY_CONFIG.MOVING && (

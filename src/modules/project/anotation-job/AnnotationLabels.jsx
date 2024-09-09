@@ -7,6 +7,7 @@ import {
   annotationClassesAtom,
   annotationMapAtom,
   currentLabelIdAtom,
+  currentPolygonIdAtom,
   currentRectangleIdAtom,
   editingAtom,
   imageStatusAtom,
@@ -33,6 +34,7 @@ export default function AnnotationLabels({ labelClass, isPrimary }) {
   const [labelId, setLabelId] = useRecoilState(currentLabelIdAtom);
   const setImageStatus = useSetRecoilState(imageStatusAtom);
   const setActionName = useSetRecoilState(lastActionNameAtom);
+  const setSelectedPolyId = useSetRecoilState(currentPolygonIdAtom);
 
   // const [initialLabels, setInitialLabels] = useRecoilState(initialLabelsAtom);
   // console.log("annotatio1n",{initialLabels})
@@ -185,7 +187,11 @@ export default function AnnotationLabels({ labelClass, isPrimary }) {
                     );
                     return;
                   }
-                  selectedRectangleId(t.uuid);
+                  if(t.points.length){
+                    setSelectedPolyId(t.uuid)
+                  }
+                  else
+                    selectedRectangleId(t.uuid);
                 }}
               />
               <Trash
