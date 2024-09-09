@@ -304,6 +304,9 @@ export default function LabelImage({ type, save }) {
       status: STATUS.EDITING,
     };
 
+    setSelectedPolyId(null);
+    setSelectedRectId(null);
+
     setImageStatus((t) => ({ ...t, draw: !t.draw , drawing: true,
       drawMode: inspectionReq !== 2 ? "RECT" : "POLY",}));
       setActionName(ACTION_NAMES.SELECTED);
@@ -660,6 +663,7 @@ export default function LabelImage({ type, save }) {
                         const labelClass = labelClasses.find(
                           (ele) => ele.id == e.target.value
                         );
+                        console.log('POLY index based on uuid', ind);
                         polyCp[ind] = {
                           ...polyCp[ind],
                           title: labelClass.name,

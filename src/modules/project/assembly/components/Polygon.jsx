@@ -2,6 +2,15 @@ import React from 'react';
 import { Circle, Line, Text } from 'react-konva';
 import PolyVertice from './PolyVertice';
 
+const movementThreshold = 100;
+
+const checkThresholdViolation = (points, evt, posIndex) => {
+  return (
+    Math.abs(points[posIndex] - evt.offsetX) > movementThreshold ||
+    Math.abs(points[posIndex + 1] - evt.offsetY) > movementThreshold
+  );
+};
+
 const Polygon = ({
   shape,
   isSelected,
@@ -9,6 +18,7 @@ const Polygon = ({
   onTransform,
   offset,
   scale,
+  freeze = false,
   ...rest
 }) => {
   const shapeRef = React.useRef(null);
@@ -22,7 +32,6 @@ const Polygon = ({
     for (let i = 0; i < arr?.length; i += 2) {
       const x = arr[i] * sc + ox;
       const y = arr[i + 1] * sc + oy;
-      console.log('values are 1 ', arr[i], arr[i+1], {x, y, sc, ox, oy})
       points.push(x);
       points.push(y);
       grouped.push([x, y]);
@@ -34,7 +43,7 @@ const Polygon = ({
   const [vertexes, groupedPoints] = getNormalizedPoints(shape.points);
 
   const [polyPoints, setPolyPoints] = React.useState(groupedPoints);
-  const [points, setPoints] = React.useState(vertexes)
+  const [points, setPoints] = React.useState(vertexes);
 
   React.useEffect(() => {
     const getNormalizedPoints = (arr) => {
@@ -46,7 +55,6 @@ const Polygon = ({
       for (let i = 0; i < arr?.length; i += 2) {
         const x = arr[i] * sc + ox;
         const y = arr[i + 1] * sc + oy;
-        console.log('values are 2 ', arr[i], arr[i+1], {x, y, sc, ox, oy})
         points.push(x);
         points.push(y);
         grouped.push([x, y]);
@@ -56,30 +64,30 @@ const Polygon = ({
     const cb = () => {
       if (shapeRef.current) {
         const [pts, grouped] = getNormalizedPoints(shape.points);
-        console.log(grouped);
-        setPolyPoints(grouped)
-        setPoints(pts)
+        setPolyPoints(grouped);
+        setPoints(pts);
         shapeRef.current.points(pts);
         shapeRef.current.x(0);
         shapeRef.current.y(0);
       }
     };
-    console.log("NaN case", [...shape.points], offset, scale)
     cb();
   }, [shape, shapeRef, offset, scale]);
 
+  const sc = scale || 1
+
   return (
     <>
-      {shape?.title && shape?.points && (
+      {!freeze && shape?.title && shape?.points.length && (
         <Text
           // x={(offset?.x || 0) + offset?.x * scale}
           // y={(offset?.y || 0) + offset?.y * scale }
-          x={shape?.points[0] * scale + (offset?.x || 0)}
-          y={shape.points[1] * scale + (offset?.y || 0) - 17}
+          x={shape.points[0] * sc + (offset?.x || 0)}
+          y={shape.points[1] * sc + (offset?.y || 0) - 17}
           text={`${shape?.title}`}
           fontSize={15}
           fill={shape.fill}
-          fontStyle='bold'
+          fontStyle="bold"
         />
       )}
       <Line
@@ -89,13 +97,13 @@ const Polygon = ({
         onMouseDown={(e) => isSelected && (e.cancelBubble = true)}
         onMouseUp={(e) => isSelected && (e.cancelBubble = true)}
         onDragMove={(e) => {
-          if (isSelected){
+          if (isSelected) {
             e.cancelBubble = true;
             const xDrag = e.currentTarget.x();
             const yDrag = e.currentTarget.y();
-            const res = []
-            for(let i = 0; i< points.length; i+=2){
-              res.push([points[i]+xDrag, points[i+1]+yDrag])
+            const res = [];
+            for (let i = 0; i < points.length; i += 2) {
+              res.push([points[i] + xDrag, points[i + 1] + yDrag]);
             }
             setPolyPoints(res);
           }
@@ -103,14 +111,16 @@ const Polygon = ({
         onDragStart={(e) => {
           if (isSelected) e.cancelBubble = true;
         }}
-        onDragEnd={e=>{
-          if(isSelected){
-            e.cancelBubble = true
+        onDragEnd={(e) => {
+          if (isSelected) {
+            e.cancelBubble = true;
             // e.evt.bubbles = false
             const xDrag = e.currentTarget.x();
             const yDrag = e.currentTarget.y();
-            const modifiedPoints = points.map((p,i)=> i%2==0 ? p+xDrag : p+yDrag);
-            onChange({uuid: shape.uuid, points: modifiedPoints})
+            const modifiedPoints = points.map((p, i) =>
+              i % 2 == 0 ? p + xDrag : p + yDrag
+            );
+            onChange({ uuid: shape.uuid, points: modifiedPoints });
           }
         }}
         stroke={isSelected ? '#505050' : shape.stroke}
@@ -132,17 +142,50 @@ const Polygon = ({
               draggable={true}
               onMouseDown={(e) => (e.cancelBubble = true)}
               onMouseUp={(e) => (e.cancelBubble = true)}
-              onDragMove={(e)=>{
+              onDragMove={(e) => {
+                if (freeze) {
+                  e.cancelBubble = true;
+                  return;
+                }
                 const newPoints = [...points];
-                newPoints[2 * i] = e.evt.offsetX;
-                newPoints[2 * i + 1] = e.evt.offsetY;
+                const posIndex = 2 * i;
+
+                const threshViolation = checkThresholdViolation(
+                  newPoints,
+                  e.evt,
+                  posIndex
+                );
+                if (threshViolation) {
+                  setPoints(newPoints);
+                  return;
+                }
+                newPoints[posIndex] = e.evt.offsetX;
+                newPoints[posIndex + 1] = e.evt.offsetY;
+                // console.log('evt move', e)
                 setPoints(newPoints);
               }}
               onDragEnd={(e) => {
+                // if (freeze) {
+                //   e.cancelBubble = true;
+                //   return;
+                // }
+                e.cancelBubble = true
                 const newPoints = [...points];
-                newPoints[2 * i] = e.evt.offsetX;
-                newPoints[2 * i + 1] = e.evt.offsetY;
+                const posIndex = 2 * i;
+
+                const threshViolation = checkThresholdViolation(
+                  newPoints,
+                  e.evt,
+                  posIndex
+                );
+                if (threshViolation) {
+                  onTransform({ ...shape, points: newPoints });
+                  return;
+                }
+                newPoints[posIndex] = e.evt.offsetX;
+                newPoints[posIndex + 1] = e.evt.offsetY;
                 // setPoints(newPoints);
+                // console.log('evt', e);
                 onTransform({ ...shape, points: newPoints });
               }}
             />
@@ -153,6 +196,3 @@ const Polygon = ({
 };
 
 export default Polygon;
-
-
-

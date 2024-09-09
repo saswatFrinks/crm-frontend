@@ -252,18 +252,6 @@ export default function Actions({ cancel, submit }) {
     },
   ];
 
-  console.log(
-    'check here11',
-    isEditing,
-    inspectionReq,
-    imageStatus.draw,
-    currentRectType == RECTANGLE_TYPE.ROI,
-    roiIndex >= 0 &&
-      !rectangles.some((rec) => rec.roiId == configuration.rois[roiIndex].id),
-    { imageStatus }
-  );
-  console.log('flag', actions[2].active, actions[2].canAction, imageStatus.draw, imageStatus.drawing, isEditing)
-
   return (
     <>
       <ul className="flex items-center gap-6 px-4">
