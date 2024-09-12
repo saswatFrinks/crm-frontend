@@ -1,0 +1,64 @@
+name: Create Release Tag and Trigger Jenkins
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Release Type (major, minor, patch)'
+        required: true
+        default: 'patch'
+
+jobs:
+  create_tag_and_trigger_jenkins:
+    runs-on: ubuntu-20.04
+    outputs:
+      output1: ${{ steps.get_latest_tag.outputs.latest_tag }}
+      output2: ${{ steps.bump_version.outputs.new_tag }}
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Get latest tag
+      id: get_latest_tag
+      # run: echo ::set-output name=latest_tag::$(git describe --tags --abbrev=0 || echo v0.0.0)
+      run: echo $(git describe --tags --abbrev=0 || echo v0.0.0) >> $GITHUB_OUTPUT
+
+    - name: Bump version and push tag
+      id: bump_version
+      run: |
+        latest_tag=${{ steps.get_latest_tag.outputs.output1 }}
+        IFS='.' read -ra VERSION <<< "${latest_tag#v}"
+        major=${VERSION[0]}
+        minor=${VERSION[1]}
+        patch=${VERSION[2]}
+        case ${{ github.event.inputs.release_type }} in
+          major)
+            major=$((major+1))
+            minor=0
+            patch=0
+            ;;
+          minor)
+            minor=$((minor+1))
+            patch=0
+            ;;
+          patch)
+            patch=$((patch+1))
+            ;;
+        esac
+        new_tag="v$major.$minor.$patch"
+        echo $new_tag >> $GITHUB_OUTPUT
+        git config --global user.name 'github-actions'
+        git config --global user.email 'github-actions@github.com'
+        git tag -a $new_tag -m "Release $new_tag"
+        git push origin $new_tag
+
+    # - name: Trigger Jenkins Job
+    #   env:
+    #     JENKINS_URL: ${{ secrets.JENKINS_URL }}
+    #     JENKINS_USER: ${{ secrets.JENKINS_USER }}
+    #     JENKINS_TOKEN: ${{ secrets.JENKINS_TOKEN }}
+    #   run: |
+    #     curl -X POST $JENKINS_URL/job/YourJobName/build \
+    #       --user $JENKINS_USER:$JENKINS_TOKEN \
+    #       --data-urlencode json='{"parameter": [{"name":"GIT_TAG", "value":"${{ steps.bump_version.outputs.output2 }}"}]}'
