@@ -11,9 +11,6 @@ on:
 jobs:
   create_tag_and_trigger_jenkins:
     runs-on: ubuntu-20.04
-    outputs:
-      output1: ${{ steps.get_latest_tag.outputs.latest_tag }}
-      output2: ${{ steps.bump_version.outputs.new_tag }}
     steps:
     - uses: actions/checkout@v4
       with:
@@ -22,12 +19,16 @@ jobs:
     - name: Get latest tag
       id: get_latest_tag
       # run: echo ::set-output name=latest_tag::$(git describe --tags --abbrev=0 || echo v0.0.0)
-      run: echo $(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0") >> $GITHUB_OUTPUT
+
+      run: |
+        L_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+        echo "latest_tag=$L_TAG" >> $GITHUB_ENV
 
     - name: Bump version and push tag
       id: bump_version
       run: |
-        latest_tag=${{ steps.get_latest_tag.outputs.output1 }}
+        latest_tag=${{ env.latest_tag }}
+        echo "latest tag $latest_tag"
         IFS='.' read -ra VERSION <<< "${latest_tag#v}"
         major=${VERSION[0]}
         minor=${VERSION[1]}
@@ -47,7 +48,7 @@ jobs:
             ;;
         esac
         new_tag="v$major.$minor.$patch"
-        echo $new_tag >> $GITHUB_OUTPUT
+        echo "new_tag=$new_tag" >> $GITHUB_ENV
         git config --global user.name 'github-actions'
         git config --global user.email 'github-actions@github.com'
         git tag -a $new_tag -m "Release $new_tag"
