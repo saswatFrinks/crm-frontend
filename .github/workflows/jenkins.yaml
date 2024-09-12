@@ -22,7 +22,7 @@ jobs:
     - name: Get latest tag
       id: get_latest_tag
       # run: echo ::set-output name=latest_tag::$(git describe --tags --abbrev=0 || echo v0.0.0)
-      run: echo $(git describe --tags --abbrev=0 || echo v0.0.1) >> $GITHUB_OUTPUT
+      run: echo $(git describe --tags --abbrev=0 2>/dev/null || echo v0.0.0) >> $GITHUB_OUTPUT
 
     - name: Bump version and push tag
       id: bump_version
