@@ -1,4 +1,4 @@
-name: Create Release Tag and Trigger Jenkins
+name: Create Release Tag and Build Image
 
 on:
   workflow_dispatch:
@@ -54,12 +54,18 @@ jobs:
         git tag -a $new_tag -m "Release $new_tag"
         git push origin $new_tag
 
-    # - name: Trigger Jenkins Job
-    #   env:
-    #     JENKINS_URL: ${{ secrets.JENKINS_URL }}
-    #     JENKINS_USER: ${{ secrets.JENKINS_USER }}
-    #     JENKINS_TOKEN: ${{ secrets.JENKINS_TOKEN }}
+    - name: Trigger Jenkins Job
+      env:
+        JENKINS_URL: ${{ secrets.JENKINS_URL }}
+        AUTH_ID: ${{secrets.AUTH_ID}}
+        ACTION_NAME: ${{secrets.ACTION_NAME}}
     #   run: |
     #     curl -X POST $JENKINS_URL/job/YourJobName/build \
     #       --user $JENKINS_USER:$JENKINS_TOKEN \
     #       --data-urlencode json='{"parameter": [{"name":"GIT_TAG", "value":"${{ steps.bump_version.outputs.output2 }}"}]}'
+      run: |
+        curl -X PATCH \
+          -H "Content-Type: application/json" \
+          -H "Authorization: Bearer ${{env.AUTH_ID}}" \
+          -d '{"action": "${{env.ACTION_NAME}}"}' \
+          ${{env.JENKINS_URL}}
