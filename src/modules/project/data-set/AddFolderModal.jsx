@@ -1,21 +1,54 @@
 import axiosInstance from '@/core/request/aixosinstance';
+import Upload from '@/shared/icons/Upload';
 import { modalAtom } from '@/shared/states/modal.state';
 import Button from '@/shared/ui/Button';
 import Input from '@/shared/ui/Input';
 import Label from '@/shared/ui/Label';
 import { ModalBody, ModalFooter, ModalHeader } from '@/shared/ui/Modal';
 import { useFormik } from 'formik';
+import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { useParams } from 'react-router-dom';
 import { useSetRecoilState } from 'recoil';
 
-export default function AddFolderModal({fetchAllFolders, editFolder}) {
+export default function AddFolderModal({ fetchAllFolders, editFolder }) {
   const setOpenModal = useSetRecoilState(modalAtom);
   const params = useParams();
 
+  const [file, setFile] = useState(null);
+
+  const [fileName, setFileName] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleFileUpload = async (event) => {
+    const uploadedFile = event.target.files[0];
+    setFile(uploadedFile);
+    setFileName(uploadedFile?.name || '');
+  };
+
+  const handleSubmit = async () => {
+    try {
+      if (!file) {
+        toast.error('Either give the Instance ID or upload instance file');
+        return;
+      }
+      setLoading(true);
+      const formData = new FormData();
+      formData.append('file', file);
+      await axiosInstance.post(
+        '/dataset/upload/coco',
+        formData
+      );
+    } catch (error) {
+      toast.error(error?.response?.data?.data?.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const addFolder = async (values) => {
     try {
-      if(editFolder){
+      if (editFolder) {
         await axiosInstance.put('/dataset/edit', {
           datasetId: editFolder?.id,
           name: values.name,
@@ -26,7 +59,7 @@ export default function AddFolderModal({fetchAllFolders, editFolder}) {
           folderName: values.name,
         });
       }
-  
+
       fetchAllFolders();
     } catch (error) {
       toast.error(error?.response?.data?.data?.message);
@@ -73,6 +106,28 @@ export default function AddFolderModal({fetchAllFolders, editFolder}) {
             errorMessage={formik.errors.name}
           />
         </div>
+        <div className="mb-4">
+          <Label>Upload Dataset (Optional)</Label>
+          <label
+            htmlFor="file"
+            className="ml-2 inline-flex max-w-max cursor-pointer items-center gap-2 rounded-full bg-f-primary px-4 py-1.5 text-white  hover:bg-f-secondary"
+          >
+            <Upload />
+            Upload
+            <input
+              type="file"
+              multiple
+              hidden
+              id="file"
+              // accept=".png"
+              onChange={handleFileUpload}
+            />
+          </label>
+          {fileName && <div>File uploaded: {fileName}</div>}
+        </div>
+        <Button size="xs" fullWidth={false} onClick={handleSubmit}>
+          Done
+        </Button>
       </ModalBody>
       <ModalFooter>
         <div className="ml-auto flex w-3/5 items-center justify-end gap-4">
