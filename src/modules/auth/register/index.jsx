@@ -97,7 +97,7 @@ export default function Register() {
         toast.error(error.response.data.data.message);
       }
     },
-  });
+  }); 
   
   useEffect(() => {
     formik.validateForm()
