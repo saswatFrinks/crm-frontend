@@ -92,6 +92,8 @@ export default function Register() {
         if (number[0] === '0') {
           number = number.slice(1);
         }
+
+        if(getPhoneErrorMessage())return;
         await authService.create({ ...value, phone: number });
         toast.success('Registered successfully!');
         setOpen(true);
