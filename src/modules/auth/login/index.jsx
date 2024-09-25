@@ -12,6 +12,7 @@ import { TOKEN } from '@/core/constants';
 import { updateAuthenHeader } from '@/core/request/updateAuth';
 import axiosInstance from '@/core/request/aixosinstance';
 import { getCookie } from '@/shared/hocs/withAuthenticated';
+import { EMAIL_REGEX } from '@/core/constants/regex';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -35,7 +36,7 @@ export default function Login() {
       if (!values.email) {
         errors.email = 'Email is required';
       } else if (
-        !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(values.email)
+        !EMAIL_REGEX.test(values.email)
       ) {
         errors.email = 'Enter a valid email id';
       }
@@ -63,7 +64,7 @@ export default function Login() {
       } catch (error) {
         // formik.setFieldError('password', 'Incorrect password');
         console.log(error);
-        toast.error(error.response.data.data.message);
+        if(error.response.status !== 401)toast.error(error.response.data.data.message);
       }
     },
   });

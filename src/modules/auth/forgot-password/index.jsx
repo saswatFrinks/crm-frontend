@@ -4,9 +4,10 @@ import Label from '@/shared/ui/Label';
 import Input from '@/shared/ui/Input';
 import Button from '@/shared/ui/Button';
 import { useNavigate } from 'react-router-dom';
-import toast from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast';
 import axiosInstance from '@/core/request/aixosinstance';
 import MessageComponent from '../MessageComponent';
+import { EMAIL_REGEX } from '@/core/constants/regex';
 
 const ForgotPassword = () => {
   const [email, setEmail] = React.useState('');
@@ -18,7 +19,7 @@ const ForgotPassword = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if(error || !email){
-      setError('Email ID is required');
+      if(!email)setError('Email ID is required');
       return;
     }else{
       setError('');
@@ -39,8 +40,7 @@ const ForgotPassword = () => {
 
   const onChangeEmail = (e) => {
     const enteredEmail = e.target.value;
-    const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{1,}\b/;
-    const isValid = emailRegex.test(enteredEmail);
+    const isValid = EMAIL_REGEX.test(enteredEmail);
     if(!isValid || !enteredEmail){
       setError('Please Enter a Valid Email ID');
     }else{
@@ -51,6 +51,7 @@ const ForgotPassword = () => {
 
   return (
     <div className="flex h-screen flex-col items-center justify-center">
+      <Toaster />
       <img src={logo} alt="logo" className="mb-8" />
 
       {linkSent ? (

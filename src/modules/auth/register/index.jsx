@@ -14,6 +14,7 @@ import SignUpSuccess from './SignUpSuccess';
 import { useSetRecoilState } from 'recoil';
 import { modalAtom } from '@/shared/states/modal.state';
 import { getCookie } from '@/shared/hocs/withAuthenticated';
+import { EMAIL_REGEX } from '@/core/constants/regex';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -58,7 +59,7 @@ export default function Register() {
         if (!values.email) {
           errors.email = 'Email is required';
         } else if (
-          !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(values.email)
+          !EMAIL_REGEX.test(values.email)
         ) {
           errors.email = 'Enter a valid email id';
         }
@@ -75,6 +76,8 @@ export default function Register() {
       if(formik.touched.organization){
         if (!values.organization) {
           errors.organization = 'Organization is required';
+        }else if(!/^[a-zA-Z0-9 ]+$/i.test(values.organization)){
+          errors.organization = 'Special characters are not allowed'
         }
       }
 
@@ -94,7 +97,7 @@ export default function Register() {
         setOpen(true);
       } catch (error) {
         console.log(error);
-        toast.error(error.response.data.data.details);
+        toast.error(error.response.data.data.message);
       }
     },
   }); 
@@ -134,7 +137,7 @@ export default function Register() {
 
         <p className="text-center text-2xl font-semibold">Sign up</p>
 
-        <form className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <form className="grid grid-cols-1 gap-4 md:grid-cols-2" onSubmit={formik.handleSubmit}>
           <div className="col-span-2 grid grid-cols-1 gap-6 md:grid-cols-2">
             <div className="md:min-w-80">
               <Label>User Name</Label>
@@ -222,7 +225,7 @@ export default function Register() {
           </Link>
 
           <div className=" min-w-[180px] place-self-start ">
-            <Button type="submit" onClick={formik.handleSubmit}>
+            <Button type="submit">
               Sign up
             </Button>
           </div>
