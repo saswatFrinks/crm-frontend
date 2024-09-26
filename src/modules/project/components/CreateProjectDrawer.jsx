@@ -632,9 +632,10 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
               checked={formik.values.objectives.includes('cosmeticInspection')}
               onChange={() => handleCheckboxChange('cosmeticInspection')}
               htmlFor="cosmeticInspection"
+              disabled={true}
             />
             <Label htmlFor="cosmeticInspection" main={false}>
-              Cosmetic Inspection
+              <div className="text-gray-500">Cosmetic Inspection</div>
             </Label>
           </div>
           <div className="flex gap-2">
@@ -647,9 +648,10 @@ const CreateProjectDrawer = React.forwardRef((props, ref) => {
               )}
               onChange={() => handleCheckboxChange('dimensioningInspection')}
               htmlFor="dimensioningInspection"
+              disabled={true}
             />
             <Label htmlFor="dimensioningInspection" main={false}>
-              Dimensioning Inspection
+              <div className="text-gray-500">Dimensioning Inspection</div>
             </Label>
           </div>
         </div>
