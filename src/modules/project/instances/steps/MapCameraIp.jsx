@@ -34,7 +34,6 @@ const MapCameraIp = ({formRef}) => {
           idx:i
         }
       }).filter(d => d.variantId === variantId && ip === cameraIps[d?.idx]);
-      console.log({cameraIps, data, variantId, sameVariantData})
       if(sameVariantData?.length > 1){
         sameVariantData?.forEach((d) => {
           newErrors[d.idx] = 'More than 1 Camera Position cannot have same Camera IP.'

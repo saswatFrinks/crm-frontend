@@ -1,5 +1,5 @@
 import { modalAtom } from '@/shared/states/modal.state';
-import React from 'react';
+import React, { useState } from 'react';
 import { useSetRecoilState } from 'recoil';
 import AddTeamModal from './AddTeamModal';
 import DeleteModal from '../DeleteModal';
@@ -9,6 +9,7 @@ import { FaPlus } from 'react-icons/fa6';
 import Action from '../Action';
 import axiosInstance from '@/core/request/aixosinstance';
 import { getOrganizationId } from '@/util/util';
+import EditTeamModal from './EditTeamModal';
 
 export default function Teams() {
   const columns = ['Team Name'];
@@ -17,6 +18,7 @@ export default function Teams() {
   const [action, setAction] = React.useState('add');
   const [id, setId] = React.useState('')
   const [teamNames, setTeamNames] = React.useState([]);
+  const [editIndex, setEditIndex] = useState(null);
 
   const deleteTeam = async () => {
     if(id) {
@@ -50,6 +52,7 @@ export default function Teams() {
     const obj = {
       add: <AddTeamModal fetchTeamNames={fetchTeamNames}/>,
       delete: <DeleteModal deleteById={deleteTeam}/>,
+      edit: <EditTeamModal fetchAllTeams={fetchTeamNames} team={editIndex !== null ? teamNames[editIndex] : null} />
     };
 
     return obj[action];
@@ -59,6 +62,11 @@ export default function Teams() {
     setAction(type);
     setModalState(true);
   };
+
+  const handleEdit = (index) => {
+    handleOpenModal('edit');
+    setEditIndex(index);
+  }
 
   return (
     <>
@@ -93,7 +101,7 @@ export default function Teams() {
               </tr>
             </thead>
             <tbody>
-              {teamNames.map((teamName) => {
+              {teamNames.map((teamName, idx) => {
                 return (
                   <tr className="border-b bg-white" key={teamName.id}>
                     <th
@@ -103,7 +111,7 @@ export default function Teams() {
                       {teamName.name}
                     </th>
                     <td className="px-6 py-4">
-                      <Action handleOpenModal={handleOpenModal} id={teamName.id} setId={setId}/>
+                      <Action handleOpenModal={handleOpenModal} id={teamName.id} setId={setId} handleEdit={() => handleEdit(idx)}/>
                     </td>
                   </tr>
                 );
