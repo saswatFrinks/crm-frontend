@@ -1,6 +1,6 @@
 import axiosInstance from '@/core/request/aixosinstance';
 import Select from '@/shared/ui/Select';
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import toast from 'react-hot-toast';
 import { useParams } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
@@ -21,6 +21,27 @@ const MapCameraIp = ({formRef}) => {
       newLoaders[index] = flag;
       return newLoaders
     });
+  }
+
+  const checkValidity = () => {
+    const cameraIps = cameraIp;
+    const newErrors = Array.from({length: errors.length}, () => '');
+    cameraIps?.forEach((ip, index) => {
+      const variantId = data[index]?.variantId;
+      const sameVariantData = data?.map((d, i) => {
+        return {
+          ...d,
+          idx:i
+        }
+      }).filter(d => d.variantId === variantId && ip === cameraIps[d?.idx]);
+      console.log({cameraIps, data, variantId, sameVariantData})
+      if(sameVariantData?.length > 1){
+        sameVariantData?.forEach((d) => {
+          newErrors[d.idx] = 'More than 1 Camera Position cannot have same Camera IP.'
+        })
+      }
+    })
+    return newErrors;
   }
 
   const onChangeCameraIp = async (e, index, capturePositionId) => {
@@ -139,6 +160,8 @@ const MapCameraIp = ({formRef}) => {
   const handleSubmit = () => {
     setErrors(validateForm());
     if(validateForm().some(error => error !== ''))return null;
+    setErrors(checkValidity());
+    if(checkValidity().some(error => error !== ''))return null;
     setAddInstance({
       ...addInstance,
       mapCameraIp: {
@@ -187,7 +210,7 @@ const MapCameraIp = ({formRef}) => {
                   <td className="px-6 py-4">
                     <Select
                       disabled={loaders[index]}
-                      options={cameraIps.filter(i => !ipExcludeOptions.includes(i.id))}
+                      options={cameraIps}
                       value = {cameraIp[index] !== null ? cameraIp[index] : ''}
                       placeholder='Select Camera'
                       onChange = {(e) => {
