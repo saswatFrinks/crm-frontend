@@ -81,13 +81,18 @@ export default function AddFolderModal({ fetchAllFolders, editFolder }) {
   };
 
   const completeImportCoco = async (values) => {
-    await axiosInstance.put('/dataset/create/coco', {
-      projectId: params.projectId,
-    uuid: classesData.uuid,
-    cameraConfigId:  params.cameraConfigId,
-    datasetName: values.name,
-    classMapping: classMap
-    })
+    try{
+      await axiosInstance.put('/dataset/create/coco', {
+        projectId: params.projectId,
+        uuid: classesData.uuid,
+        cameraConfigId:  params.cameraConfigId,
+        datasetName: values.name,
+        classMapping: classMap
+      })
+    }
+    catch(error) {
+      toast.error(error?.response?.data?.data?.message);
+    }
   };
 
   const formik = useFormik({
