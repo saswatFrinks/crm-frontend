@@ -29,7 +29,7 @@ import {
   polygonsTypeAtom,
   inspectionReqAtom,
 } from '../../state';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { prevStatusAtom, stepAtom } from '../state';
 // import { editingRectAtom } from '../state';
 
@@ -59,6 +59,23 @@ export default function Actions({ cancel, submit }) {
   const [inspectionReq, setInspectionReq] = useRecoilState(inspectionReqAtom);
 
   const [step, setStep] = useRecoilState(stepAtom);
+
+  React.useEffect(() => {
+    const handleKeyDown = (event) => {
+      // Check if the control key is pressed
+      if (event.ctrlKey) {
+        if (event.key === "s") {
+          event.preventDefault();
+          submit();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   //   const [isEditingRect, setEditingRect] = useRecoilState(editingRectAtom);
   const handleZoomIn = () => {

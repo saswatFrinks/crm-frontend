@@ -88,3 +88,13 @@ export const snapPolygonToBoundary = (points, boundaryX, boundaryY) => {
 
   return points;
 };
+
+export const scalePolygons = (arr, width, height)=>{
+  return arr?.map((point, i) =>
+    i % 2 == 0 ? point * width : point * height
+  );
+}
+
+export const scaledownPolygons = (points, width, height)=>{
+  return points.map((point, i)=>i % 2 == 0 ? point / width : point / height)
+}

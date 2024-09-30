@@ -76,6 +76,8 @@ const Polygon = ({
 
   const sc = scale || 1
 
+  console.log(polyPoints, 'vertexes') 
+
   return (
     <>
       {!freeze && shape?.title && shape?.points.length && (
@@ -128,6 +130,7 @@ const Polygon = ({
         points={points}
         x={0}
         y={0}
+        strokeWidth={2}
       />
       {isSelected &&
         polyPoints.map((vertex, i) => {
@@ -138,7 +141,7 @@ const Polygon = ({
               stroke={'#02CCFE'}
               fill={`#f1f1f13D`}
               vertex={vertex}
-              strokeWidth={2}
+              strokeWidth={3}
               draggable={true}
               onMouseDown={(e) => (e.cancelBubble = true)}
               onMouseUp={(e) => (e.cancelBubble = true)}
