@@ -50,7 +50,8 @@ export default function AddFolderModal({ fetchAllFolders, editFolder }) {
       setLoading(true);
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('projectId', params.projectId);
+      // formData.append('projectId', params.projectId);
+      formData.append('cameraConfigId', params.cameraConfigId)
       const res = await axiosInstance.post('/dataset/upload/coco', formData);
       setClassesData(res.data.data);
     } catch (error) {

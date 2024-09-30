@@ -752,12 +752,6 @@ export default function AnnotationJob() {
     cacheRef.current = cachedImages;
   }, [cachedImages]);
 
-  console.log(
-    'outside',
-    { modalOpen },
-    annotationClasses[selectedImage?.id]?.rectangles
-  );
-
   useEffect(() => {
     if (imageStatus.drawMode === 'POLY') {
       setPolyDraw(true);
@@ -765,8 +759,6 @@ export default function AnnotationJob() {
       setPolyDraw(false);
     }
   }, [imageStatus.drawMode]);
-
-  console.log({ labelClass });
 
   const renderAnnotationHeading = () => {
     if (type === ASSEMBLY_CONFIG.MOVING) {

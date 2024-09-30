@@ -174,3 +174,8 @@ export const inspectionReqAtom = atom({
   default: 0,
 });
 
+export const copyShapeAtom = atom({
+  key: 'copyShapeAtom',
+  default: null
+})
+
