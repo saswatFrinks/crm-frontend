@@ -14,6 +14,7 @@ import WarningModal from './WarningModal';
 import { modalAtom } from '@/shared/states/modal.state';
 import toast from 'react-hot-toast';
 import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader';
+import Download from '@/shared/icons/Download';
 
 const columns = [
   '',
@@ -23,6 +24,7 @@ const columns = [
   'Objective',
   'Dataset',
   'Annotation Status',
+  'Download Annotations'
 ];
 
 export default function Annotation() {
@@ -36,7 +38,6 @@ export default function Annotation() {
   const [open, setOpen] = useRecoilState(modalAtom);
   const location = useLocation();
   const navigate = useNavigate();
-  console.log(location);
 
   // const [configurations, setConfigurations] = React.useState([
   //   { id: 1, status: 'Pending' },
@@ -55,6 +56,50 @@ export default function Annotation() {
       toast.error(error?.response?.data?.data?.message)
     }
   }
+
+  const downloadAnnotations = async (folderId) => {
+    try {
+      setLoader(true);
+      const apiUrl = `${import.meta.env.VITE_BASE_API_URL}/dataset/download?folderId=${folderId}`;
+  
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          // Add any necessary headers here, e.g., authorization
+        },
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+  
+      // Get the filename from the Content-Disposition header if available
+      const contentDisposition = response.headers.get('Content-Disposition');
+      let filename = `${folderId}.zip`;
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="?(.+)"?/i);
+        if (filenameMatch) {
+          filename = filenameMatch[1];
+        }
+      }
+  
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Error downloading file', error);
+      // Handle the error appropriately, e.g., show a user-friendly message
+    } finally {
+      setLoader(false);
+    }
+  };
 
   const getImagesFromDataset = async () => {
     try {
@@ -166,8 +211,8 @@ export default function Annotation() {
           <table className="w-full text-left text-sm text-gray-500 rtl:text-right ">
             <thead className="bg-white text-sm uppercase text-gray-700 ">
               <tr>
-                {columns.map((t) => (
-                  <th scope="col" className="px-6 py-3" key={t}>
+                {columns.map((t, index) => (
+                  <th scope="col" className={`px-6 py-3 ${index===columns.length-1?"text-right":""}`} key={t}>
                     {t}
                   </th>
                 ))}
@@ -205,6 +250,18 @@ export default function Annotation() {
                           <b className='flex justify-center'>{config.annotated} / {config.count}</b>
                         </span>
                       }
+                    </td>
+                    <td className="px-6 py-4">
+                      <div 
+                        onClick={() => {
+                          if(parseInt(config.annotated) === parseInt(config.count)) downloadAnnotations(config.datasetId)
+                        }}
+                        className={`${parseInt(config.annotated) === parseInt(config.count) ? "cursor-pointer" : ""} text-right w-10 ml-auto`}
+                      >
+                        <Download 
+                          disabled={parseInt(config.annotated) !== parseInt(config.count)}
+                        />
+                      </div>
                     </td>
                   </tr>
                 );

@@ -277,12 +277,12 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
                   objectivesMap.cosmeticInspection
                 ))
             }
-            disabled={!initialObjectives.includes('cosmeticInspection')}
+            disabled={true}
             onChange={() => handleCheckboxChange('cosmeticInspection')}
             htmlFor="cosmeticInspection"
           />
           <Label htmlFor="cosmeticInspection" main={false}>
-            Cosmetic Inspection
+            <div className="text-gray-500">Cosmetic Inspection</div>
           </Label>
         </div>
         <div className="flex gap-2">
@@ -299,12 +299,12 @@ const AddCameraConfigurationDrawer = React.forwardRef((props, ref) => {
                   )
               )
             }
-            disabled={!initialObjectives.includes('dimensioningInspection')}
+            disabled={true}
             onChange={() => handleCheckboxChange('dimensioningInspection')}
             htmlFor="dimensioningInspection"
           />
           <Label htmlFor="dimensioningInspection" main={false}>
-            Dimensioning Inspection
+            <div className="text-gray-500">Dimensioning Inspection</div>
           </Label>
         </div>
       </div>

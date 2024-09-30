@@ -241,7 +241,7 @@ const Instances = () => {
                       <td className="px-6 py-4">{instance?.instances?.valid ? 'Valid' : 'Not Valid'}</td>
                       <td className="px-6 py-4">{instance?.plant?.name}</td>
                       <td className="px-6 py-4">{instance?.instances?.id}</td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4 ">
                         <span 
                           onClick={() => downloadInstance(instance?.instances?.id, instance?.instances?.name, instance?.instances?.deletedAt)}
                           className={`${!instance?.instances?.deletedAt ? 'cursor-pointer' : ''}`}

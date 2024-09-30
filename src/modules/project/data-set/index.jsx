@@ -1,6 +1,6 @@
 import ArrowRight from '@/shared/icons/ArrowRight';
 import Heading from '@/shared/layouts/main/heading';
-import React from 'react';
+import React, { useState } from 'react';
 import Variant from '../variants/Variant';
 import { useSetRecoilState } from 'recoil';
 import { modalAtom } from '@/shared/states/modal.state';
@@ -13,6 +13,7 @@ import Action from '@/modules/team-user/Action';
 import DeleteModal from '@/modules/team-user/DeleteModal';
 import toast from 'react-hot-toast';
 import Button from '@/shared/ui/Button';
+import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader';
 
 export default function DataSet() {
   const setModalState = useSetRecoilState(modalAtom);
@@ -22,16 +23,26 @@ export default function DataSet() {
   const [action, setAction] = React.useState('add');
   const [editIndex, setEditIndex] = React.useState(0);
   const [id, setId] = React.useState('');
+
+  const [loading, setLoading] = useState(false);
+  const [createLoader, setCreateLoader] = useState(false);
   const location = useLocation();
 
   const fetchAllFolders = async () => {
-    const res = await axiosInstance.get('/dataset/folders', {
-      params: {
-        cameraConfigId: params.cameraConfigId,
-      },
-    });
-
-    setFolders(res.data.data);
+    try {
+      setLoading(true);
+      const res = await axiosInstance.get('/dataset/folders', {
+        params: {
+          cameraConfigId: params.cameraConfigId,
+        },
+      });
+  
+      setFolders(res.data.data);
+    } catch (err) {
+      toast.error(err?.response?.data?.data?.message)
+    } finally {
+      setLoading(false);
+    }
   };
 
   const deleteFolder = async () => {
@@ -58,12 +69,13 @@ export default function DataSet() {
 
   const renderModalAction = () => {
     const obj = {
-      add: <AddFolderModal fetchAllFolders={fetchAllFolders} />,
+      add: <AddFolderModal fetchAllFolders={fetchAllFolders} setCreateLoader={setCreateLoader} />,
       delete: <DeleteModal deleteById={deleteFolder} title={'dataset'} />,
       edit: (
         <AddFolderModal
           editFolder={folders[editIndex]}
           fetchAllFolders={fetchAllFolders}
+          setCreateLoader={setCreateLoader}
         />
       ),
     };
@@ -83,6 +95,9 @@ export default function DataSet() {
 
   return (
     <>
+      {loading && (
+        <ProjectCreateLoader title='Loading Folders' />
+      )}
       <Modal>{renderModalAction()}</Modal>
 
       <Heading
@@ -167,6 +182,9 @@ export default function DataSet() {
               </Link>
             );
           })}
+          {createLoader && (
+            <p className="text-blue-500 my-auto">Creating New Dataset...</p>
+          )}
         </div>
       </div>
       <Button
