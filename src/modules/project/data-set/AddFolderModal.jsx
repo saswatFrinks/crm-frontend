@@ -6,13 +6,14 @@ import Dropdown from '@/shared/ui/Dropdown';
 import Input from '@/shared/ui/Input';
 import Label from '@/shared/ui/Label';
 import { ModalBody, ModalFooter, ModalHeader } from '@/shared/ui/Modal';
+import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader';
 import { useFormik } from 'formik';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { useParams } from 'react-router-dom';
 import { useSetRecoilState } from 'recoil';
 
-export default function AddFolderModal({ fetchAllFolders, editFolder }) {
+export default function AddFolderModal({ fetchAllFolders, editFolder, setCreateLoader }) {
   const setOpenModal = useSetRecoilState(modalAtom);
   const params = useParams();
 
@@ -20,6 +21,7 @@ export default function AddFolderModal({ fetchAllFolders, editFolder }) {
 
   const [fileName, setFileName] = useState('');
   const [loading, setLoading] = useState(false);
+
   const [classesData, setClassesData] = useState(null);
   const [classMap, setClassMap] = useState({});
 
@@ -44,7 +46,7 @@ export default function AddFolderModal({ fetchAllFolders, editFolder }) {
   const handleSubmit = async () => {
     try {
       if (!file) {
-        toast.error('Either give the Instance ID or upload instance file');
+        toast.error('Please upload the dataset.');
         return;
       }
       setLoading(true);
@@ -82,6 +84,7 @@ export default function AddFolderModal({ fetchAllFolders, editFolder }) {
 
   const completeImportCoco = async (values) => {
     try{
+      setCreateLoader(true);
       await axiosInstance.put('/dataset/create/coco', {
         projectId: params.projectId,
         uuid: classesData.uuid,
@@ -89,9 +92,12 @@ export default function AddFolderModal({ fetchAllFolders, editFolder }) {
         datasetName: values.name,
         classMapping: classMap
       })
+      fetchAllFolders();
     }
     catch(error) {
       toast.error(error?.response?.data?.data?.message);
+    }finally{
+      setCreateLoader(false);
     }
   };
 
@@ -123,6 +129,9 @@ export default function AddFolderModal({ fetchAllFolders, editFolder }) {
 
   return (
     <>
+      {loading && (
+        <ProjectCreateLoader title='Uploading dataset'/>
+      )}
       <ModalHeader>Create Dataset Folder</ModalHeader>
       <ModalBody>
         <div className="mb-4">
