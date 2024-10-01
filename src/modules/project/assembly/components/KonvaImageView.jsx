@@ -19,6 +19,7 @@ import {
 import { getAverageBrightness, getRandomHexColor } from '@/util/util';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import {
+  annotationMapAtom,
   copyShapeAtom,
   currentPolygonIdAtom,
   currentRectangleIdAtom,
@@ -95,8 +96,10 @@ const KonvaImageView = ({
   const [scaledRectangles, setScaledRectangles] = useState([]);
   const [scaledPolygons, setScaledPolygons] = useState([]);
   const [copyShape, setCopyShape] = useRecoilState(copyShapeAtom);
+  const [_, setAnnotationMap] = useRecoilState(annotationMapAtom)
   const copyRef = React.useRef(null);
-  console.log({ polygons });
+
+  console.log({copyShape})
 
   const handleScroll = (evt) => {
     const e = evt.evt;
@@ -373,7 +376,11 @@ const KonvaImageView = ({
         );
         switch (event.key) {
           case 'c':
-            console.log('Ctrl + C pressed: Copy action');
+            console.log('Ctrl + C pressed: Copy action', selectedRect?.rectType, selectedPoly?.polyType);
+
+            if([selectedRect?.rectType, selectedPoly?.polyType].includes('ROI')){
+              break;
+            }
 
             setCopyShape({
               selectedPoly,
@@ -381,92 +388,80 @@ const KonvaImageView = ({
             });
             break;
           case 'v':
-            console.log('Ctrl + V pressed: Paste action');
-            setCopyShape((prev) => {
-              if (!copyRef.current.isDrawing) {
-                const polygons = copyRef.current.polygons;
-                if (prev.selectedPoly) {
-                  const selectedPoly = prev.selectedPoly;
-                  console.log({ selectedPoly, polygons });
-                  const imageId = copyRef.current.imageId;
-                  //! preform clone operation
-                  //generate new uuid -->
-                  const uuid = v4();
-                  const color =
-                    copyRef.current.rectangleColor.selectedColor === '#fff' ||
-                    copyRef.current.rectangleType === 'ROI'
-                      ? getRandomHexColor()
-                      : copyRef.current.rectangleColor.selectedColor;
-                  const id =
-                    1 + copyRef.current.step == 1
-                      ? polygons?.filter(
-                          (ele) => ele.polyType == RECTANGLE_TYPE.ROI
-                        ).length || 0
-                      : polygons?.filter(
-                          (ele) =>
-                            ele.polyType == RECTANGLE_TYPE.ANNOTATION_LABEL &&
-                            ele.imageId == imageId
-                        ).length || 0;
-                  polygonsList = [
-                    ...polygons,
-                    {
-                      ...selectedPoly,
-                      uuid,
-                      id,
-                      imageId: copyRef.current.imageId,
-                      rectangleType: copyRef.current.rectangleType,
-                      roiId: copyRef.current.roiId,
-                      fill: color,
-                      stroke: color,
-                    },
-                  ];
-                  polyId = uuid;
-                } else if (prev.selectedRect) {
-                  const rectangles = copyRef.current.rectangles;
-                  const selectedRect = rectangles.find(
-                    (rect) => rect.uuid === prev.selectedRectId
-                  );
-                  const imageId = copyRef.current.imageId;
-                  //! preform clone operation
-                  const uuid = v4();
-                  const color =
-                    copyRef.current.rectangleColor.selectedColor === '#fff' ||
-                    copyRef.current.rectangleType === 'ROI'
-                      ? getRandomHexColor()
-                      : copyRef.current.rectangleColor.selectedColor;
-                  const id =
-                    1 + copyRef.current.step == 1
-                      ? rectangles?.filter(
-                          (ele) => ele.rectType == RECTANGLE_TYPE.ROI
-                        ).length || 0
-                      : rectangles?.filter(
-                          (ele) =>
-                            ele.rectType == RECTANGLE_TYPE.ANNOTATION_LABEL &&
-                            ele.imageId == imageId
-                        ).length || 0;
-                  rectsList = [
-                    ...polygons,
-                    {
-                      ...selectedRect,
-                      uuid,
-                      id,
-                      imageId,
-                      rectangleType: copyRef.current.rectangleType,
-                      roiId: copyRef.current.roiId,
-                      fill: color,
-                      stroke: color,
-                    },
-                  ];
-                  rectId = uuid;
-                }
+            console.log('Ctrl + V pressed: Paste action', copyRef.current.roiId);
+            if (!copyRef.current.isDrawing) {
+              const prev = copyRef.current.copyShape
+              const polygons = copyRef.current.polygons;
+              if (prev?.selectedPoly) {
+                const selectedPoly = prev.selectedPoly;
+                console.log({ selectedPoly, polygons });
+                const imageId = copyRef.current.imageId;
+                //! perform clone operation
+                //generate new uuid -->
+                const uuid = v4();
+                const id =
+                  1 + copyRef.current.step == 1
+                    ? polygons?.filter(
+                        (ele) => ele.polyType == RECTANGLE_TYPE.ROI
+                      ).length || 0
+                    : polygons?.filter(
+                        (ele) =>
+                          ele.polyType == RECTANGLE_TYPE.ANNOTATION_LABEL &&
+                          ele.imageId == imageId
+                      ).length || 0;
+                polygonsList = [
+                  ...polygons,
+                  {
+                    ...selectedPoly,
+                    uuid,
+                    id,
+                    imageId: copyRef.current.imageId,
+                    roiId: copyRef.current.roiId,
+                  },
+                ];
+                polyId = uuid;
+              } else if (prev?.selectedRect) {
+                const rectangles = copyRef.current.rectangles;
+                const selectedRect = rectangles.find(
+                  (rect) => rect.uuid === prev.selectedRectId
+                );
+                const imageId = copyRef.current.imageId;
+                //! preform clone operation
+                const uuid = v4();
+                const id =
+                  1 + copyRef.current.step == 1
+                    ? rectangles?.filter(
+                        (ele) => ele.rectType == RECTANGLE_TYPE.ROI
+                      ).length || 0
+                    : rectangles?.filter(
+                        (ele) =>
+                          ele.rectType == RECTANGLE_TYPE.ANNOTATION_LABEL &&
+                          ele.imageId == imageId
+                      ).length || 0;
+                rectsList = [
+                  ...rectangles,
+                  {
+                    ...selectedRect,
+                    uuid,
+                    id,
+                    imageId,
+                    roiId: copyRef.current.roiId,
+                  },
+                ];
+                rectId = uuid;
               }
-              return { ...prev };
-            });
+            }
             if (polyId) {
+              setAnnotationMap((prev) => {
+                return { ...prev,  [polyId]: prev[copyRef.current.copyShape.selectedPoly.uuid]};
+              });
               setSelectedPolyId(polyId);
               copyRef.current.onPolyUpdate(polygonsList);
             }
             if (rectId) {
+              setAnnotationMap((prev) => {
+                return { ...prev,  [rectId]: prev[copyRef.current.copyShape.selectedRect.uuid]};
+              });
               setSelectedRectId(rectId);
               copyRef.current.onDrawStop(rectsList);
             }
@@ -498,6 +493,9 @@ const KonvaImageView = ({
       rectangles,
       onPolyUpdate,
       onDrawStop,
+      polygonType,
+      imageStatus,
+      copyShape
     };
   }, [
     selectedPolyId,
@@ -506,6 +504,7 @@ const KonvaImageView = ({
     scaledPolygons,
     imageId,
     rectangleType,
+    polygonType,
     roiId,
     polygons,
     rectangleColor,
@@ -513,6 +512,8 @@ const KonvaImageView = ({
     rectangles,
     onPolyUpdate,
     onDrawStop,
+    imageStatus,
+    copyShape
   ]);
 
   const resetGraph = (newScale = null) => {
@@ -846,6 +847,13 @@ const KonvaImageView = ({
                   onClick={(e) => {
                     if (rect.uuid == selectedRectId) e.cancelBubble = true;
                     // handleClickRectangle(e, rect.uuid);
+                    if (
+                      e.evt.ctrlKey &&
+                      rect.uuid !== selectedRectId &&
+                      rect.rectType !== RECTANGLE_TYPE.ROI
+                    ) {
+                      setSelectedRectId(rect.uuid);
+                    }
                   }}
                 />
               );
@@ -906,6 +914,7 @@ const KonvaImageView = ({
                         // handleValueReset(normalizedValue);
                         onPolyUpdate([...unchanged, normalizedValue]);
                       } catch (e) {
+                        console.log('GOT ERROR', e)
                         onPolyUpdate([...polygons]);
                       }
                       // const ref = e.target.attrs
@@ -920,18 +929,23 @@ const KonvaImageView = ({
                   }
                   onTransform={(res) => {
                     const polyCp = [...polygons];
+                    let index = 0
                     try {
                       let points = normalizePolygonPoints(res.points);
                       points = cropPolygonPoints(points);
                       if (points.length < 6) throw new Error();
-                      polyCp[i] = { ...res, points };
+                      index = polyCp.findIndex(ele=>ele.uuid == poly.uuid)
+                      polyCp[index] = { ...res, points };
                     } catch (e) {
-                      polyCp[i] = { ...res, points: [...polyCp[i].points] };
+                      polyCp[index] = { ...res, points: [...polyCp[index].points] };
                     }
                     onPolyUpdate(polyCp);
                   }}
                   onClick={(e) => {
                     if (poly.uuid == selectedPolyId) e.cancelBubble = true;
+                    if (e.evt.ctrlKey && poly.uuid !== selectedPolyId) {
+                      setSelectedPolyId(poly.uuid);
+                    }
                   }}
                 />
               );

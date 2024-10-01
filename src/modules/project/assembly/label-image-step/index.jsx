@@ -33,6 +33,7 @@ import {
   imageStatusAtom,
   imgBrightnessAtom,
   inspectionReqAtom,
+  copyShapeAtom,
   // rectangleColorAtom
 } from '../../state';
 import {
@@ -106,6 +107,7 @@ export default function LabelImage({ type, save }) {
   const [labelId, setLabelId] = useRecoilState(currentLabelIdAtom);
 
   const [inspectionReq, setInspectionReq] = useRecoilState(inspectionReqAtom);
+  const copyShape = useRecoilValue(copyShapeAtom);
 
   let selectedRois = [];
   let idCntr = -1;
@@ -344,6 +346,7 @@ export default function LabelImage({ type, save }) {
   }, [actionName]);
 
   React.useEffect(() => {
+    console.log(copyShape)
     let annotations = [];
     annotations = selectedRois.filter(
       (e) =>
@@ -355,9 +358,18 @@ export default function LabelImage({ type, save }) {
     if (annotations.length) {
       setAnnotationMap((prev) => {
         const updates = {};
+        let ref = selectedLabel;
+        if(!ref){
+          let temp = copyShape.selectedPoly;
+          if(!temp) temp = copyShape.selectedRect
+          ref = {
+            id: updates[temp.uuid],
+            color: updates[temp.stroke]
+          }
+        }
         annotations.forEach((annot) => {
-          updates[annot.uuid] = selectedLabel.id;
-          updates[annot.stroke] = selectedLabel.color;
+          updates[annot.uuid] = ref.id;
+          updates[annot.stroke] = ref.color;
         });
         return { ...prev, ...updates };
       });
@@ -371,7 +383,7 @@ export default function LabelImage({ type, save }) {
       }
       setLabelId(annotations[0].uuid);
     }
-  }, [selectedRois, annotationMap]);
+  }, [selectedRois, annotationMap, copyShape]);
 
   // useEffect(() => {
   //   setRectangleColor({...rectangleColor})

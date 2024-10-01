@@ -95,6 +95,7 @@ const Polygon = ({
       <Line
         ref={shapeRef}
         {...shape}
+        id={`polly_${shape.id}`}
         draggable={Boolean(isSelected)}
         onMouseDown={(e) => isSelected && (e.cancelBubble = true)}
         onMouseUp={(e) => isSelected && (e.cancelBubble = true)}
