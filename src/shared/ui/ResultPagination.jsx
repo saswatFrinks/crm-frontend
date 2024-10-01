@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'react-fe
 
 const ResultPagination = ({ total, page, setPage }) => {
   const [paginationBar, setPaginationBar] = useState([]);
+  const keyboardRef = React.useRef(null);
 
   // Function to update the pagination bar based on the current page
   const updatePaginationBar = (currentPage) => {
@@ -57,6 +58,36 @@ const ResultPagination = ({ total, page, setPage }) => {
   useEffect(() => {
     updatePaginationBar(page);
   }, [page, total]);
+
+  React.useEffect(() => {
+    const handleKeyDown = (event) => {
+      // Check if the control key is pressed
+      if (event.ctrlKey) {
+        const { handleNext, handlePrev } = keyboardRef.current;
+        if (event.key === 'd') {
+          event.preventDefault()
+          //move backwards
+          handlePrev()
+        } else if (event.key === 'f') {
+          event.preventDefault()
+          //move forward
+          handleNext()
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
+  React.useEffect(() => {
+    keyboardRef.current = {
+      handleNext,
+      handlePrev
+    };
+  }, [handleNext, handlePrev]);
 
   return (
     <nav className="flex items-center">

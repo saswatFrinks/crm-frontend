@@ -907,7 +907,7 @@ export default function AnnotationJob() {
                           setAnnotationMap((prev) => {
                             const updates = {};
                             annotations.forEach((annot) => {
-                              updates[annot.uuid] = selectedClassId.id;
+                              updates[annot.uuid] = selectedClassId?.id || copysh;
                             });
                             return { ...prev, ...updates };
                           });

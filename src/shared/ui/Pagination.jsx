@@ -32,7 +32,7 @@ export default function Pagination({ chevornsMovement = 5 }) {
     annotationClassesAtom
   );
   const [initialLabels, setInitialLabels] = useRecoilState(initialLabelsAtom);
-
+  const keyboardRef = React.useRef(null);
 
   let i = Math.min(Math.max(currentIndex - 3, 0), allImages.length - 6);
   const paginationBar =
@@ -214,6 +214,45 @@ export default function Pagination({ chevornsMovement = 5 }) {
     cacheImages();
   }, [currentIndex, allImages]);
 
+  React.useEffect(() => {
+    const handleKeyDown = (event) => {
+      // Check if the control key is pressed
+      if (event.ctrlKey) {
+        const { allImages, currentIndex, setImage } = keyboardRef.current;
+        if (event.key === 'd') {
+          event.preventDefault()
+          //move backwards
+          if (!keyboardRef.current?.check() && currentIndex !== 0) {
+            setImage(allImages[currentIndex - 1]?.id, currentIndex - 1);
+          }
+        } else if (event.key === 'f') {
+          event.preventDefault()
+          //move forward
+          if (
+            !keyboardRef.current?.check() &&
+            currentIndex + 1 !== allImages.length
+          ) {
+            setImage(allImages[currentIndex + 1]?.id, currentIndex + 1);
+          }
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
+  React.useEffect(() => {
+    keyboardRef.current = {
+      currentIndex,
+      allImages,
+      check,
+      setImage,
+    };
+  }, [currentIndex, allImages, check, setImage]);
+
   return (
     <nav className="flex items-center">
       <ul className="mx-auto flex gap-2 rounded-full border border-gray-300 px-2 py-1.5">
@@ -243,6 +282,7 @@ export default function Pagination({ chevornsMovement = 5 }) {
         {paginationBar.map((e) => {
           return (
             <li
+              key={e}
               className={
                 e == currentIndex + 1
                   ? 'cursor-pointer font-semibold'

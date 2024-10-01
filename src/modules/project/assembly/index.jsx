@@ -420,7 +420,7 @@ export default function Assembly() {
       })),
     }));
     setLabelClass((prev) => {
-      if (!prev.id) return null;
+      if (!prev?.id) return null;
       return {
         ...prev,
         status: STATUS.FINISH,
