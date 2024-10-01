@@ -29,3 +29,11 @@ export const addInstanceAtom = atom({
   key: 'addInstanceBasicAtom',
   default: defaultAddInstanceValue
 });
+
+export const downloadInstanceProgressAtom = atom({
+  key: 'downloadInstaceProgressAtom',
+  default: {
+    instanceId: null,
+    progress: 0
+  }
+})
