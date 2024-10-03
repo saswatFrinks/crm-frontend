@@ -32,7 +32,6 @@ const Instances = () => {
   const [downloadLoader, setDownloadLoader] = useState(false);
   const [project, setProject] = React.useState(null);
   const [downloadProgress, setDownloadProgress] = useRecoilState(downloadInstanceProgressAtom);
-  const [checkDownload, setCheckDownload] = useState(null);
 
   const fetchProject = async () => {
     try {
@@ -178,8 +177,10 @@ const Instances = () => {
     try {
       if (deletedAt) return;
       // setDownloadLoader(true);
-      setCheckDownload(instanceId);
-      setDownloadProgress(instanceId, 0);
+      setDownloadProgress({
+        instanceId: instanceId,
+        progress: 0
+      });
 
       const size = await axiosInstance.get('/instance/download-size', {
         params: { instanceId },
@@ -195,7 +196,10 @@ const Instances = () => {
         }
       });
 
-      setDownloadProgress(instanceId, 100);
+      setDownloadProgress({
+        instanceId: instanceId,
+        progress: 100
+      });
 
       const blob = new Blob([res.data], { type: 'application/zip' }); // Set the correct MIME type for zip files
       const url = window.URL.createObjectURL(blob);
@@ -207,24 +211,28 @@ const Instances = () => {
       a.click();
       window.URL.revokeObjectURL(url);
 
-      // setDownloadInstanceId(null);
-      setDownloadProgress({});
-      setCheckDownload(null);
+      setDownloadProgress({
+        instanceId: null,
+        progress: 0
+      });
     } catch (error) {
       toast.error(error?.response?.data?.data?.message || 'Download failed');
     } finally {
       // setDownloadLoader(false);
-      setDownloadProgress({}); // Reset the progress after completion or error
-      setCheckDownload(null);
+      setDownloadProgress({
+        instanceId: null,
+        progress: 0
+      }); 
     }
   };
 
   useEffect(() => {
     fetchAllInstances()
     fetchProject()
-    setCheckDownload(downloadProgress?.instanceId);
 
-    return () => setModalOpen(false);
+    return () => {
+      setModalOpen(false)
+    };
   }, [])
 
   const columns = ['Instance Name', 'Date Created', 'Validity', 'Plant', 'Instance ID', 'Download', '']
@@ -307,16 +315,16 @@ const Instances = () => {
                       <td className="px-6 py-4">{instance?.plant?.name}</td>
                       <td className="px-6 py-4">{instance?.instances?.id}</td>
                       <td className="px-6 py-4 ">
-                        {checkDownload === instanceId ? (
+                        {downloadProgress?.instanceId === instanceId ? (
                           <span>
                             Downloading - {Math.round(downloadProgress?.progress) || 0}%
                           </span>
                         ) : (
                           <span
-                            onClick={() => checkDownload === null && downloadInstance(instance?.instances?.id, instance?.instances?.name, instance?.instances?.deletedAt)}
-                            className={`${!instance?.instances?.deletedAt && checkDownload === null ? 'cursor-pointer' : ''}`}
+                            onClick={() => downloadProgress?.instanceId === null && downloadInstance(instance?.instances?.id, instance?.instances?.name, instance?.instances?.deletedAt)}
+                            className={`${!instance?.instances?.deletedAt && downloadProgress?.instanceId === null ? 'cursor-pointer' : ''}`}
                           >
-                            <Download disabled={instance?.instances?.deletedAt || (checkDownload !== instanceId && checkDownload !== null)} />
+                            <Download disabled={instance?.instances?.deletedAt || (downloadProgress?.instanceId !== instanceId && downloadProgress?.instanceId !== null)} />
                           </span>
                         )}
                       </td>
