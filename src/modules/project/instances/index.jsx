@@ -6,7 +6,7 @@ import React, { useEffect, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router-dom'
 import CreateInstanceDrawer from './CreateInstanceDrawer'
 import { useRecoilState } from 'recoil'
-import { addInstanceAtom, defaultAddInstanceValue } from './state'
+import { addInstanceAtom, defaultAddInstanceValue, downloadInstanceProgressAtom } from './state'
 import toast from 'react-hot-toast'
 import Action from '@/modules/team-user/Action'
 import { modalAtom } from '@/shared/states/modal.state'
@@ -16,6 +16,7 @@ import ProjectCreateLoader from '@/shared/ui/ProjectCreateLoader'
 import Heading from '@/shared/layouts/main/heading'
 import ArrowRight from '@/shared/icons/ArrowRight'
 import Download from '@/shared/icons/Download'
+import axios from 'axios'
 
 const Instances = () => {
   const params = useParams();
@@ -30,6 +31,7 @@ const Instances = () => {
   const [loader, setLoader] = useState(false);
   const [downloadLoader, setDownloadLoader] = useState(false);
   const [project, setProject] = React.useState(null);
+  const [downloadProgress, setDownloadProgress] = useRecoilState(downloadInstanceProgressAtom);
 
   const fetchProject = async () => {
     try {
@@ -43,14 +45,14 @@ const Instances = () => {
       toast.error(error?.response?.data?.data?.message || 'Cannot fetch project details');
     }
   };
-  
-  const childRefs = Array.from({length: 5}, () => React.useRef({}));
-  
+
+  const childRefs = Array.from({ length: 5 }, () => React.useRef({}));
+
   const handleNext = async () => {
     try {
-      if(childRefs[step-1].current){
-        const res = await childRefs[step-1].current.handleSubmit();
-        if(res === null)return;
+      if (childRefs[step - 1].current) {
+        const res = await childRefs[step - 1].current.handleSubmit();
+        if (res === null) return;
       }
       setStep((t) => {
         if (t == 5) {
@@ -84,9 +86,9 @@ const Instances = () => {
   }
 
   const handleOpenModal = (type) => {
-    if(type === 'edit'){
+    if (type === 'edit') {
       openDrawer();
-    } else if(type === 'delete'){
+    } else if (type === 'delete') {
       setModalOpen(true);
     }
   }
@@ -108,7 +110,7 @@ const Instances = () => {
       let responseInstances = res?.data?.data;
       responseInstances = responseInstances.sort((instance1, instance2) => (instance2.instances.isActive - instance1.instances.isActive));
       setInstances(responseInstances);
-    } catch(error) {
+    } catch (error) {
       toast.error(error?.response?.data?.data?.message)
     } finally {
       setLoader(false);
@@ -117,7 +119,7 @@ const Instances = () => {
 
   const deleteInstance = async () => {
     try {
-      if(instances.length === 1){
+      if (instances.length === 1) {
         toast.error('Atleast one instance should exist')
         return;
       }
@@ -127,33 +129,100 @@ const Instances = () => {
         }
       });
       fetchAllInstances();
-    } catch (error){
+    } catch (error) {
       toast.error(error?.response?.data?.data?.message)
     }
   }
 
+
+  // const downloadInstance = async (instanceId, instanceName, deletedAt) => {
+  //   try {
+  //       if (deletedAt) return;
+  //       setDownloadLoader(true);
+  //       const res = await axiosInstance.get('/instance/download', {
+  //           params: { instanceId },
+  //           responseType: 'blob',  // Ensure the response is treated as a blob
+  //           onDownloadProgress: (progressEvent) => {
+  //             console.log("progress", progressEvent)
+  //           }
+  //       });
+
+  //       const blob = new Blob([res.data], { type: 'application/zip' }); // Set the correct MIME type for zip files
+  //       const url = window.URL.createObjectURL(blob);
+  //       const a = document.createElement('a');
+  //       a.style.display = 'none';
+  //       a.href = url;
+  //       a.download = `${instanceName.toLowerCase().split(' ').join('_')}.zip`; // Ensure the file extension is .zip
+  //       document.body.appendChild(a);
+  //       a.click();
+  //       window.URL.revokeObjectURL(url);
+  //   } catch (error) {
+  //       toast.error(error?.response?.data?.data?.message);
+  //   } finally {
+  //       setDownloadLoader(false);
+  //   }
+  // };
+
+  console.log("progress", downloadProgress);
+
+  const handleProgress = async (instanceId, loaded, totalSize) => {
+    const progress = Math.round((loaded * 100) / totalSize);
+    setDownloadProgress({
+      instanceId,
+      progress: progress,
+    });
+  }
+
   const downloadInstance = async (instanceId, instanceName, deletedAt) => {
     try {
-        if (deletedAt) return;
-        setDownloadLoader(true);
-        const res = await axiosInstance.get('/instance/download', {
-            params: { instanceId },
-            responseType: 'blob'  // Ensure the response is treated as a blob
-        });
+      if (deletedAt) return;
+      // setDownloadLoader(true);
+      setDownloadProgress({
+        instanceId: instanceId,
+        progress: 0
+      });
 
-        const blob = new Blob([res.data], { type: 'application/zip' }); // Set the correct MIME type for zip files
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = url;
-        a.download = `${instanceName.toLowerCase().split(' ').join('_')}.zip`; // Ensure the file extension is .zip
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
+      const size = await axiosInstance.get('/instance/download-size', {
+        params: { instanceId },
+      })
+
+      const totalSize = size?.data?.data?.totalSize;
+
+      const res = await axiosInstance.get('/instance/download', {
+        params: { instanceId },
+        responseType: 'blob',  // Ensure the response is treated as a blob
+        onDownloadProgress: (progressEvent) => {
+          handleProgress(instanceId, progressEvent.loaded, totalSize);
+        }
+      });
+
+      setDownloadProgress({
+        instanceId: instanceId,
+        progress: 100
+      });
+
+      const blob = new Blob([res.data], { type: 'application/zip' }); // Set the correct MIME type for zip files
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `${instanceName.toLowerCase().split(' ').join('_')}.zip`; // Ensure the file extension is .zip
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+
+      setDownloadProgress({
+        instanceId: null,
+        progress: 0
+      });
     } catch (error) {
-        toast.error(error?.response?.data?.data?.message);
+      toast.error(error?.response?.data?.data?.message || 'Download failed');
     } finally {
-        setDownloadLoader(false);
+      // setDownloadLoader(false);
+      setDownloadProgress({
+        instanceId: null,
+        progress: 0
+      }); 
     }
   };
 
@@ -161,23 +230,26 @@ const Instances = () => {
     fetchAllInstances()
     fetchProject()
 
-    return () => setModalOpen(false);
+    return () => {
+      setModalOpen(false)
+    };
   }, [])
 
   const columns = ['Instance Name', 'Date Created', 'Validity', 'Plant', 'Instance ID', 'Download', '']
 
   return (
     <>
-      {downloadLoader && (
-        <ProjectCreateLoader title='Downloading Instance'/>
-      )}
+      {/* {downloadLoader && (
+        // <ProjectCreateLoader title='Downloading Instance'/>
+        <div>{downloadProgress}%</div>
+      )} */}
       <Heading
         subcontent={
           <>
             <Link
               to={`/instances/${params.projectId}`}
               className="flex items-center gap-2"
-              state={{...location.state, projectName: project?.name}}
+              state={{ ...location.state, projectName: project?.name }}
             >
               <ArrowRight />
               <span>{project?.name || 'Project Name'}</span>
@@ -204,7 +276,7 @@ const Instances = () => {
 
         <div className="placeholder:*: relative shadow-md sm:rounded-lg">
           {loader ? (
-            <ProjectCreateLoader title='Loading Instances'/>
+            <ProjectCreateLoader title='Loading Instances' />
           ) : (
             <table className="w-full text-left text-sm text-gray-500 rtl:text-right ">
               <thead className="bg-white text-sm uppercase text-gray-700 ">
@@ -218,15 +290,16 @@ const Instances = () => {
               </thead>
               <tbody>
                 {instances?.map((instance, index) => {
+                  const instanceId = instance?.instances?.id;
                   return (
                     <tr
                       className="border-b odd:bg-white even:bg-[#C6C4FF]/10"
                       key={instance.id}
                     >
                       <td className="px-6 py-4">
-                        <Link 
+                        <Link
                           to={`/instances/${params.projectId}/${!instance?.instances?.deletedAt ? instance.instances.id : ''}`}
-                          state={{...location.state, projectName: project?.name}}
+                          state={{ ...location.state, projectName: project?.name }}
                           className={`${!instance?.instances?.deletedAt ? 'underline text-f-primary' : ''} font-medium`}
                         >
                           {instance?.instances?.name}{'   '}
@@ -242,29 +315,33 @@ const Instances = () => {
                       <td className="px-6 py-4">{instance?.plant?.name}</td>
                       <td className="px-6 py-4">{instance?.instances?.id}</td>
                       <td className="px-6 py-4 ">
-                        <span 
-                          onClick={() => downloadInstance(instance?.instances?.id, instance?.instances?.name, instance?.instances?.deletedAt)}
-                          className={`${!instance?.instances?.deletedAt ? 'cursor-pointer' : ''}`}
-                        >
-                          <Download 
-                            disabled={instance?.instances?.deletedAt}
-                          />
-                        </span>
+                        {downloadProgress?.instanceId === instanceId ? (
+                          <span>
+                            Downloading - {Math.round(downloadProgress?.progress) || 0}%
+                          </span>
+                        ) : (
+                          <span
+                            onClick={() => downloadProgress?.instanceId === null && downloadInstance(instance?.instances?.id, instance?.instances?.name, instance?.instances?.deletedAt)}
+                            className={`${!instance?.instances?.deletedAt && downloadProgress?.instanceId === null ? 'cursor-pointer' : ''}`}
+                          >
+                            <Download disabled={instance?.instances?.deletedAt || (downloadProgress?.instanceId !== instanceId && downloadProgress?.instanceId !== null)} />
+                          </span>
+                        )}
                       </td>
                       <td className="px-6 py-4">
                         <Action
-                          handleOpenModal = {handleOpenModal}
-                          handleEdit = {handleEdit}
-                          editIndex = {index}
-                          id = {instance?.instances?.id}
-                          setId = {setId}
-                          allowDelete = {instance?.instances?.deletedAt}
+                          handleOpenModal={handleOpenModal}
+                          handleEdit={handleEdit}
+                          editIndex={index}
+                          id={instance?.instances?.id}
+                          setId={setId}
+                          allowDelete={instance?.instances?.deletedAt}
                         />
                       </td>
                     </tr>
                   );
                 })}
-                </tbody>
+              </tbody>
             </table>
           )}
         </div>
@@ -319,7 +396,7 @@ const Instances = () => {
             </div>
           }
         >
-          <CreateInstanceDrawer editInstance={editIndex !== null && instances[editIndex]} childRefs = {childRefs} step={step} />
+          <CreateInstanceDrawer editInstance={editIndex !== null && instances[editIndex]} childRefs={childRefs} step={step} />
         </Drawer>)}
       </div>
     </>
