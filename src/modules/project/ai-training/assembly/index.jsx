@@ -46,37 +46,39 @@ export const augmentationsMap = {
 // }
 
 const trainingStatus = {
-  'TRAINING': [5],
-  'PRETRAINING': [1,2,,3,4],
-  'ERROR': [8,9, 28, 29],
-  'QUEUED': [0]
-}
+  TRAINING: [5],
+  PRETRAINING: [1, 2, , 3, 4],
+  ERROR: [8, 9, 28, 29],
+  QUEUED: [0],
+};
 
 const ERRORS = {
   8: 'Error During Training',
   9: 'Server Disconnected',
   28: 'Error During Evaluation',
-  29: 'Server Disconnected'
-}
+  29: 'Server Disconnected',
+};
 
 const validationCompleteStatus = 27;
 
 const actionDescriptions = [
-  "Training queued. The training process will start soon.",
-  "Initiating.",
-  "Initiating.",
-  "Downloading resources",
-  "Training started",
-  "Training the model",
-  "Uploading model files",
-  "Training process is complete",
-  "Error while training the model",
-  "Failed to fetch training status. Trying to reconnect"
-]
+  'Training queued. The training process will start soon.',
+  'Initiating.',
+  'Initiating.',
+  'Downloading resources',
+  'Training started',
+  'Training the model',
+  'Uploading model files',
+  'Training process is complete',
+  'Error while training the model',
+  'Failed to fetch training status. Trying to reconnect',
+];
 
-actionDescriptions[validationCompleteStatus] = "Training and Evaluation Completed. Your AI model is ready";
-actionDescriptions[validationCompleteStatus + 1] ="Failed to evaluate the AI model"
-const validationMessage = "Validating the AI model"
+actionDescriptions[validationCompleteStatus] =
+  'Training and Evaluation Completed. Your AI model is ready';
+actionDescriptions[validationCompleteStatus + 1] =
+  'Failed to evaluate the AI model';
+const validationMessage = 'Validating the AI model';
 
 export default function AIAssembly() {
   const params = useParams();
@@ -95,14 +97,20 @@ export default function AIAssembly() {
   const [project, setProject] = React.useState(null);
   const [bypass, setBypass] = React.useState(false);
 
-  const formRefs = Array.from({ length: 5 }, () => useRef(null));
+  const formRefs = useRef([
+    useRef(null),
+    useRef(null),
+    useRef(null),
+    useRef(null),
+    useRef(null),
+  ]);
   const sseRef = useRef(null);
 
   const handleNext = async () => {
     try {
-      const canProceed = await formRefs[step - 1]?.current?.handleSubmit();
+      const canProceed = await formRefs.current[step - 1]?.current?.handleSubmit();
       setStep((t) => {
-        if (formRefs[t - 1]?.current && canProceed !== true) return t;
+        if (formRefs.current[t - 1]?.current && canProceed !== true) return t;
         if (t == 5) return t;
         return t + 1;
       });
@@ -256,7 +264,7 @@ export default function AIAssembly() {
         rois: roiList,
         datasets: datasetList,
         augmentations: augmentationList,
-        validate: !bypass
+        validate: !bypass,
       };
       console.log('data:', data);
       const resp = await axiosInstance.post('/model/detection', data);
@@ -307,11 +315,17 @@ export default function AIAssembly() {
             <tbody>
               {modelsList?.length > 0 &&
                 modelsList?.map((model) => {
-                  const action = trainingStatus.QUEUED.includes(model.status) ? 0 : 
-                    trainingStatus.PRETRAINING.includes(model.status) ? 1 :
-                    trainingStatus.TRAINING.includes(model.status) ? 2 :
-                    trainingStatus.ERROR.includes(model.status) ? 3:
-                    model.status == validationCompleteStatus ? 5: 4
+                  const action = trainingStatus.QUEUED.includes(model.status)
+                    ? 0
+                    : trainingStatus.PRETRAINING.includes(model.status)
+                      ? 1
+                      : trainingStatus.TRAINING.includes(model.status)
+                        ? 2
+                        : trainingStatus.ERROR.includes(model.status)
+                          ? 3
+                          : model.status == validationCompleteStatus
+                            ? 5
+                            : 4;
                   return (
                     <tr
                       className="border-b odd:bg-white even:bg-[#C6C4FF]/10"
@@ -321,7 +335,7 @@ export default function AIAssembly() {
                         scope="row"
                         className={`whitespace-nowrap px-6 py-4 text-left font-medium text-gray-900 ${model.status == validationCompleteStatus ? 'underline' : ''}`}
                       >
-                        {model.status == validationCompleteStatus ?
+                        {model.status == validationCompleteStatus ? (
                           <Link
                             to={`${model.id}#detail`}
                             // onClick={() => {
@@ -330,9 +344,9 @@ export default function AIAssembly() {
                           >
                             {model.name}
                           </Link>
-                          :
+                        ) : (
                           model.name
-                        }
+                        )}
                       </th>
                       <td className="px-6 py-4 text-center">
                         {new Date(Number(model.createdAt)).toLocaleString()}
@@ -341,21 +355,46 @@ export default function AIAssembly() {
                         {model.totalImages} image
                         {model.totalImages != 1 && 's'}
                       </td>
-                      <td
-                        className='px-6 py-3 text-center'
-                      >
-                        <Tooltip text={
-                          actionDescriptions[model.status] || validationMessage
-                        }>
-                          {
-                            action == 0 ? 'Training Queued' : 
-                            action == 1 ?
-                              <RadialProgressBar value={0} max={10} size={45} strokeWidth={4}/> :
-                            action == 2?
-                              <RadialProgressBar value={model.info?.value || 0} max={model.info?.max || 10} size={45} strokeWidth={4}/> :
-                            action == 3? <span className='text-red-400'>{ERRORS[model.status]}</span> :
-                              <RadialProgressBar value={model.status == validationCompleteStatus ? 10 : 9.9} max={10} size={45} strokeWidth={4} showMax/>
+                      <td className="px-6 py-3 text-center">
+                        <Tooltip
+                          text={
+                            actionDescriptions[model.status] ||
+                            validationMessage
                           }
+                        >
+                          {action == 0 ? (
+                            'Training Queued'
+                          ) : action == 1 ? (
+                            <RadialProgressBar
+                              value={0}
+                              max={10}
+                              size={45}
+                              strokeWidth={4}
+                            />
+                          ) : action == 2 ? (
+                            <RadialProgressBar
+                              value={model.info?.value || 0}
+                              max={model.info?.max || 10}
+                              size={45}
+                              strokeWidth={4}
+                            />
+                          ) : action == 3 ? (
+                            <span className="text-red-400">
+                              {ERRORS[model.status]}
+                            </span>
+                          ) : (
+                            <RadialProgressBar
+                              value={
+                                model.status == validationCompleteStatus
+                                  ? 10
+                                  : 9.9
+                              }
+                              max={10}
+                              size={45}
+                              strokeWidth={4}
+                              showMax
+                            />
+                          )}
                         </Tooltip>
                       </td>
                       {/* <td
@@ -401,7 +440,7 @@ export default function AIAssembly() {
                       value={bypass}
                     />
                     <div className="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"></div>
-                    <span className="ms-3 text-md font-medium text-gray-900 ">
+                    <span className="text-md ms-3 font-medium text-gray-900 ">
                       By-pass Pre-training analysis validation
                     </span>
                   </label>
@@ -460,7 +499,7 @@ export default function AIAssembly() {
       >
         {open && (
           <BuildNTrainDrawer
-            formRefs={formRefs}
+            formRefs={formRefs.current}
             isMoving={!project?.isItemFixed}
           />
         )}

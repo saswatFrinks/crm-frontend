@@ -111,7 +111,7 @@ export default function Plants() {
                     </th>
                     <td className="px-6 py-4">{plant.location}</td>
                     <td className="px-6 py-4">
-                      <Action handleOpenModal={handleOpenModal} id={plant.id} setId={setId} editIndex={i} handleEdit={handleEdit}/>
+                      <Action handleOpenModal={handleOpenModal} id={plant.id} setId={setId} editIndex={i} handleEdit={handleEdit} name={plant.name}/>
                     </td>
                   </tr>
                 );

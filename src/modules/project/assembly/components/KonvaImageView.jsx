@@ -169,7 +169,7 @@ const KonvaImageView = ({
           title,
           uuid,
           points: newPoints,
-          closed: true,
+          // closed: true,
         });
 
         // const newPoints = currentPoly?.points?.concat([
