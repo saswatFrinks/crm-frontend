@@ -30,9 +30,17 @@ export default function Result() {
   const [imageLoader, setImageLoader] = useState(false);
   const [imageLoader2, setImageLoader2] = useState(false);
 
-  const cacheAbortControllerRef = Array.from({ length: 5 }, () => useRef(null));
+  const cacheAbortControllerRef = useRef([
+    useRef(null),
+    useRef(null),
+    useRef(null),
+    useRef(null),
+    useRef(null),
+  ]);
 
-  const currentImg = roiImageMap?.has(images[selectedImage]) ? roiImageMap?.get(images[selectedImage])[page - 1] : '';
+  const currentImg = roiImageMap?.has(images[selectedImage])
+    ? roiImageMap?.get(images[selectedImage])[page - 1]
+    : '';
 
   const getFormattedBoxes = (boxes) => {
     return boxes.map((classItem, index) => ({
@@ -43,17 +51,22 @@ export default function Result() {
       height: Math.abs(classItem.coordinates[1] - classItem.coordinates[3]),
       id: index,
       title: `Class ${index + 1}`,
-    }))
-  }
+    }));
+  };
 
-  const makeApiCallForImage = async (imageName, roiId, signal, pageNum = null) => {
+  const makeApiCallForImage = async (
+    imageName,
+    roiId,
+    signal,
+    pageNum = null
+  ) => {
     let index;
     try {
       const config = {
         params: {
           modelId: params.modelId,
           name: imageName,
-          roiId
+          roiId,
         },
         responseType: 'arraybuffer',
       };
@@ -77,7 +90,7 @@ export default function Result() {
       const url = window.URL.createObjectURL(blob);
 
       let avgBrightness = brightness;
-      if(!avgBrightness){
+      if (!avgBrightness) {
         const img = new window.Image();
         img.crossOrigin = 'Anonymous';
         img.src = url;
@@ -86,26 +99,28 @@ export default function Result() {
             try {
               resolve(getAverageBrightness(img));
             } catch (err) {
-              toast.error('Error loading image')
+              toast.error('Error loading image');
               reject(err);
             }
           };
           img.onerror = (err) => {
-            toast.error('Error loading image')
+            toast.error('Error loading image');
             reject(err);
           };
         });
         setBrightness(avgBrightness);
       }
 
-      const parsedClasses = JSON.parse(res.headers['x-annotations']).map(classItem => ({
-        ...classItem,
-        stroke: getRandomHexColor(avgBrightness)
-      }))
+      const parsedClasses = JSON.parse(res.headers['x-annotations']).map(
+        (classItem) => ({
+          ...classItem,
+          stroke: getRandomHexColor(avgBrightness),
+        })
+      );
       return {
         url,
-        parsedClasses: getFormattedBoxes(parsedClasses)
-      }
+        parsedClasses: getFormattedBoxes(parsedClasses),
+      };
     } catch (error) {
       const isAborted = error?.config?.signal?.aborted;
       if (!isAborted) toast.error(error?.response?.data?.data?.message);
@@ -116,21 +131,25 @@ export default function Result() {
         setImageLoader2(false);
       }
     }
-  }
+  };
 
   const getDatasetCount = async () => {
-    try{
+    try {
       const response = await axiosInstance.get('/model/model-data', {
         params: {
           modelId: params.modelId,
-        }
+        },
       });
-      setDatasetCount(response.data?.data?.datasets.reduce((prev, cur)=> prev + cur.annotatedImages, 0));
+      setDatasetCount(
+        response.data?.data?.datasets.reduce(
+          (prev, cur) => prev + cur.annotatedImages,
+          0
+        )
+      );
+    } catch (e) {
+      toast.error(e?.response?.data?.data?.message);
     }
-    catch(e){
-      toast.error(e?.response?.data?.data?.message)
-    }
-  }
+  };
 
   const getModelData = async () => {
     try {
@@ -138,34 +157,37 @@ export default function Result() {
       const response = await axiosInstance.get('/model/result-images-list', {
         params: {
           modelId: params.modelId,
-          mode: 'validation'
-        }
+          mode: 'validation',
+        },
       });
 
       const imageList = response?.data?.data;
       setImageWithConfigs(imageList);
       const keys = [];
       const imageRoiMap = new Map();
-      imageList.forEach(img => {
+      imageList.forEach((img) => {
         const imgArray = img.split('/');
         const key = `${imgArray[0]}-${imgArray[1]}-${imgArray[2]}`;
-        if (!keys.includes(key)) keys.push(key)
+        if (!keys.includes(key)) keys.push(key);
         if (imageRoiMap.has(key)) {
-          imageRoiMap.set(key, [...imageRoiMap.get(key), `${imgArray[3]}/${imgArray[4]}`]);
+          imageRoiMap.set(key, [
+            ...imageRoiMap.get(key),
+            `${imgArray[3]}/${imgArray[4]}`,
+          ]);
         } else {
           imageRoiMap.set(key, [`${imgArray[3]}/${imgArray[4]}`]);
         }
-      })
+      });
       setImages(keys);
       setRoiImageMap(imageRoiMap);
       setSelectedImage(0);
       getDatasetCount();
     } catch (error) {
-      toast.error(error?.response?.data?.data?.message)
+      toast.error(error?.response?.data?.data?.message);
     } finally {
       setLoader(false);
     }
-  }
+  };
 
   const checkBlobURLValidity = (blobURL) => {
     return new Promise((resolve, reject) => {
@@ -181,24 +203,30 @@ export default function Result() {
       URL.revokeObjectURL(imageCache.get(imageName)?.url);
       imageCache.delete(imageName);
     }
-  }
+  };
 
   const deleteOlderCaches = (pageNum) => {
     const persistRange = [pageNum - 4, pageNum - 3, pageNum + 3, pageNum + 4];
     let cacheAfterDelete = new Map(cachedImages);
 
-    const actualIndex = imageWithConfigs.findIndex(conf => conf.startsWith(images[selectedImage].split('-').join('/')));
+    const actualIndex = imageWithConfigs.findIndex((conf) =>
+      conf.startsWith(images[selectedImage].split('-').join('/'))
+    );
 
-    persistRange.forEach(index => {
+    persistRange.forEach((index) => {
       const idx = actualIndex + (index - 1);
-      if (idx > 0 && idx < (imageWithConfigs.length - 1) && cacheAfterDelete.size > 10) {
-        const name = `${imageWithConfigs[idx].split('/')[3]}/${imageWithConfigs[idx].split('/')[4]}`
+      if (
+        idx > 0 &&
+        idx < imageWithConfigs.length - 1 &&
+        cacheAfterDelete.size > 10
+      ) {
+        const name = `${imageWithConfigs[idx].split('/')[3]}/${imageWithConfigs[idx].split('/')[4]}`;
         deleteBlob(name, cacheAfterDelete);
       }
-    })
+    });
     setCachedImages(cacheAfterDelete);
     return cacheAfterDelete;
-  }
+  };
 
   const cacheImages = async (selectedImage, pageNum) => {
     try {
@@ -207,35 +235,48 @@ export default function Result() {
       const promises = [];
       const configImages = roiImageMap.get(images[selectedImage]) ?? [];
 
-      cacheAbortControllerRef.forEach(r => {
+      cacheAbortControllerRef.current.forEach((r) => {
         if (r.current) {
           r.current.abort();
         }
-      })
+      });
 
       for (let img = pageNum - 2; img <= pageNum + 2; img++) {
         let idx = img - (pageNum - 2);
-        cacheAbortControllerRef[idx].current = new AbortController();
-        const { signal } = cacheAbortControllerRef[idx].current;
+        cacheAbortControllerRef.current[idx].current = new AbortController();
+        const { signal } = cacheAbortControllerRef.current[idx].current;
         let isUrlValid = false;
         if (cacheMap.has(configImages[img - 1])) {
-          isUrlValid = await checkBlobURLValidity(cacheMap.get(configImages[img - 1])?.url);
+          isUrlValid = await checkBlobURLValidity(
+            cacheMap.get(configImages[img - 1])?.url
+          );
         }
         if (img <= 0 || img > configImages.length || isUrlValid) continue;
         const imageName = configImages[img - 1];
         if (img === pageNum && !isUrlValid) {
-          const data = await makeApiCallForImage(imageName.split('/')[1], imageName.split('/')[0], signal, pageNum);
-          if (!(signal.aborted)) {
+          const data = await makeApiCallForImage(
+            imageName.split('/')[1],
+            imageName.split('/')[0],
+            signal,
+            pageNum
+          );
+          if (!signal.aborted) {
             cacheMap.set(imageName, data);
             setCachedImages(cacheMap);
           }
         } else {
-          promises.push(makeApiCallForImage(imageName.split('/')[1], imageName.split('/')[0], signal).then(data => {
-            if (!(signal.aborted)) {
-              cacheMap.set(imageName, data);
-              setCachedImages(cacheMap);
-            }
-          }));
+          promises.push(
+            makeApiCallForImage(
+              imageName.split('/')[1],
+              imageName.split('/')[0],
+              signal
+            ).then((data) => {
+              if (!signal.aborted) {
+                cacheMap.set(imageName, data);
+                setCachedImages(cacheMap);
+              }
+            })
+          );
         }
       }
 
@@ -244,7 +285,7 @@ export default function Result() {
       const isAborted = error?.config?.signal?.aborted;
       if (!isAborted) toast.error(error?.response?.data?.data?.message);
     }
-  }
+  };
 
   function distributeCounts(x) {
     let testingData = 0.2 * x;
@@ -254,16 +295,21 @@ export default function Result() {
     let roundedTestingData = Math.round(testingData);
     let roundedValidationData = Math.round(validationData);
     let roundedTrainingData = Math.round(trainingData);
-    
-    let total = roundedTestingData + roundedValidationData + roundedTrainingData;
+
+    let total =
+      roundedTestingData + roundedValidationData + roundedTrainingData;
 
     let difference = x - total;
 
     if (difference !== 0) {
-      let  fractions = [
+      let fractions = [
         { value: testingData, rounded: roundedTestingData, key: 'testing' },
-        { value: validationData, rounded: roundedValidationData, key: 'validation' },
-        { value: trainingData, rounded: roundedTrainingData, key: 'training' }
+        {
+          value: validationData,
+          rounded: roundedValidationData,
+          key: 'validation',
+        },
+        { value: trainingData, rounded: roundedTrainingData, key: 'training' },
       ];
       if (difference > 0) {
         fractions.sort((a, b) => (b.value % 1) - (a.value % 1));
@@ -276,59 +322,66 @@ export default function Result() {
           fractions[i].rounded -= 1;
         }
       }
-      roundedTestingData = fractions.find(fr => fr.key === 'testing').rounded;
-      roundedValidationData = fractions.find(fr => fr.key === 'validation').rounded;
-      roundedTrainingData = fractions.find(fr => fr.key === 'training').rounded;
+      roundedTestingData = fractions.find((fr) => fr.key === 'testing').rounded;
+      roundedValidationData = fractions.find(
+        (fr) => fr.key === 'validation'
+      ).rounded;
+      roundedTrainingData = fractions.find(
+        (fr) => fr.key === 'training'
+      ).rounded;
     }
 
     return {
       testingCount: roundedTestingData,
       validationCount: roundedValidationData,
-      trainingCount: roundedTrainingData
+      trainingCount: roundedTrainingData,
     };
   }
 
-  const {trainingCount, testingCount, validationCount} = distributeCounts(datasetCount);
+  const { trainingCount, testingCount, validationCount } =
+    distributeCounts(datasetCount);
 
   useEffect(() => {
     if (images?.length > 0) {
-      const imageName = roiImageMap.has(images[selectedImage]) ? roiImageMap.get(images[selectedImage])[page - 1] : ''
-      const data = cachedImages.get(imageName)
+      const imageName = roiImageMap.has(images[selectedImage])
+        ? roiImageMap.get(images[selectedImage])[page - 1]
+        : '';
+      const data = cachedImages.get(imageName);
       if (data) {
-        checkBlobURLValidity(data.url).then(isValid => {
+        checkBlobURLValidity(data.url).then((isValid) => {
           if (isValid) {
             setImageLoader(false);
             setImageLoader2(false);
           } else {
-            setCachedImages(prev => {
+            setCachedImages((prev) => {
               prev.delete(imageName);
               return prev;
-            })
+            });
           }
         });
       }
       cacheImages(selectedImage, page);
     }
-  }, [page, images, selectedImage])
+  }, [page, images, selectedImage]);
 
   useEffect(() => {
-    getModelData()
+    getModelData();
 
     return () => {
       cachedImages.forEach((value, key) => {
         if (value) URL.revokeObjectURL(value.url);
       });
       setCachedImages(new Map());
-    }
-  }, [])
+    };
+  }, []);
 
-  if(!loader && imageWithConfigs.length == 0){
-    return <NoData />
+  if (!loader && imageWithConfigs.length == 0) {
+    return <NoData />;
   }
 
   return (
     <div className="grid gap-4">
-      {loader && <ProjectCreateLoader title='Fetching Images' />}
+      {loader && <ProjectCreateLoader title="Fetching Images" />}
       <ul className="flex gap-12">
         <li>Training Data: {trainingCount} images</li>
 
@@ -349,44 +402,48 @@ export default function Result() {
       </p>
 
       <div className="flex items-center justify-center gap-8">
-        <div className="w-full max-w-lg flex flex-col items-center gap-4">
+        <div className="flex w-full max-w-lg flex-col items-center gap-4">
           <div
-            className='border-black flex items-center justify-center'
+            className="flex items-center justify-center border-black"
             style={{
               height: canvasSize,
-              width: canvasSize
+              width: canvasSize,
             }}
           >
-            {(imageLoader || imageLoader2) ? (
-              <div className="loading px-4 text-center" style={{ width: canvasSize / 2 }}></div>
+            {imageLoader || imageLoader2 ? (
+              <div
+                className="loading px-4 text-center"
+                style={{ width: canvasSize / 2 }}
+              ></div>
             ) : (
               <img
                 src={cachedImages.get(currentImg)?.url}
                 style={{
                   maxWidth: canvasSize,
-                  maxHeight: canvasSize
+                  maxHeight: canvasSize,
                 }}
               />
             )}
           </div>
-          <div className='font-medium text-xl'>Actual</div>
+          <div className="text-xl font-medium">Actual</div>
         </div>
 
-        <div
-          className='flex flex-col items-center gap-4'
-        >
+        <div className="flex flex-col items-center gap-4">
           <div
-            className='border-black flex items-center justify-center'
+            className="flex items-center justify-center border-black"
             style={{
               height: canvasSize,
-              width: canvasSize
+              width: canvasSize,
             }}
           >
-            {(imageLoader || imageLoader2) ? (
-              <div className="loading px-4 text-center" style={{ width: canvasSize / 2 }}></div>
+            {imageLoader || imageLoader2 ? (
+              <div
+                className="loading px-4 text-center"
+                style={{ width: canvasSize / 2 }}
+              ></div>
             ) : (
               <>
-                {(cachedImages.get(currentImg)?.url) && (
+                {cachedImages.get(currentImg)?.url && (
                   <PredictedImage
                     threshold={threshold}
                     canvasSize={canvasSize}
@@ -397,28 +454,43 @@ export default function Result() {
               </>
             )}
           </div>
-          <div className='font-medium text-xl'>Prediction</div>
+          <div className="text-xl font-medium">Prediction</div>
         </div>
       </div>
 
-      {images.length > 0 && <Select
-        value={selectedImage}
-        options={images.map((img, idx) => ({ id: idx, name: img }))}
-        onChange={(e) => {
-          setSelectedImage(Number(e.target.value))
-          setPage(1)
-        }}
-        size='md'
-        style={{
-          backgroundColor: '#9990FF',
-          color: '#fff',
-          cursor: 'pointer'
-        }}
-      />}
-      <ResultPagination page={page} setPage={setPage} total={roiImageMap.has(images[selectedImage]) ? roiImageMap.get(images[selectedImage])?.length : 0} />
+      {images.length > 0 && (
+        <Select
+          value={selectedImage}
+          options={images.map((img, idx) => ({ id: idx, name: img }))}
+          onChange={(e) => {
+            setSelectedImage(Number(e.target.value));
+            setPage(1);
+          }}
+          size="md"
+          style={{
+            backgroundColor: '#9990FF',
+            color: '#fff',
+            cursor: 'pointer',
+          }}
+        />
+      )}
+      <ResultPagination
+        page={page}
+        setPage={setPage}
+        total={
+          roiImageMap.has(images[selectedImage])
+            ? roiImageMap.get(images[selectedImage])?.length
+            : 0
+        }
+      />
 
       <div className="flex flex-col items-center gap-4">
-        <Slider title={'Confidence Threshold:'} id="confidence" value={threshold} setValue={setThreshold} />
+        <Slider
+          title={'Confidence Threshold:'}
+          id="confidence"
+          value={threshold}
+          setValue={setThreshold}
+        />
         {/* <Slider title={'IOU Threshold:'} id="iou" /> */}
       </div>
 
@@ -427,10 +499,26 @@ export default function Result() {
       <p>
         The below graphs helps you visualise the training results. You can
         understand the false positive and false negative of the trained model
-        from the <a href='https://developers.google.com/machine-learning/glossary#confusion_matrix' target='__blank'><span className='text-[#6B4EFF] font-bold underline'>confusion matrix</span></a>.
-        And the <a href='https://developers.google.com/machine-learning/crash-course/classification/precision-and-recall' target='__blank'><span className='text-[#6B4EFF] font-bold underline'>precision-recall</span></a> curve helps you
-        understand the performance of the model. Click here to understand more
-        about these two metrics.
+        from the{' '}
+        <a
+          href="https://developers.google.com/machine-learning/glossary#confusion_matrix"
+          target="__blank"
+        >
+          <span className="font-bold text-[#6B4EFF] underline">
+            confusion matrix
+          </span>
+        </a>
+        . And the{' '}
+        <a
+          href="https://developers.google.com/machine-learning/crash-course/classification/precision-and-recall"
+          target="__blank"
+        >
+          <span className="font-bold text-[#6B4EFF] underline">
+            precision-recall
+          </span>
+        </a>{' '}
+        curve helps you understand the performance of the model. Click here to
+        understand more about these two metrics.
       </p>
 
       <div className="flex items-center justify-center gap-4">
